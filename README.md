@@ -5,3 +5,4 @@ Roadmap:
 2. Define Turing degrees
 3. Prove properties of Turing degrees (uncountable, upper semilattice)
 4. Kleene-Post theorem
+5. Possibly: Complexity theory OR computable algebra
