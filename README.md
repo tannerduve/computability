@@ -2,7 +2,7 @@ A formalization of computability theory in Lean.
 
 Roadmap:
 1. Define Turing reducibility - Done
-2. Prove equivalence relation - Done with refl and symm (trivial), working on transitivity
+2. Prove equivalence relation - Done
 3. Define Turing degrees
 4. Prove properties of Turing degrees (uncountable, upper semilattice)
 5. Formalize Jump Construction
