@@ -4,6 +4,7 @@ import Mathlib.Computability.Reduce
 import Mathlib.Data.Part
 import Mathlib.Tactic.Cases
 import Mathlib.Tactic.Lemma
+open Classical
 /-
 Defining oracle computability and Turing degrees. Following http://www.piergiorgioodifreddi.it/wp-content/uploads/2010/10/CRT1.pdf
 -/
@@ -42,18 +43,24 @@ infix:50 "≡ᵀ" => turing_equivalent
 
 theorem turing_reduce_refl (f : ℕ → ℕ) : f ≤ᵀ f := RecursiveIn.oracle
 
+theorem turing_red_refl : Reflexive turing_reducible := λ f => turing_reduce_refl f
+
+theorem turing_equiv_refl : Reflexive turing_equivalent := λ f => ⟨turing_reduce_refl f, turing_reduce_refl f⟩
+
 theorem turing_equiv_symm {f g : ℕ → ℕ} (h : f ≡ᵀ g) : g ≡ᵀ f :=
   ⟨h.2, h.1⟩
 
-def characteristic_function (A : ℕ → Prop) [∀ n, Decidable (A n)] : ℕ → ℕ
+theorem turing_equiv_symmetric : Symmetric turing_equivalent := λ _ _ => turing_equiv_symm
+
+noncomputable def characteristic_function (A : ℕ → Prop) : ℕ → ℕ
   | n => if A n then 1 else 0
 
-def turing_reducible_sets (A B : ℕ → Prop) [∀ n, Decidable (A n)] [∀ n, Decidable (B n)] : Prop :=
+def turing_reducible_sets (A B : ℕ → Prop) : Prop :=
   (characteristic_function A) ≤ᵀ (characteristic_function B)
 
+-- Proof that turing_reducible is transitive
 theorem turing_reduce_trans {f g h : ℕ → ℕ} :
   f ≤ᵀ g → g ≤ᵀ h → f ≤ᵀ h := by
-  -- the idea here is that if f is recursive in g then g can be used to compute f, but since g is recursive in h, h can be used to compute g, which can be used to compute f, so f is recursive in h, ie. f ≤ᵀ h
   intro hg hh
   unfold turing_reducible at *
   generalize (fun n ↦ Part.some (f n)) = fp at *
@@ -78,3 +85,14 @@ theorem turing_reduce_trans {f g h : ℕ → ℕ} :
   case rfind f' _ hf_ih =>
     apply RecursiveIn.rfind
     · apply hf_ih
+
+theorem turing_red_trans : Transitive turing_reducible := λ _ _ _ fg gh => turing_reduce_trans fg gh
+
+theorem turing_equiv_trans : Transitive turing_equivalent :=
+λ _ _ _ ⟨fg₁, fg₂⟩ ⟨gh₁, gh₂⟩ => ⟨turing_red_trans fg₁ gh₁, turing_red_trans gh₂ fg₂⟩
+
+-- Equivalence instance for turing_equivalent
+instance : Equivalence (turing_equivalent) where
+  refl := turing_equiv_refl
+  symm := turing_equiv_symm
+  trans := @turing_equiv_trans
