@@ -7,7 +7,6 @@ import Mathlib.Tactic.Lemma
 /-
 Defining oracle computability and Turing degrees. Following http://www.piergiorgioodifreddi.it/wp-content/uploads/2010/10/CRT1.pdf
 -/
-
 inductive RecursiveIn (g : ℕ → ℕ) : (ℕ →. ℕ) → Prop
   | zero : RecursiveIn g (λ _ => 0)
   | succ : RecursiveIn g Nat.succ
@@ -64,4 +63,18 @@ theorem turing_reduce_trans {f g h : ℕ → ℕ} :
   · apply RecursiveIn.left
   · apply RecursiveIn.right
   · apply hh
-  case pair pair f' h' g' gh_ih1 hf_ih2 hh' => sorry
+  case pair pair f' h' _ _ hh_ih1 hh_ih2  =>
+    apply RecursiveIn.pair
+    · exact hh_ih1
+    · exact hh_ih2
+  case comp f' h' _ _ hf_ih hh_ih =>
+    apply RecursiveIn.comp
+    · apply hf_ih
+    · apply hh_ih
+  case prec f' h' _ _ hf_ih hh_ih =>
+    apply RecursiveIn.prec
+    · apply hf_ih
+    · apply hh_ih
+  case rfind f' _ hf_ih =>
+    apply RecursiveIn.rfind
+    · apply hf_ih
