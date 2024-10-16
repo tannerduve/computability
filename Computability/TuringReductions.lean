@@ -4,11 +4,11 @@ import Mathlib.Computability.Reduce
 import Mathlib.Data.Part
 import Mathlib.Tactic.Cases
 import Mathlib.Tactic.Lemma
-open Classical
+
 /-
 Defining oracle computability and Turing degrees. Following http://www.piergiorgioodifreddi.it/wp-content/uploads/2010/10/CRT1.pdf
 -/
-inductive RecursiveIn (g : ℕ → ℕ) : (ℕ →. ℕ) → Prop
+inductive RecursiveIn (g : ℕ →. ℕ) : (ℕ →. ℕ) → Prop
   | zero : RecursiveIn g (λ _ => 0)
   | succ : RecursiveIn g Nat.succ
   | left : RecursiveIn g (λ n => (Nat.unpair n).1)
@@ -31,39 +31,33 @@ inductive RecursiveIn (g : ℕ → ℕ) : (ℕ →. ℕ) → Prop
         Nat.rfind (λ n => (λ m => m = 0) <$> f (Nat.pair a n))
       )
 
-def turing_reducible (f g : ℕ → ℕ) : Prop :=
-  RecursiveIn g (λ n => Part.some (f n))
+def turing_reducible (f g : ℕ →. ℕ) : Prop :=
+  RecursiveIn g f
 
 infix:50 "≤ᵀ" => turing_reducible
 
-def turing_equivalent (f g : ℕ → ℕ) : Prop :=
+def turing_equivalent (f g : ℕ →. ℕ) : Prop :=
   f ≤ᵀ g ∧ g ≤ᵀ f
 
 infix:50 "≡ᵀ" => turing_equivalent
 
-theorem turing_reduce_refl (f : ℕ → ℕ) : f ≤ᵀ f := RecursiveIn.oracle
+theorem turing_reduce_refl (f : ℕ →. ℕ) : f ≤ᵀ f := RecursiveIn.oracle
 
 theorem turing_red_refl : Reflexive turing_reducible := λ f => turing_reduce_refl f
 
 theorem turing_equiv_refl : Reflexive turing_equivalent := λ f => ⟨turing_reduce_refl f, turing_reduce_refl f⟩
 
-theorem turing_equiv_symm {f g : ℕ → ℕ} (h : f ≡ᵀ g) : g ≡ᵀ f :=
+theorem turing_equiv_symm {f g : ℕ →. ℕ} (h : f ≡ᵀ g) : g ≡ᵀ f :=
   ⟨h.2, h.1⟩
 
 theorem turing_equiv_symmetric : Symmetric turing_equivalent := λ _ _ => turing_equiv_symm
 
-noncomputable def characteristic_function (A : ℕ → Prop) : ℕ → ℕ
-  | n => if A n then 1 else 0
-
-def turing_reducible_sets (A B : ℕ → Prop) : Prop :=
-  (characteristic_function A) ≤ᵀ (characteristic_function B)
-
 -- Proof that turing_reducible is transitive
-theorem turing_reduce_trans {f g h : ℕ → ℕ} :
+theorem turing_reduce_trans {f g h : ℕ →. ℕ} :
   f ≤ᵀ g → g ≤ᵀ h → f ≤ᵀ h := by
   intro hg hh
   unfold turing_reducible at *
-  generalize (fun n ↦ Part.some (f n)) = fp at *
+  generalize (fun a ↦ Part.some (f a)) = fp at *
   induction hg
   · apply RecursiveIn.zero
   · apply RecursiveIn.succ
@@ -86,10 +80,8 @@ theorem turing_reduce_trans {f g h : ℕ → ℕ} :
     apply RecursiveIn.rfind
     · apply hf_ih
 
-theorem turing_red_trans : Transitive turing_reducible := λ _ _ _ fg gh => turing_reduce_trans fg gh
-
 theorem turing_equiv_trans : Transitive turing_equivalent :=
-λ _ _ _ ⟨fg₁, fg₂⟩ ⟨gh₁, gh₂⟩ => ⟨turing_red_trans fg₁ gh₁, turing_red_trans gh₂ fg₂⟩
+λ _ _ _ ⟨fg₁, fg₂⟩ ⟨gh₁, gh₂⟩ => ⟨turing_reduce_trans fg₁ gh₁, turing_reduce_trans gh₂ fg₂⟩
 
 -- Equivalence instance for turing_equivalent
 instance : Equivalence (turing_equivalent) where
