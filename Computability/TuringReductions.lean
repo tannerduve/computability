@@ -41,15 +41,19 @@ def turing_equivalent (f g : ℕ →. ℕ) : Prop :=
 
 infix:50 "≡ᵀ" => turing_equivalent
 
+-- Proof that turing_reducible is reflexive
 theorem turing_reduce_refl (f : ℕ →. ℕ) : f ≤ᵀ f := RecursiveIn.oracle
 
 theorem turing_red_refl : Reflexive turing_reducible := λ f => turing_reduce_refl f
 
+-- Proof that turing_equvalent is reflexive
 theorem turing_equiv_refl : Reflexive turing_equivalent := λ f => ⟨turing_reduce_refl f, turing_reduce_refl f⟩
 
+-- Proof that turing_reducible is symmetric
 theorem turing_equiv_symm {f g : ℕ →. ℕ} (h : f ≡ᵀ g) : g ≡ᵀ f :=
   ⟨h.2, h.1⟩
 
+-- Proof that turing_equivalent is symmetric
 theorem turing_equiv_symmetric : Symmetric turing_equivalent := λ _ _ => turing_equiv_symm
 
 -- Proof that turing_reducible is transitive
@@ -80,10 +84,11 @@ theorem turing_reduce_trans {f g h : ℕ →. ℕ} :
     apply RecursiveIn.rfind
     · apply hf_ih
 
+-- Proof that turing_equivalent is transitive
 theorem turing_equiv_trans : Transitive turing_equivalent :=
 λ _ _ _ ⟨fg₁, fg₂⟩ ⟨gh₁, gh₂⟩ => ⟨turing_reduce_trans fg₁ gh₁, turing_reduce_trans gh₂ fg₂⟩
 
--- Equivalence instance for turing_equivalent
+-- Equivalence relation instance for turing_equivalent
 instance : Equivalence (turing_equivalent) where
   refl := turing_equiv_refl
   symm := turing_equiv_symm
