@@ -58,12 +58,12 @@ def unmkpair (n : ℕ) : ℕ × ℕ :=
     let b := n - s * s - s
     (a, b)
 
-def decode' : ℕ → Option codeo
-  | 0 => some codeo.zero
-  | 1 => some codeo.succ
-  | 2 => some codeo.left
-  | 3 => some codeo.right
-  | 4 => some codeo.oracle
+def decode' : ℕ → codeo
+  | 0 => codeo.zero
+  | 1 => codeo.succ
+  | 2 => codeo.left
+  | 3 => codeo.right
+  | 4 => codeo.oracle
   | n + 5 =>
     let m := n.div2.div2
     have hm : m < n + 5 := by
@@ -76,39 +76,50 @@ def decode' : ℕ → Option codeo
     have _m1 : m.unpair.1 < n + 5 := lt_of_le_of_lt m.unpair_left_le hm
     have _m2 : m.unpair.2 < n + 5 := lt_of_le_of_lt m.unpair_right_le hm
     match n.bodd, n.div2.bodd with
-    | false, false =>
-      match decode' m.unpair.1, decode' m.unpair.2 with
-      | some cf, some cg => some (codeo.pair cf cg)
-      | _, _ => none
-    | false, true  =>
-      match decode' m.unpair.1, decode' m.unpair.2 with
-      | some cf, some cg => some (codeo.comp cf cg)
-      | _, _ => none
-    | true , false =>
-      match decode' m.unpair.1, decode' m.unpair.2 with
-      | some cf, some cg => some (codeo.prec cf cg)
-      | _, _ => none
-    | true , true  =>
-      match decode' m with
-      | some cf => some (codeo.rfind' cf)
-      | none => none
+    | false, false => codeo.pair (decode' m.unpair.1) (decode' m.unpair.2)
+    | false, true  => codeo.comp (decode' m.unpair.1) (decode' m.unpair.2)
+    | true , false => codeo.prec (decode' m.unpair.1) (decode' m.unpair.2)
+    | true , true  => codeo.rfind' (decode' m)
 
-instance : Primcodable codeo where
-  encode := encode'
-  decode := decode'
-  encodek := by
-    intros c
-    induction' c
-    case zero =>
-      simp [encode', decode']
-    case succ =>
-      simp [encode', decode']
-    case left =>
-      simp [encode', decode']
-    case right =>
-      simp [encode', decode']
-    case oracle =>
-      simp [encode', decode']
-    case pair cf cg ih1 ih2 =>
-      sorry
-  prim := sorry
+private theorem encode_decode : ∀ n, encode' (decode' n) = n
+  | 0 => by simp [encode', decode']
+  | 1 => by simp [encode', decode']
+  | 2 => by simp [encode', decode']
+  | 3 => by simp [encode', decode']
+  | 4 => by simp [encode', decode']
+  | n + 5 =>
+    have h : n.div2.div2 < n + 5 := by
+      apply lt_of_le_of_lt
+      exact Nat.le_refl n.div2.div2
+      apply lt_of_le_of_lt
+      exact Nat.le_refl n.div2.div2
+      simp only [Nat.div2_val]
+      apply lt_of_le_of_lt
+      exact Nat.div_le_self (n / 2) 2
+      apply lt_of_le_of_lt
+      exact Nat.div_le_self n 2
+      linarith
+
+
+-- instance : Primcodable codeo where
+--   encode := encode'
+--   decode := decode'
+--   encodek := by
+--     intros c
+--     induction' c
+--     case zero =>
+--       simp [encode', decode']
+--     case succ =>
+--       simp [encode', decode']
+--     case left =>
+--       simp [encode', decode']
+--     case right =>
+--       simp [encode', decode']
+--     case oracle =>
+--       simp [encode', decode']
+--     case pair cf cg ih1 ih2 =>
+
+
+
+
+--   prim := sorry

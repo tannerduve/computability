@@ -8,6 +8,7 @@ import Mathlib.Tactic.Lemma
 /-
 Defining oracle computability and Turing degrees. Following http://www.piergiorgioodifreddi.it/wp-content/uploads/2010/10/CRT1.pdf
 -/
+
 inductive RecursiveIn (g : ℕ →. ℕ) : (ℕ →. ℕ) → Prop
   | zero : RecursiveIn g (λ _ => 0)
   | succ : RecursiveIn g Nat.succ

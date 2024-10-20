@@ -5,7 +5,7 @@ import Computability.TuringDegrees
 2. Show that for all f, f strictly reduces to its jump
 3. Show that the jump operator is monotone ie. if f ≤ᵀ g then f' ≤ᵀ g'
 
-Hard problem: This is an encoding problem. The jump of a partial recursive
+This is an encoding problem. The jump of a partial recursive
 function f is the function f' defined as follows:
 
 f(e) = 1 if the eᵗʰ partial function recursive in f halts on e, and is undefined otherwise.
