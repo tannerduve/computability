@@ -32,7 +32,11 @@ def TuringDegree := Quot turing_equivalent
 
 -- Define the join operation on partial functions:
 def join (f g : ℕ →. ℕ) : ℕ →. ℕ :=
-  λ n => if n % 2 = 0 then f (n / 2) else g (n / 2)
+  λ n =>
+    if n % 2 = 0 then
+      (f (n / 2)).map (λ x => 2 * x)
+    else
+      (g (n / 2)).map (λ y => 2 * y + 1)
 
 infix:99 "⊔" => join
 
@@ -93,17 +97,29 @@ def TuringDegree.turing_red (d₁ d₂ : TuringDegree) : Prop :=
 
 #check Quot.lift₂
 
--- Lift the join operation to Turing degrees via quotient construction
-def TuringDegree.join (d₁ d₂ : TuringDegree) : TuringDegree :=
-  sorry
+-- theorem join_lifts : ∀ (a b₁ b₂ : (ℕ → ℕ)), turing_equivalent b₁ b₂ → join a b₁ = join a b₂ := by
+--   intros a b₁ b₂ bEqb
+--   apply funext
+--   intro n
+--   unfold join
+--   unfold turing_equivalent at bEqb
+--   cases' bEqb with b₁Redb₂ b₂Redb₁
+--   cases' n % 2 with k
+--   simp
+--   simp
+--   sorry
 
--- Prove that Turing Degrees forms an upper semilattice
-instance : SemilatticeSup TuringDegree where
-  sup := TuringDegree.join
-  le := TuringDegree.turing_red
-  le_refl := sorry
-  le_trans := sorry
-  le_antisymm := sorry
-  le_sup_left := sorry
-  le_sup_right := sorry
-  sup_le := sorry
+-- -- Lift the join operation to Turing degrees via quotient construction
+-- def TuringDegree.join (d₁ d₂ : TuringDegree) : TuringDegree :=
+--   sorry
+
+-- -- Prove that Turing Degrees forms an upper semilattice
+-- instance : SemilatticeSup TuringDegree where
+--   sup := TuringDegree.join
+--   le := TuringDegree.turing_red
+--   le_refl := sorry
+--   le_trans := sorry
+--   le_antisymm := sorry
+--   le_sup_left := sorry
+--   le_sup_right := sorry
+--   sup_le := sorry
