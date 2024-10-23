@@ -97,29 +97,29 @@ def TuringDegree.turing_red (d₁ d₂ : TuringDegree) : Prop :=
 
 #check Quot.lift₂
 
--- theorem join_lifts : ∀ (a b₁ b₂ : (ℕ → ℕ)), turing_equivalent b₁ b₂ → join a b₁ = join a b₂ := by
---   intros a b₁ b₂ bEqb
---   apply funext
---   intro n
---   unfold join
---   unfold turing_equivalent at bEqb
---   cases' bEqb with b₁Redb₂ b₂Redb₁
---   cases' n % 2 with k
---   simp
---   simp
---   sorry
+theorem join_lifts : ∀ (a b₁ b₂ : (ℕ → ℕ)), turing_equivalent b₁ b₂ → join a b₁ = join a b₂ := by
+  intros a b₁ b₂ bEqb
+  apply funext
+  intro n
+  unfold join
+  unfold turing_equivalent at bEqb
+  cases' bEqb with b₁Redb₂ b₂Redb₁
+  cases' n % 2 with k
+  simp
+  simp
+  sorry
 
--- -- Lift the join operation to Turing degrees via quotient construction
--- def TuringDegree.join (d₁ d₂ : TuringDegree) : TuringDegree :=
---   sorry
+-- Lift the join operation to Turing degrees via quotient construction
+def TuringDegree.join (d₁ d₂ : TuringDegree) : TuringDegree :=
+  sorry
 
--- -- Prove that Turing Degrees forms an upper semilattice
--- instance : SemilatticeSup TuringDegree where
---   sup := TuringDegree.join
---   le := TuringDegree.turing_red
---   le_refl := sorry
---   le_trans := sorry
---   le_antisymm := sorry
---   le_sup_left := sorry
---   le_sup_right := sorry
---   sup_le := sorry
+-- Prove that Turing Degrees forms an upper semilattice
+instance : SemilatticeSup TuringDegree where
+  sup := TuringDegree.join
+  le := TuringDegree.turing_red
+  le_refl := sorry
+  le_trans := sorry
+  le_antisymm := sorry
+  le_sup_left := sorry
+  le_sup_right := sorry
+  sup_le := sorry

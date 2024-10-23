@@ -81,45 +81,6 @@ def decode' : ℕ → codeo
     | true , false => codeo.prec (decode' m.unpair.1) (decode' m.unpair.2)
     | true , true  => codeo.rfind' (decode' m)
 
-private theorem encode_decode : ∀ n, encode' (decode' n) = n
-  | 0 => by simp [encode', decode']
-  | 1 => by simp [encode', decode']
-  | 2 => by simp [encode', decode']
-  | 3 => by simp [encode', decode']
-  | 4 => by simp [encode', decode']
-  | n + 5 =>
-    have h : n.div2.div2 < n + 5 := by
-      apply lt_of_le_of_lt
-      exact Nat.le_refl n.div2.div2
-      apply lt_of_le_of_lt
-      exact Nat.le_refl n.div2.div2
-      simp only [Nat.div2_val]
-      apply lt_of_le_of_lt
-      exact Nat.div_le_self (n / 2) 2
-      apply lt_of_le_of_lt
-      exact Nat.div_le_self n 2
-      linarith
+theorem encode_decode : ∀ n, encode' (decode' n) = n := by sorry
 
-
--- instance : Primcodable codeo where
---   encode := encode'
---   decode := decode'
---   encodek := by
---     intros c
---     induction' c
---     case zero =>
---       simp [encode', decode']
---     case succ =>
---       simp [encode', decode']
---     case left =>
---       simp [encode', decode']
---     case right =>
---       simp [encode', decode']
---     case oracle =>
---       simp [encode', decode']
---     case pair cf cg ih1 ih2 =>
-
-
-
-
---   prim := sorry
+instance codeDenumerable : Denumerable Code := by sorry
