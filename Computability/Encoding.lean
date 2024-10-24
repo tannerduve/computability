@@ -33,8 +33,6 @@ def evalo (g : ℕ →. ℕ) : codeo → ℕ →. ℕ :=
     Nat.unpaired fun a m =>
       (Nat.rfind fun n => (fun m => m = 0) <$> evalo g cf (Nat.pair a (n + m))).map (· + m)
 
-def mkpair (a b : ℕ) : ℕ := if a < b then b*b + a else a*a + a + b
-
 def encode' : codeo → ℕ :=
 λ c => match c with
 | codeo.zero => 0
@@ -42,21 +40,10 @@ def encode' : codeo → ℕ :=
 | codeo.left => 2
 | codeo.right => 3
 | codeo.oracle => 4
-| codeo.pair cf cg => 5 * (mkpair (encode' cf) (encode' cg)) + 5
-| codeo.comp cf cg => 5 * (mkpair (encode' cf) (encode' cg)) + 6
-| codeo.prec cf cg => 5 * (mkpair (encode' cf) (encode' cg)) + 7
-| codeo.rfind' cf => 5 * (encode' cf) + 8
-
-def unmkpair (n : ℕ) : ℕ × ℕ :=
-  let s := Nat.sqrt n
-  if n < s * s + s then
-    let b := s
-    let a := n - s * s
-    (a, b)
-  else
-    let a := s
-    let b := n - s * s - s
-    (a, b)
+| codeo.pair cf cg => 2 * (2 * Nat.pair (encode' cf) (encode' cg)) + 5
+| codeo.comp cf cg => 2 * (2 * Nat.pair (encode' cf) (encode' cg) + 1) + 5
+| codeo.prec cf cg => (2 * (2 * Nat.pair (encode' cf) (encode' cg)) + 1) + 5
+| codeo.rfind' cf => (2 * (2 * encode' cf + 1) + 1) + 5
 
 def decode' : ℕ → codeo
   | 0 => codeo.zero
@@ -81,6 +68,29 @@ def decode' : ℕ → codeo
     | true , false => codeo.prec (decode' m.unpair.1) (decode' m.unpair.2)
     | true , true  => codeo.rfind' (decode' m)
 
-theorem encode_decode : ∀ n, encode' (decode' n) = n := by sorry
+#eval encode' $ decode' 136
 
-instance codeDenumerable : Denumerable Code := by sorry
+theorem encode_decode : ∀ n, encode' (decode' n) = by sorry
+
+-- -- instance : Primcodable codeo where
+-- --   encode := encode'
+-- --   decode := decode'
+-- --   encodek := by
+-- --     intros c
+-- --     induction' c
+-- --     case zero =>
+-- --       simp [encode', decode']
+-- --     case succ =>
+-- --       simp [encode', decode']
+-- --     case left =>
+-- --       simp [encode', decode']
+-- --     case right =>
+-- --       simp [encode', decode']
+-- --     case oracle =>
+-- --       simp [encode', decode']
+-- --     case pair cf cg ih1 ih2 =>
+
+
+
+
+-- --   prim := sorry
