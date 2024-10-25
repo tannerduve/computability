@@ -1,4 +1,4 @@
-import Computability.TuringReductions
+import Computability.Encoding
 import Mathlib.Order.Lattice
 
 -- Stuff about quotients is hidden in a namespace
@@ -111,6 +111,10 @@ theorem join_lifts : ∀ (a b₁ b₂ : (ℕ → ℕ)), turing_equivalent b₁ b
 
 -- Lift the join operation to Turing degrees via quotient construction
 def TuringDegree.join (d₁ d₂ : TuringDegree) : TuringDegree :=
+  sorry
+
+-- Lift the jump operator to Turing degrees via quotient construction
+def TuringDegree.jump (d : TuringDegree) : TuringDegree :=
   sorry
 
 -- Prove that Turing Degrees forms an upper semilattice
