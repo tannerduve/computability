@@ -18,6 +18,10 @@ Theorems to prove (2.3 Jump Theorem in Soare Recursively Enumerable Sets and Deg
 5. g ≤ᵀ f ↔ g⌜ ≤₁ f⌜
 6. If g ≡ᵀ f then g⌜ ≡₁ f⌜
 7. ...
+
+We can identify part rec functions with recursively enumerable sets by taking their domain,
+if f : ℕ →. ℕ, then dom(f) : ℕ → Prop := λ n => n ∈ f.Dom. These are the terms in which we
+state the jump theorems:
 -/
 
 def dom (f : ℕ →. ℕ) : ℕ → Prop :=
