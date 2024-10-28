@@ -4,11 +4,17 @@ import Mathlib.Computability.Reduce
 import Mathlib.Data.Part
 import Mathlib.Tactic.Cases
 import Mathlib.Tactic.Lemma
+import Lean.Elab.Tactic.Basic
 
 /-
 Defining oracle computability and Turing degrees. Following http://www.piergiorgioodifreddi.it/wp-content/uploads/2010/10/CRT1.pdf
 -/
 
+/-
+The type of partial functions recursive in an oracle g is the smallest type containing
+the constant zero, the successor, left and right projections, the oracle g, and is closed under
+pairing, composition, primitive recursion, and μ-recursion.
+-/
 inductive RecursiveIn (g : ℕ →. ℕ) : (ℕ →. ℕ) → Prop
   | zero : RecursiveIn g (λ _ => 0)
   | succ : RecursiveIn g Nat.succ
@@ -16,9 +22,9 @@ inductive RecursiveIn (g : ℕ →. ℕ) : (ℕ →. ℕ) → Prop
   | right : RecursiveIn g (λ n => (Nat.unpair n).2)
   | oracle : RecursiveIn g g
   | pair {f h : ℕ →. ℕ} (hf : RecursiveIn g f) (hh : RecursiveIn g h) :
-      RecursiveIn g (λ n => (pair <$> f n <*> h n))
+      RecursiveIn g (λ n => (Nat.pair <$> f n <*> h n))
   | comp {f h : ℕ →. ℕ} (hf : RecursiveIn g f) (hh : RecursiveIn g h) :
-      RecursiveIn g (λ n => f n >>= h)
+      RecursiveIn g (λ n => h n >>= f)
   | prec {f h : ℕ →. ℕ} (hf : RecursiveIn g f) (hh : RecursiveIn g h) :
       RecursiveIn g (λ p =>
         let (a, n) := Nat.unpair p
@@ -32,6 +38,9 @@ inductive RecursiveIn (g : ℕ →. ℕ) : (ℕ →. ℕ) → Prop
         Nat.rfind (λ n => (λ m => m = 0) <$> f (Nat.pair a n))
       )
 
+/-
+f is turing reducible to g if f is recursive in g
+-/
 def turing_reducible (f g : ℕ →. ℕ) : Prop :=
   RecursiveIn g f
 
@@ -69,10 +78,10 @@ theorem turing_reduce_trans {f g h : ℕ →. ℕ} :
   · apply RecursiveIn.left
   · apply RecursiveIn.right
   · apply hh
-  case pair pair f' h' _ _ hh_ih1 hh_ih2  =>
+  case pair f' h' _ _ hf_ih hh_ih =>
     apply RecursiveIn.pair
-    · exact hh_ih1
-    · exact hh_ih2
+    · apply hf_ih
+    · apply hh_ih
   case comp f' h' _ _ hf_ih hh_ih =>
     apply RecursiveIn.comp
     · apply hf_ih
@@ -84,6 +93,8 @@ theorem turing_reduce_trans {f g h : ℕ →. ℕ} :
   case rfind f' _ hf_ih =>
     apply RecursiveIn.rfind
     · apply hf_ih
+
+#check Lean.Elab.Tactic.TacticM
 
 -- Proof that turing_equivalent is transitive
 theorem turing_equiv_trans : Transitive turing_equivalent :=
