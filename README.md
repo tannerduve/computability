@@ -9,7 +9,7 @@ Roadmap:
 6. Relativize theorems about encoding/universal machine - In progress
 7. Prove properties of Turing degrees (uncountable, upper semilattice) - In progress
 8. Prove Jump theorems
-9. Kleene-Post theorem
+9. Kleene-Post theorem (There exists incomparable degrees)
 10. Possibly: Complexity theory OR computable algebra
 - 6, 7, 8 can be worked on concurrently, don't seem to depend on one another
 
