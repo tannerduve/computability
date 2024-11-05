@@ -1,7 +1,8 @@
 import Computability.TuringDegrees
 import Computability.Encoding
-import Computability.Misc
 import Mathlib.Computability.Reduce
+import Lean.Elab.Tactic.Basic
+import Mathlib.Computability.Halting
 
 #check OneOneReducible
 notation:50 f "≤₁" g => OneOneReducible f g
@@ -24,34 +25,65 @@ if f : ℕ →. ℕ, then dom(f) : ℕ → Prop := λ n => n ∈ f.Dom. These ar
 state the jump theorems:
 -/
 
+#check ComputablePred.halting_problem_re
+
+def recursively_enumerable_in (g : ℕ →. ℕ) (A : ℕ → Prop) :=
+  ∃ f, (RecursiveIn g f) ∧ (∀ n, A n ↔ n ∈ f.Dom)
+
+abbrev W (e : ℕ) (f : ℕ →. ℕ) := (φ f e).Dom
+
+notation f "≤ᴿ" g => OneOneReducible f g
+
 def dom (f : ℕ →. ℕ) : ℕ → Prop :=
   λ n => n ∈ f.Dom
 
 def jump (f : ℕ →. ℕ) : ℕ →. ℕ :=
 λ e => (φ f e) e
+
+
+lemma evalo_rec_in (g : ℕ →. ℕ) (c : codeo) :
+  RecursiveIn g (evalo g c) := by 
+  induction c
+  case zero => exact RecursiveIn.zero
+  case succ => exact RecursiveIn.succ
+  case left => exact RecursiveIn.left
+  case right => exact RecursiveIn.right
+  case pair c1 c2 ih_c1 ih_c2 => 
+    exact RecursiveIn.pair ih_c1 ih_c2
+  case comp c1 c2 ih_c1 ih_c2 =>
+    exact RecursiveIn.comp ih_c1 ih_c2
+  case prec c1 c2 ih_c1 ih_c2 =>
+    exact RecursiveIn.prec ih_c1 ih_c2
+  case rfind' c ih_c =>
+    sorry
+
+
 notation:50 g"⌜" => jump g
-
-lemma jump_re_in (g : ℕ →. ℕ) :
+  
+theorem jump_re_in (g : ℕ →. ℕ) :
   recursively_enumerable_in g (dom (jump g)) := by
+  unfold recursively_enumerable_in at *
+  use (λ n => (φ g n) n)
+  constructor 
+  unfold φ
+  sorry
+  
+theorem jump_not_reducible (g : ℕ →. ℕ) :
+  ¬ (jump g ≤ᵀ g) := by 
   sorry
 
-
-lemma jump_not_reducible (g : ℕ →. ℕ) :
-  ¬ (jump g ≤ᵀ g) :=
-  sorry
-
-lemma re_iff_one_one_reducible (g f : ℕ →. ℕ) :
+theorem re_iff_one_one_reducible (g f : ℕ →. ℕ) :
   (recursively_enumerable_in g (λ n => n ∈ f.Dom)) ↔ OneOneReducible (dom g) (dom (jump f)) :=
   sorry
 
-lemma re_in (g f h : ℕ →. ℕ) :
+theorem re_in (g f h : ℕ →. ℕ) :
   recursively_enumerable_in g (dom f) → f ≤ᵀ h → recursively_enumerable_in g (dom h) :=
   sorry
 
-lemma turing_reducible_iff_one_one_reducible (g f : ℕ →. ℕ) :
+theorem turing_reducible_iff_one_one_reducible (g f : ℕ →. ℕ) :
   g ≤ᵀ f ↔ OneOneReducible (dom (jump f)) (dom (jump f)) :=
   sorry
 
-lemma if_turing_equivalent_then_one_one_equivalent (g f : ℕ →. ℕ) :
+theorem if_turing_equivalent_then_one_one_equivalent (g f : ℕ →. ℕ) :
   g ≡ᵀ f → dom (jump g) ≡₁ dom (jump f) :=
   sorry

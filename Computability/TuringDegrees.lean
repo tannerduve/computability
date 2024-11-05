@@ -56,18 +56,17 @@ form a semilattice, ie. a lattice with a bottom element and a join operation.
 
 #check Quot.lift
 
-theorem reduce_lifts : ∀ (f g : ℕ →. ℕ), f ≡ᵀ g → (turing_reducible f = turing_reducible g) := by
- intros f g fEqg
- apply funext
- intros h
- apply propext
- constructor
- intro fRedg
- unfold turing_equivalent at *
- apply turing_reduce_trans fEqg.2 fRedg
- intros gRedh
- unfold turing_equivalent at *
- apply turing_reduce_trans fEqg.1 gRedh
+theorem reduce_lifts : ∀ (a b : ℕ →. ℕ), a ≡ᵀ b → (f ≤ᵀ a ↔ f ≤ᵀ b) := by
+  intros a b aEqb
+  constructor
+  intro fReda
+  unfold turing_equivalent at *
+  cases' aEqb with lt rt
+  apply turing_reduce_trans fReda lt
+  intro fRedb
+  unfold turing_equivalent at *
+  cases' aEqb with lt rt
+  apply turing_reduce_trans fRedb rt
 
 theorem reduce_lifts2 : ∀ (a b₁ b₂ : ℕ →. ℕ), b₁≡ᵀb₂ → (a≤ᵀb₁) = (a≤ᵀb₂) := by
   intros a b₁ b₂ bEqb
@@ -97,21 +96,21 @@ def TuringDegree.turing_red (d₁ d₂ : TuringDegree) : Prop :=
 
 #check Quot.lift₂
 
-theorem join_lifts : ∀ (a b₁ b₂ : (ℕ → ℕ)), turing_equivalent b₁ b₂ → join a b₁ = join a b₂ := by
-  intros a b₁ b₂ bEqb
-  apply funext
-  intro n
-  unfold join
-  unfold turing_equivalent at bEqb
-  cases' bEqb with b₁Redb₂ b₂Redb₁
-  cases' n % 2 with k
-  simp
-  simp
+theorem join_lifts₁ : ∀ (a b₁ b₂ : (ℕ →. ℕ)), turing_equivalent b₁ b₂ → (Quot.mk turing_equivalent (join a b₁)) = (Quot.mk turing_equivalent (join a b₂)) := by
+  sorry
+
+theorem join_lifts₂ : ∀ (a₁ a₂ b : (ℕ →. ℕ)), turing_equivalent a₁ a₂ → (Quot.mk turing_equivalent (join a₁ b)) = (Quot.mk turing_equivalent (join a₂ b)) := by
   sorry
 
 -- Lift the join operation to Turing degrees via quotient construction
-def TuringDegree.join (d₁ d₂ : TuringDegree) : TuringDegree :=
-  sorry
+def TuringDegree.join (d₁ d₂ : TuringDegree) : TuringDegree := by
+  apply Quot.lift₂ _ _ _ d₁ d₂
+  intros f g
+  apply Quot.mk turing_equivalent (f ⊔ g)
+  intros f g h gEqh
+  apply join_lifts₁ f g h gEqh
+  intros f g h fEqg
+  apply join_lifts₂ f g h fEqg
 
 -- Lift the jump operator to Turing degrees via quotient construction
 def TuringDegree.jump (d : TuringDegree) : TuringDegree :=
@@ -121,7 +120,9 @@ def TuringDegree.jump (d : TuringDegree) : TuringDegree :=
 instance : SemilatticeSup TuringDegree where
   sup := TuringDegree.join
   le := TuringDegree.turing_red
-  le_refl := sorry
+  le_refl := by
+    intro d
+
   le_trans := sorry
   le_antisymm := sorry
   le_sup_left := sorry
