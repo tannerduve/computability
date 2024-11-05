@@ -17,3 +17,5 @@ To do (in any order) :
 - Figure out proof that evalo is a universal relativized PR function, and prove relativized theorems (fixed point, rices theorem)
 - Figure out how to lift reduce and jump to degrees, prove upper semilattice
 - Figure out how to lift join to degrees, prove resulting properties
+
+  https://www.math.ias.edu/~yuzhougu/data/turing.pdf
