@@ -68,7 +68,7 @@ theorem reduce_lifts : ∀ (a b : ℕ →. ℕ), a ≡ᵀ b → (f ≤ᵀ a ↔ 
   cases' aEqb with lt rt
   apply turing_reduce_trans fRedb rt
 
-theorem reduce_lifts2 : ∀ (a b₁ b₂ : ℕ →. ℕ), b₁≡ᵀb₂ → (a≤ᵀb₁) = (a≤ᵀb₂) := by
+theorem reduce_lifts₁ : ∀ (a b₁ b₂ : ℕ →. ℕ), b₁≡ᵀb₂ → (a≤ᵀb₁) = (a≤ᵀb₂) := by
   intros a b₁ b₂ bEqb
   apply propext
   constructor
@@ -79,7 +79,7 @@ theorem reduce_lifts2 : ∀ (a b₁ b₂ : ℕ →. ℕ), b₁≡ᵀb₂ → (a�
   unfold turing_equivalent at *
   apply turing_reduce_trans aRedb₂ bEqb.2
 
-theorem reduce_lifts3 : ∀ (f g h : ℕ →. ℕ), f ≡ᵀ g → (turing_reducible f h = turing_reducible g h) := by
+theorem reduce_lifts₂ : ∀ (f g h : ℕ →. ℕ), f ≡ᵀ g → (turing_reducible f h = turing_reducible g h) := by
   intros f g h fEqg
   apply propext
   constructor
@@ -92,9 +92,7 @@ theorem reduce_lifts3 : ∀ (f g h : ℕ →. ℕ), f ≡ᵀ g → (turing_reduc
 
 -- Lift the turing reducibility relation to Turing degrees via quotient construction
 def TuringDegree.turing_red (d₁ d₂ : TuringDegree) : Prop :=
-  @Quot.lift₂ _ _ Prop (turing_equivalent) (turing_equivalent) (turing_reducible) (reduce_lifts2) (reduce_lifts3) d₁ d₂
-
-#check Quot.lift₂
+  @Quot.lift₂ _ _ Prop (turing_equivalent) (turing_equivalent) (turing_reducible) (reduce_lifts₁) (reduce_lifts₂) d₁ d₂
 
 theorem join_lifts₁ : ∀ (a b₁ b₂ : (ℕ →. ℕ)), turing_equivalent b₁ b₂ → (Quot.mk turing_equivalent (join a b₁)) = (Quot.mk turing_equivalent (join a b₂)) := by
   sorry
@@ -112,19 +110,31 @@ def TuringDegree.join (d₁ d₂ : TuringDegree) : TuringDegree := by
   intros f g h fEqg
   apply join_lifts₂ f g h fEqg
 
+def jump (f : ℕ →. ℕ) : ℕ →. ℕ :=
+λ e => (φ f e) e
+
+#check Quot.lift
+
+theorem jump_lifts : ∀ (a b : ℕ →. ℕ), a ≡ᵀ b → (Quot.mk turing_equivalent (jump a)) = (Quot.mk turing_equivalent (jump b)) := by
+  sorry
+
 -- Lift the jump operator to Turing degrees via quotient construction
 def TuringDegree.jump (d : TuringDegree) : TuringDegree :=
-  sorry
+  @Quot.lift _ _ _ _ (jump_lifts) d
 
 -- Prove that Turing Degrees forms an upper semilattice
 instance : SemilatticeSup TuringDegree where
   sup := TuringDegree.join
   le := TuringDegree.turing_red
   le_refl := by
-    intro d
-
-  le_trans := sorry
-  le_antisymm := sorry
+    apply Quot.ind
+    intro a
+    apply turing_reduce_refl
+  le_trans := by
+    apply Quot.ind
+    intros a b c aRedb bRedc
+    sorry
+  le_antisymm := by sorry
   le_sup_left := sorry
   le_sup_right := sorry
   sup_le := sorry

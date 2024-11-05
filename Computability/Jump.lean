@@ -1,7 +1,6 @@
-import Computability.TuringDegrees
 import Computability.Encoding
 import Mathlib.Computability.Reduce
-import Lean.Elab.Tactic.Basic
+import Computability.TuringDegrees
 import Mathlib.Computability.Halting
 
 #check OneOneReducible
@@ -37,18 +36,15 @@ notation f "≤ᴿ" g => OneOneReducible f g
 def dom (f : ℕ →. ℕ) : ℕ → Prop :=
   λ n => n ∈ f.Dom
 
-def jump (f : ℕ →. ℕ) : ℕ →. ℕ :=
-λ e => (φ f e) e
-
 
 lemma evalo_rec_in (g : ℕ →. ℕ) (c : codeo) :
-  RecursiveIn g (evalo g c) := by 
+  RecursiveIn g (evalo g c) := by
   induction c
   case zero => exact RecursiveIn.zero
   case succ => exact RecursiveIn.succ
   case left => exact RecursiveIn.left
   case right => exact RecursiveIn.right
-  case pair c1 c2 ih_c1 ih_c2 => 
+  case pair c1 c2 ih_c1 ih_c2 =>
     exact RecursiveIn.pair ih_c1 ih_c2
   case comp c1 c2 ih_c1 ih_c2 =>
     exact RecursiveIn.comp ih_c1 ih_c2
@@ -59,17 +55,17 @@ lemma evalo_rec_in (g : ℕ →. ℕ) (c : codeo) :
 
 
 notation:50 g"⌜" => jump g
-  
+
 theorem jump_re_in (g : ℕ →. ℕ) :
   recursively_enumerable_in g (dom (jump g)) := by
   unfold recursively_enumerable_in at *
   use (λ n => (φ g n) n)
-  constructor 
+  constructor
   unfold φ
   sorry
-  
+
 theorem jump_not_reducible (g : ℕ →. ℕ) :
-  ¬ (jump g ≤ᵀ g) := by 
+  ¬ (jump g ≤ᵀ g) := by
   sorry
 
 theorem re_iff_one_one_reducible (g f : ℕ →. ℕ) :
@@ -78,7 +74,7 @@ theorem re_iff_one_one_reducible (g f : ℕ →. ℕ) :
 
 theorem re_in (g f h : ℕ →. ℕ) :
   recursively_enumerable_in g (dom f) → f ≤ᵀ h → recursively_enumerable_in g (dom h) :=
-  sorry
+sorry
 
 theorem turing_reducible_iff_one_one_reducible (g f : ℕ →. ℕ) :
   g ≤ᵀ f ↔ OneOneReducible (dom (jump f)) (dom (jump f)) :=
