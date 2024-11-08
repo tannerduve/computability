@@ -12,7 +12,7 @@ We define oracle-relative partial recursive functions with an inductive predicat
 
 ### Turing Reducibility and Turing Degrees
 
-- **Turing Reducibility** (`≤ᵀ`): A function `f` is said to be Turing reducible to an oracle `g` if `f` can be computed by a partial recursive function with access to `g`.
+- **Turing Reducibility** (`≤ᵀ`): A function `f` is said to be Turing reducible to an oracle `g` if `f` can be computed by a partial function with access to `g`.
 - **Turing Equivalence** (`≡ᵀ`): Functions `f` and `g` are Turing equivalent if they are mutually Turing reducible. This defines an equivalence relation among functions, which allows us to form **Turing degrees** as equivalence classes under this relation.
 
 Using Lean’s `Quot` type, we define **Turing degrees** as these equivalence classes, giving us a way of studying degrees of unsolvability via relativized computation.
