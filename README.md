@@ -6,7 +6,7 @@ This project provides a **formalization of oracle computability and Turing degre
 
 ### Oracle Computability
 
-Oracle computability extends classical notions of computability by introducing an oracle: a function that a recursive function can query during computation. This allows us to analyze what functions are computable given access to different oracles. 
+Oracle computability extends classical notions of computability by introducing an oracle: a function that can be queried by another function during its computation. This allows us to analyze what functions are computable given access to different oracles. 
 
 We define oracle-relative partial recursive functions with an inductive predicate `RecursiveIn`, The type of partial functions recursive in an oracle g is the smallest type containing the basic functions zero, successor, projections, and g itself, that is closed under pairing, composition, primitive recursion, and μ-minimization.
 
