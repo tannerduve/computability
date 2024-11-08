@@ -1,6 +1,10 @@
 import Computability.Encoding
 import Mathlib.Order.Lattice
 
+/-
+This section defines the Turing degrees and proves that they form an upper semilattice.
+-/
+
 -- Stuff about quotients is hidden in a namespace
 namespace Hidden
 universe u v
@@ -39,6 +43,12 @@ def join (f g : ℕ →. ℕ) : ℕ →. ℕ :=
       (g (n / 2)).map (λ y => 2 * y + 1)
 
 infix:99 "⊔" => join
+
+lemma reduce_join {f g : ℕ →. ℕ} :
+  f ≤ᵀ (f ⊔ g) ∧ g ≤ᵀ (f ⊔ g) := sorry
+
+lemma reduce_join₁ {f g h : ℕ →. ℕ} :
+  f ≤ᵀ h → g ≤ᵀ h → f ⊔ g ≤ᵀ h := sorry
 
 /-
 To do - We want to show Turing degrees form an upper semilattice.
@@ -132,9 +142,43 @@ instance : SemilatticeSup TuringDegree where
     apply turing_reduce_refl
   le_trans := by
     apply Quot.ind
-    intros a b c aRedb bRedc
-    sorry
-  le_antisymm := by sorry
-  le_sup_left := sorry
-  le_sup_right := sorry
-  sup_le := sorry
+    intro a
+    apply Quot.ind
+    intro b
+    apply Quot.ind
+    intro c
+    exact turing_reduce_trans
+  le_antisymm := by
+    apply Quot.ind
+    intro a
+    apply Quot.ind
+    intro b
+    intros aRedb bReda
+    apply Quot.sound
+    have aRedb' : a ≤ᵀ b := aRedb
+    have bReda' : b ≤ᵀ a := bReda
+    unfold turing_equivalent at *
+    constructor
+    assumption
+    assumption
+  le_sup_left := by
+    apply Quot.ind
+    intro a
+    apply Quot.ind
+    intro b
+    exact reduce_join.1
+  le_sup_right := by
+    apply Quot.ind
+    intro a
+    apply Quot.ind
+    intro b
+    exact reduce_join.2
+  sup_le := by
+    apply Quot.ind
+    intro a
+    apply Quot.ind
+    intro b
+    apply Quot.ind
+    intro c
+    intro aRedc bRedc
+    exact reduce_join₁ aRedc bRedc

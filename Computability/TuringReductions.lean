@@ -4,10 +4,9 @@ import Mathlib.Computability.Reduce
 import Mathlib.Data.Part
 import Mathlib.Tactic.Cases
 import Mathlib.Tactic.Lemma
-import Lean.Elab.Tactic.Basic
 
 /-
-Defining oracle computability and Turing degrees. Following http://www.piergiorgioodifreddi.it/wp-content/uploads/2010/10/CRT1.pdf
+This section defines a model of oracle computability and defines Turing reducibility/Turing equivalence and proves that it is an equivalence relation.
 -/
 
 /-
@@ -37,8 +36,6 @@ inductive RecursiveIn (g : ℕ →. ℕ) : (ℕ →. ℕ) → Prop
       RecursiveIn g (λ a =>
         Nat.rfind (λ n => (λ m => m = 0) <$> f (Nat.pair a n))
       )
-
-def Partrec₃ (f : ℕ →. ℕ) : Prop := RecursiveIn (λ _ => 0) f
 
 /-
 f is turing reducible to g if f is recursive in g
@@ -73,7 +70,6 @@ theorem turing_reduce_trans {f g h : ℕ →. ℕ} :
   f ≤ᵀ g → g ≤ᵀ h → f ≤ᵀ h := by
   intro hg hh
   unfold turing_reducible at *
-  generalize (fun a ↦ Part.some (f a)) = fp at *
   induction hg
   · apply RecursiveIn.zero
   · apply RecursiveIn.succ
@@ -96,7 +92,6 @@ theorem turing_reduce_trans {f g h : ℕ →. ℕ} :
     apply RecursiveIn.rfind
     · apply hf_ih
 
-#check Lean.Elab.Tactic.TacticM
 
 -- Proof that turing_equivalent is transitive
 theorem turing_equiv_trans : Transitive turing_equivalent :=
