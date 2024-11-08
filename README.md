@@ -43,8 +43,6 @@ Using Lean’s `Quot` type, we define **Turing degrees** as these equivalence cl
 
 - **Theorem: The type of Turing degrees forms an upper semilattice**: Proving that when we lift turing reducibility and join to degrees, the resulting quotient type forms and upper semilattice, where the join of two functions is their supremum, and the reducibility relation is the partial ordering. Just a couple lemmas remain to show.
 - **Relativize Key Theorems**: Establishing relativized versions of key theorems in computability such as Rice's theorem.
-
-### Next Steps
 - **Prove Jump Theorems**: Establishing core properties of the Jump operator, such as relativized halting problem, and recursive enumerability in the function and strict non-reducibility.
 - **Kleene-Post Theorem**: Demonstrating the existence of incomparable Turing degrees.
 
