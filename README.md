@@ -59,7 +59,7 @@ Using Lean’s `Quot` type, we define **Turing degrees** as these equivalence cl
    This documentation provides details on the definitions and foundations of partial recursive functions in Lean's `mathlib`, which form the basis for defining computability in Lean.
 
 3. **Classical Recursion Theory: The Theory of Functions and Sets of Natural Numbers, Vol. I**  
-   Odifreddi, Piergiorgio. [*Classical Recursion Theory: The Theory of Functions and Sets of Natural Numbers, Vol. I.*]
+   Odifreddi, Piergiorgio. [*Classical Recursion Theory: The Theory of Functions and Sets of Natural Numbers, Vol. I.*](http://www.piergiorgioodifreddi.it/wp-content/uploads/2010/10/CRT1.pdf)
 
 4. **Recursively Enumerable Sets and Degrees**  
    Soare, Robert I. *Recursively Enumerable Sets and Degrees.* Springer-Verlag, 1987.  
