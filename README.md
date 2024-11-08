@@ -1,6 +1,6 @@
 # Formalization of Oracle Computability and Turing Degrees in Lean
 
-This project provides a **formalization of oracle computability and Turing degrees** in Lean, using the **partial recursive functions with oracle access** as the model of computation. The focus is on formalizing relativized computability: computations that occur relative to an external oracle function, exploring their properties, and establishing the theory of Turing degrees. We build on existing work in the foundations of computability theory developed by Mario Carneiro [1] [2].
+This work in progress provides a **formalization of oracle computability and Turing degrees** in Lean, using the **partial recursive functions with oracle access** as the model of computation. The focus is on formalizing relativized computability: computations that occur relative to an external oracle function, exploring their properties, and establishing the theory of Turing degrees. We build on existing work in the foundations of computability theory developed by Mario Carneiro [1] [2].
 
 ## Overview
 
