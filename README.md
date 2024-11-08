@@ -25,7 +25,7 @@ Using Lean’s `Quot` type, we define **Turing degrees** as these equivalence cl
    
 3. **Turing Degrees**: Defined as quotient types under Turing equivalence, Turing degrees capture the classes of functions sharing the same oracle-relative computability. In Computability/TuringDegrees.lean
 
-4. **The Jump Operator**: The Jump operator (`jump`) maps functions to a higher Turing degree, increasing computational complexity. This operator is key to defining a hierarchy within Turing degrees. In Computability/Jump.lean
+4. **The Jump Operator**: The jump of a partial function `f` is essentially the Halting problem given oracle access to `f`. We show that the jump operator (`jump`) maps functions to a strictly higher Turing degree, increasing computational complexity. This operator is key to defining a hierarchy within Turing degrees. In Computability/Jump.lean
 
 5. **Encoding and Universal Oracle Machine**: We develop an encoding for oracle-based computations and define a universal partial recursive function relative to an oracle, enabling the representation and analysis of relativized computations within Lean. In Computability/Encoding.lean
 
@@ -41,8 +41,8 @@ Using Lean’s `Quot` type, we define **Turing degrees** as these equivalence cl
 
 ### In Progress
 
-- **Theorem: The type of Turing degrees forms an upper semilattice**: Proving that when we lift turing reducibility and join to degrees, the resulting quotient type forms and upper semilattice, where the join of two functions is their supremum, and the reducibility relation is the partial ordering.
-- **Relativize Key Theorems**: Proving that `evalo` serves as a universal relativized partial recursive function and establishing relativized versions of the fixed-point and Rice’s theorems.
+- **Theorem: The type of Turing degrees forms an upper semilattice**: Proving that when we lift turing reducibility and join to degrees, the resulting quotient type forms and upper semilattice, where the join of two functions is their supremum, and the reducibility relation is the partial ordering. Just a couple lemmas remain to show.
+- **Relativize Key Theorems**: Establishing relativized versions of key theorems in computability such as Rice's theorem.
 
 ### Next Steps
 - **Prove Jump Theorems**: Establishing core properties of the Jump operator, such as relativized halting problem, and recursive enumerability in the function and strict non-reducibility.
