@@ -37,6 +37,9 @@ inductive RecursiveIn (g : ℕ →. ℕ) : (ℕ →. ℕ) → Prop
         Nat.rfind (λ n => (λ m => m = 0) <$> f (Nat.pair a n))
       )
 
+def Partrec₃ (f : ℕ →. ℕ) : Prop :=
+  RecursiveIn (λ _ => 0) f
+
 /-
 f is turing reducible to g if f is recursive in g
 -/

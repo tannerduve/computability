@@ -132,6 +132,10 @@ theorem jump_lifts : ∀ (a b : ℕ →. ℕ), a ≡ᵀ b → (Quot.mk turing_eq
 def TuringDegree.jump (d : TuringDegree) : TuringDegree :=
   @Quot.lift _ _ _ _ (jump_lifts) d
 
+def degree_zero : TuringDegree := Quot.mk turing_equivalent (λ _ => 0)
+
+def low (f : ℕ →. ℕ) : Prop := (jump f) ≡ᵀ (jump (λ _ => 0))
+
 -- Prove that Turing Degrees forms an upper semilattice
 instance : SemilatticeSup TuringDegree where
   sup := TuringDegree.join
