@@ -19,15 +19,15 @@ Using Lean’s `Quot` type, we define **Turing degrees** as these equivalence cl
 
 ## Key Components
 
-1. **Recursive Functions with Oracle Access**: The `RecursiveIn` predicate is used to define relativized computability. The type of of partial functions recursive in a given partial function g (the oracle) is the smallest type containing the basic functions: the constant zero function, the successor function, the pairing function, the projection functions, and g itself, that is closed under composition, primitive recursion, and μ-minimization.
+1. **Recursive Functions with Oracle Access**: The `RecursiveIn` predicate is used to define relativized computability. The type of of partial functions recursive in a given partial function g (the oracle) is the smallest type containing the basic functions: the constant zero function, the successor function, the pairing function, the projection functions, and g itself, that is closed under composition, primitive recursion, and μ-minimization. In Computability/TuringReductions.lean
    
-2. **Turing Reducibility (`≤ᵀ`) and Equivalence (`≡ᵀ`)**: These relations establish a notion of relative computability, allowing us to classify functions by their Turing degree.
+2. **Turing Reducibility (`≤ᵀ`) and Equivalence (`≡ᵀ`)**: These relations establish a notion of relative computability, allowing us to classify functions by their Turing degree. In Computability/TuringReductions.lean
    
-3. **Turing Degrees**: Defined as quotient types under Turing equivalence, Turing degrees capture the classes of functions sharing the same oracle-relative computability.
+3. **Turing Degrees**: Defined as quotient types under Turing equivalence, Turing degrees capture the classes of functions sharing the same oracle-relative computability. In Computability/TuringDegrees.lean
 
-4. **The Jump Operator**: The Jump operator (`jump`) maps functions to a higher Turing degree, increasing computational complexity. This operator is key to defining a hierarchy within Turing degrees.
+4. **The Jump Operator**: The Jump operator (`jump`) maps functions to a higher Turing degree, increasing computational complexity. This operator is key to defining a hierarchy within Turing degrees. In Computability/Jump.lean
 
-5. **Encoding and Universal Oracle Machine**: We develop an encoding for oracle-based computations and define a universal partial recursive function relative to an oracle, enabling the representation and analysis of relativized computations within Lean.
+5. **Encoding and Universal Oracle Machine**: We develop an encoding for oracle-based computations and define a universal partial recursive function relative to an oracle, enabling the representation and analysis of relativized computations within Lean. In Computability/Encoding.lean
 
 ## Roadmap
 
@@ -36,7 +36,7 @@ Using Lean’s `Quot` type, we define **Turing degrees** as these equivalence cl
 - **Define Turing Reducibility**: Established `RecursiveIn` for functions relative to an oracle and defined Turing reducibility (`≤ᵀ`).
 - **Prove Equivalence Relation**: Showed that Turing equivalence (`≡ᵀ`) is reflexive, symmetric, and transitive.
 - **Define Turing Degrees**: Created `TuringDegree` as a quotient of functions under Turing equivalence.
-- **Develop Encoding for Relativized Partial Recursive Functions**: Implemented `codeo`, `evalo`, and encoding/decoding functions to give a denumerable instance of codes for partial functions.
+- **Develop Encoding for Relativized Partial Recursive Functions**: Implemented `codeo`, `evalo`, and encoding/decoding functions to give a bijection between the natural numbers and encodings of partial recursive functions with oracle access.
 - **Define Jump Operator**: Introduced the Jump operator and started exploring its properties.
 
 ### In Progress
