@@ -10,9 +10,6 @@ abbrev TuringDegree :=
 instance TuringDegree.isPartialOrder : PartialOrder TuringDegree :=
   @instPartialOrderAntisymmetrization (ℕ →. ℕ)
     {le := TuringReducible, le_refl := TuringReducible.refl, le_trans := @TuringReducible.trans}
-
--- Notation for orderings lifted to degrees
-infix:99 " ≤ᵀ⋆ " => TuringDegree.isPartialOrder.le
 /-
 Define the automorphism group of the Turing degrees.
 -/
