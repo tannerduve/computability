@@ -8,14 +8,12 @@ import Mathlib.Computability.Primrec
 import Mathlib.Computability.Partrec
 import Mathlib.Data.Part
 import Mathlib.Order.Antisymmetrization
-
 /-!
 # Oracle Computability and Turing Degrees
 
 This file defines a model of oracle computability, introduces Turing reducibility and equivalence,
 proves that Turing equivalence is an equivalence relation, and defines Turing degrees as the
 quotient under this relation.
-
 ## Main Definitions
 - `RecursiveIn O f`:
   An inductive definition representing that a partial function `f` is partial recursive given access
@@ -90,8 +88,7 @@ abbrev TuringReducible (f g : ℕ →. ℕ) : Prop :=
   RecursiveIn {g} f
 
 @[inherit_doc TuringReducible]
-infix:50 "≤ᵀ" => TuringReducible
-
+infix:50 " ≤ᵀ " => TuringReducible
 /--
 `f` is Turing equivalent to `g` if `f` is reducible to `g` and `g` is reducible to `f`.
 -/
@@ -99,7 +96,7 @@ abbrev TuringEquivalent (f g : ℕ →. ℕ) : Prop :=
   AntisymmRel TuringReducible f g
 
 @[inherit_doc TuringEquivalent]
-infix:50 "≡ᵀ" => TuringEquivalent
+infix:50 " ≡ᵀ " => TuringEquivalent
 
 /--
 If a function is partial recursive, then it is recursive in every partial function.
@@ -175,14 +172,12 @@ theorem TuringEquivalent.symm {f g : ℕ →. ℕ} (h : f ≡ᵀ g) : g ≡ᵀ f
 @[trans]
 theorem TuringEquivalent.trans (f g h : ℕ →. ℕ) (h₁ : f ≡ᵀ g) (h₂ : g ≡ᵀ h) : f ≡ᵀ h :=
   Equivalence.trans equivalence h₁ h₂
-
 /--
 Instance declaring that `RecursiveIn` is a preorder.
 -/
 instance : IsPreorder (ℕ →. ℕ) TuringReducible where
   refl := TuringReducible.refl
   trans := @TuringReducible.trans
-
 lemma partrec_iff_partrec_in_empty (f : ℕ →. ℕ) : Nat.Partrec f ↔ RecursiveIn {} f := by
   constructor
   intros pF
@@ -201,7 +196,6 @@ lemma partrec_iff_partrec_in_empty (f : ℕ →. ℕ) : Nat.Partrec f ↔ Recurs
     repeat {constructor}
     · simp at hg
     repeat {constructor; assumption; try assumption}
-
 /--
 An alternative definition of partial recursive in terms of oracle computability:
 A partial recursive function is a function which is recursive in the empty set

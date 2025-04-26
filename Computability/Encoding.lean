@@ -1,69 +1,69 @@
-import Computability.TuringReductions
-import Mathlib.Data.Option.Basic
-import Mathlib.Tactic.Linarith
-import Mathlib.Logic.Denumerable
-import Mathlib.Logic.Encodable.Basic
-import Mathlib.Data.Nat.PSub
-import Mathlib.Data.PFun
-import Mathlib.Data.Part
+-- import Computability.TuringReductions
+-- import Mathlib.Data.Option.Basic
+-- import Mathlib.Tactic.Linarith
+-- import Mathlib.Logic.Denumerable
+-- import Mathlib.Logic.Encodable.Basic
+-- import Mathlib.Data.Nat.PSub
+-- import Mathlib.Data.PFun
+-- import Mathlib.Data.Part
 
-open Denumerable Encodable
--- This section provides and encoding for oracle partial recursive functions and a definition
--- of the universal partial recursive function relative to an oracle, along with a proof that it is universal.
+-- open Denumerable Encodable
+-- -- This section provides and encoding for oracle partial recursive functions and a definition
+-- -- of the universal partial recursive function relative to an oracle, along with a proof that it is universal.
 
-variable {α : Type} [Denumerable α]
+-- variable {α : Type} [Denumerable α]
 
-def oracleCode (f : α → ℕ →. ℕ) : ℕ → ℕ →. ℕ :=
-  λ i n => match decode i with
-           | some a => f a n
-           | none   => ⊥
+-- def oracleCode (f : α → ℕ →. ℕ) : ℕ → ℕ →. ℕ :=
+--   λ i n => match decode i with
+--            | some a => f a n
+--            | none   => ⊥
 
-inductive codeo : Type
-| zero : codeo
-| succ : codeo
-| left : codeo
-| right : codeo
-| oracle : ℕ → codeo
-| pair : codeo → codeo → codeo
-| comp : codeo → codeo → codeo
-| prec : codeo → codeo → codeo
-| rfind' : codeo → codeo
+-- inductive codeo : Type
+-- | zero : codeo
+-- | succ : codeo
+-- | left : codeo
+-- | right : codeo
+-- | oracle : ℕ → codeo
+-- | pair : codeo → codeo → codeo
+-- | comp : codeo → codeo → codeo
+-- | prec : codeo → codeo → codeo
+-- | rfind' : codeo → codeo
 
 
-/-- Semantics of `codeo`, relative to an indexed oracle family. -/
-def evalo {α : Type} [Denumerable α] (f : α → ℕ →. ℕ) : codeo → ℕ →. ℕ
-| codeo.zero => pure 0
-| codeo.succ => fun n => some (n + 1)
-| codeo.left => fun n => some (Nat.unpair n).1
-| codeo.right => fun n => some (Nat.unpair n).2
-| codeo.oracle i =>
-    match decode i with
-    | some a => f a
-    | none   => λ n => ⊥
-| codeo.pair cf cg =>
-    fun n => Nat.pair <$> evalo f cf n <*> evalo f cg n
-| codeo.comp cf cg =>
-    fun n => evalo f cg n >>= evalo f cf
-| codeo.prec cf cg =>
-    Nat.unpaired fun a n =>
-      n.rec (evalo f cf a) fun y IH => do
-        let i ← IH
-        evalo f cg (Nat.pair a (Nat.pair y i))
-| codeo.rfind' cf =>
-    Nat.unpaired fun a m =>
-      (Nat.rfind fun n => (fun x => x = 0) <$> evalo f cf (Nat.pair a (n + m))).map (· + m)
+-- /-- Semantics of `codeo`, relative to an indexed oracle family. -/
+-- def evalo {α : Type} [Primcodable α] (f : α → ℕ →. ℕ) : codeo → ℕ →. ℕ
+-- | codeo.zero => pure 0
+-- | codeo.succ => fun n => some (n + 1)
+-- | codeo.left => fun n => some (Nat.unpair n).1
+-- | codeo.right => fun n => some (Nat.unpair n).2
+-- | codeo.oracle i =>
+--     match decode i with
+--     | some a => f a
+--     | none   => λ n => ⊥
+-- | codeo.pair cf cg =>
+--     fun n => Nat.pair <$> evalo f cf n <*> evalo f cg n
+-- | codeo.comp cf cg =>
+--     fun n => evalo f cg n >>= evalo f cf
+-- | codeo.prec cf cg =>
+--     Nat.unpaired fun a n =>
+--       n.rec (evalo f cf a) fun y IH => do
+--         let i ← IH
+--         evalo f cg (Nat.pair a (Nat.pair y i))
+-- | codeo.rfind' cf =>
+--     Nat.unpaired fun a m =>
+--       (Nat.rfind fun n => (fun x => x = 0) <$> evalo f cf (Nat.pair a (n + m))).map (· + m)
 
-def encode' : codeo → ℕ :=
-λ c => match c with
-| codeo.zero => 0
-| codeo.succ => 1
-| codeo.left => 2
-| codeo.right => 3
-| codeo.oracle i => (2 * i) + 4
-| codeo.pair cf cg => 2 * (2 * Nat.pair (encode' cf) (encode' cg)) + 4
-| codeo.comp cf cg => 2 * (2 * Nat.pair (encode' cf) (encode' cg) + 1) + 4
-| codeo.prec cf cg => (2 * (2 * Nat.pair (encode' cf) (encode' cg)) + 1) + 4
-| codeo.rfind' cf => (2 * (2 * encode' cf + 1) + 1) + 4
+-- def encode' : codeo → ℕ :=
+-- λ c => match c with
+-- | codeo.zero => 0
+-- | codeo.succ => 1
+-- | codeo.left => 2
+-- | codeo.right => 3
+-- | codeo.oracle i => (2 * i) + 4
+-- | codeo.pair cf cg => 2 * (2 * Nat.pair (encode' cf) (encode' cg)) + 4
+-- | codeo.comp cf cg => 2 * (2 * Nat.pair (encode' cf) (encode' cg) + 1) + 4
+-- | codeo.prec cf cg => (2 * (2 * Nat.pair (encode' cf) (encode' cg)) + 1) + 4
+-- | codeo.rfind' cf => (2 * (2 * encode' cf + 1) + 1) + 4
 
 -- def decode' : ℕ → codeo
 --   | 0 => codeo.zero
@@ -86,7 +86,6 @@ def encode' : codeo → ℕ :=
 --     | false, true  => codeo.comp (decode' m.unpair.1) (decode' m.unpair.2)
 --     | true , false => codeo.prec (decode' m.unpair.1) (decode' m.unpair.2)
 --     | true , true  => codeo.rfind' (decode' m)
--- termination_by sorry
 
 -- theorem encode'_decode' : ∀ c, encode' (decode' c) = c :=
 -- λ c => match c with
@@ -199,6 +198,3 @@ def encode' : codeo → ℕ :=
 --     | rfind' cf pf =>
 --       apply rfind'o
 --       exact pf
-
-def φ (O : Set (ℕ →. ℕ)) (e : ℕ) : ℕ →. ℕ :=
-  sorry
