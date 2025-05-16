@@ -47,7 +47,3 @@ Would like to write a DSL for writing reductions that compiles into `RecursiveIn
 
 1. Mario Carneiro. [*Formalizing Computability Theory via Partial Recursive Functions*](https://arxiv.org/pdf/1810.08380), arXiv:1810.08380, 2018.
 2. Piergiorgio Odifreddi. *Classical Recursion Theory*, Vol. I. [PDF](http://www.piergiorgioodifreddi.it/wp-content/uploads/2010/10/CRT1.pdf)
-
-## 📂 License
-
-Apache 2.0 © 2025 Tanner Duve, Elan Roth
