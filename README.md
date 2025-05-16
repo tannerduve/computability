@@ -29,7 +29,7 @@ Implements universal oracle machine `evalo`:
 Defines the automorphism group of the Turing degrees:
 - `TuringDegree.automorphismGroup := OrderAut TuringDegree`
 - Group operations from `OrderIso`.
-- `Countable` instance is conjectured (`sorry`).
+- `Countable` instance is stated (`sorry`).
 
 ### `ReductionDSL.lean`
 Would like to write a DSL for writing reductions that compiles into `RecursiveIn` proofs. Unimplemented currently.
