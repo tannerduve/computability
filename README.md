@@ -5,9 +5,9 @@ This project formalizes **oracle-relative computability** and the **theory of Tu
 ## Key Modules
 
 ### `Oracle.lean`
-Defines relativized partial recursive functions:
+Defines our model of relative computability:
 - `RecursiveIn O f`: the function `f` is computable relative to oracles in the set `O`.
-- Variants: `RecursiveIn'`, `RecursiveIn₂`, `ComputableIn`, `ComputableIn₂` for functions between `Primcodable` types.
+- Generalizations: `RecursiveIn'`, `RecursiveIn₂`, `ComputableIn`, `ComputableIn₂` for functions between `Primcodable` types.
 - Lifting functions using `Primcodable` encoding.
 
 ### `TuringDegree.lean`
