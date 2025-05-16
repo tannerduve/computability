@@ -1,69 +1,53 @@
-# Formalization of Oracle Computability and Turing Degrees in Lean
+# Oracle Computability and Turing Degrees in Lean
 
-This work in progress provides a **formalization of oracle computability and Turing degrees** in Lean, using the **partial recursive functions with oracle access** as the model of computation. The focus is on formalizing relativized computability: computations that occur relative to an external oracle function, exploring their properties, and establishing the theory of Turing degrees. We build on existing work in the foundations of computability theory developed by Mario Carneiro [1] [2].
+This project formalizes **oracle-relative computability** and the **theory of Turing degrees** in Lean, building on foundational work by Mario Carneiro. It defines relativized partial recursive functions, formalizes Turing reducibility and equivalence, constructs the Turing degrees as a quotient type, and explores structural properties including the join operation and jump operator.
 
-## Overview
+## Key Modules
 
-### Oracle Computability
+### `Oracle.lean`
+Defines relativized partial recursive functions:
+- `RecursiveIn O f`: the function `f` is computable relative to oracles in the set `O`.
+- Variants: `RecursiveIn'`, `RecursiveIn₂`, `ComputableIn`, `ComputableIn₂` for functions between `Primcodable` types.
+- Lifting functions using `Primcodable` encoding.
 
-Oracle computability extends classical notions of computability by introducing an oracle: a function that can be queried by another function during its computation. This allows us to analyze what functions are computable given access to different oracles. 
+### `TuringDegree.lean`
+Builds Turing reducibility and degree structure:
+- `f ≤ᵀ g`: `f` is recursive in `g`.
+- `f ≡ᵀ g`: mutual reducibility.
+- `TuringDegree`: equivalence classes of `ℕ →. ℕ` under `≡ᵀ`.
+- Proof that `TuringDegree` is a partial order
+- Defines `turingJoin` (`f ⊕ g`) as supremum of partial functions `ℕ →. ℕ`
+- Join lemmas (`left_le_join`, `right_le_join`, `join_le`, ie. join is supremum) are stated with `sorry`
 
-We define oracle-relative partial recursive functions with an inductive predicate `RecursiveIn`, The type of partial functions recursive in an oracle g is the smallest type containing the basic functions zero, successor, projections, and g itself, that is closed under pairing, composition, primitive recursion, and μ-minimization.
+### `Encoding.lean`
+Godel numbering for partial recursive functions with oracle sets indexed by a primcodable type
+Implements universal oracle machine `evalo`:
+- Universality: `RecursiveIn (range g) f ↔ ∃ c, evalo g c = f`.
+- Encoding/decoding via `encodeCodeo` and `decodeCodeo`
 
-### Turing Reducibility and Turing Degrees
+### `AutGrp.lean`
+Defines the automorphism group of the Turing degrees:
+- `TuringDegree.automorphismGroup := OrderAut TuringDegree`
+- Group operations from `OrderIso`.
+- `Countable` instance is conjectured (`sorry`).
 
-- **Turing Reducibility** (`≤ᵀ`): A function `f` is said to be Turing reducible to an oracle `g` if `f` can be computed by a partial function with access to `g`.
-- **Turing Equivalence** (`≡ᵀ`): Functions `f` and `g` are Turing equivalent if they are mutually Turing reducible. This defines an equivalence relation among functions, which allows us to form **Turing degrees** as equivalence classes under this relation.
+### `ReductionDSL.lean`
+Would like to write a DSL for writing reductions that compiles into `RecursiveIn` proofs. Unimplemented currently.
 
-Using Lean’s `Quot` type, we define **Turing degrees** as these equivalence classes, giving us a way of studying degrees of unsolvability via relativized computation.
+## In Progress
+- Show that `TuringDegree` forms an upper semilattice.
+- Complete the proof that `encodeCodeo ∘ decodeCodeo = id`.
 
-## Key Components
-
-1. **Recursive Functions with Oracle Access**: The `RecursiveIn` predicate is used to define relativized computability. The type of of partial functions recursive in a given partial function g (the oracle) is the smallest type containing the basic functions: the constant zero function, the successor function, the pairing function, the projection functions, and g itself, that is closed under composition, primitive recursion, and μ-minimization. In Computability/TuringReductions.lean
-   
-2. **Turing Reducibility (`≤ᵀ`) and Equivalence (`≡ᵀ`)**: These relations establish a notion of relative computability, allowing us to classify functions by their Turing degree. In Computability/TuringReductions.lean
-   
-3. **Turing Degrees**: Defined as quotient types under Turing equivalence, Turing degrees capture the classes of functions sharing the same oracle-relative computability. In Computability/TuringDegrees.lean
-
-4. **The Jump Operator**: The jump of a partial function `f` is essentially the Halting problem given oracle access to `f`. We show that the jump operator (`jump`) maps functions to a strictly higher Turing degree, increasing computational complexity. This operator is key to defining a hierarchy within Turing degrees. In Computability/Jump.lean
-
-5. **Encoding and Universal Oracle Machine**: We develop an encoding for oracle-based computations and define a universal partial recursive function relative to an oracle, enabling the representation and analysis of relativized computations within Lean. In Computability/Encoding.lean
-
-## Roadmap
-
-### Completed
-
-- **Define Turing Reducibility**: Established `RecursiveIn` for functions relative to an oracle and defined Turing reducibility (`≤ᵀ`).
-- **Prove Equivalence Relation**: Showed that Turing equivalence (`≡ᵀ`) is reflexive, symmetric, and transitive.
-- **Define Turing Degrees**: Created `TuringDegree` as a quotient of functions under Turing equivalence.
-- **Develop Encoding for Relativized Partial Recursive Functions**: Implemented `codeo`, `evalo`, and encoding/decoding functions to give a bijection between the natural numbers and encodings of partial recursive functions with oracle access.
-- **Define Jump Operator**: Introduced the Jump operator and started exploring its properties.
-
-### In Progress
-
-- **Theorem: The type of Turing degrees forms an upper semilattice**: Proving that when we lift turing reducibility and join to degrees, the resulting quotient type forms an upper semilattice, where the join of two functions is their supremum, and the reducibility relation is the partial ordering. Just a couple lemmas remain to show.
-- **Relativize Key Theorems**: Establishing relativized versions of key theorems in computability such as Rice's theorem.
-- **Prove Jump Theorems**: Establishing core properties of the Jump operator, such as relativized halting problem, and recursive enumerability in the function and strict non-reducibility.
-- **Kleene-Post Theorem**: Demonstrating the existence of incomparable Turing degrees.
-
-### Future Directions
-- **Computational Complexity Theory**
+## Project Directions
+- Build a real DSL for writing reductions (`ReductionDSL.lean`)
+- Prove countability of automorphism group for Turing degrees
+- Formalize a priority argument (eg. Kleene-Post theorem)
 
 ## References
-1. **Formalizing Computability Theory via Partial Recursive Functions**  
-   Carneiro, Mario. [*Formalizing Computability Theory via Partial Recursive Functions.*](https://arxiv.org/pdf/1810.08380) *arXiv preprint arXiv:1810.08380,* 2018.  
-   This paper explores the formalization of computability theory in Lean, providing insights and strategies that support the formalization efforts in this project.
 
-2. **Lean `mathlib` Documentation on Partial Recursive Functions**  
-   *Lean 4 mathlib documentation.*(https://leanprover-community.github.io/mathlib4_docs/Mathlib/Computability/Partrec.html#Computable).  
-   This documentation provides details on the definitions and foundations of partial recursive functions in Lean's `mathlib`, which form the basis for defining computability in Lean.
+1. Mario Carneiro. [*Formalizing Computability Theory via Partial Recursive Functions*](https://arxiv.org/pdf/1810.08380), arXiv:1810.08380, 2018.
+2. Piergiorgio Odifreddi. *Classical Recursion Theory*, Vol. I. [PDF](http://www.piergiorgioodifreddi.it/wp-content/uploads/2010/10/CRT1.pdf)
 
-3. **Classical Recursion Theory: The Theory of Functions and Sets of Natural Numbers, Vol. I**  
-   Odifreddi, Piergiorgio. [*Classical Recursion Theory: The Theory of Functions and Sets of Natural Numbers, Vol. I.*](http://www.piergiorgioodifreddi.it/wp-content/uploads/2010/10/CRT1.pdf)
+## 📂 License
 
-4. **Recursively Enumerable Sets and Degrees**  
-   Soare, Robert I. *Recursively Enumerable Sets and Degrees.* Springer-Verlag, 1987.  
-
-5. **Turing Degrees**  
-   Gu, Yi-Zhi. [*Turing Degrees.*](https://www.math.ias.edu/~yuzhougu/data/turing.pdf) Institute for Advanced Study, 2015.  
-
+Apache 2.0 © 2025 Tanner Duve, Elan Roth
