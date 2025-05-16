@@ -2,24 +2,13 @@ import Computability.TuringDegree
 import Mathlib.GroupTheory.Perm.Basic
 import Mathlib.Order.Hom.Basic
 
-/--
-Turing degrees are the equivalence classes of partial functions under Turing equivalence.
--/
-
-instance TuringDegree.isPartialOrder : PartialOrder TuringDegree :=
-  @instPartialOrderAntisymmetrization (ℕ →. ℕ)
-    {le := TuringReducible, le_refl := TuringReducible.refl, le_trans := @TuringReducible.trans}
 /-
 Define the automorphism group of the Turing degrees.
 -/
-
--- Define join of Turing Degrees
--- Define an automorphism as a bijection `f : TuringDegrees → TuringDegrees`
--- preserving and reflecting order
 -- State and prove skeleton of countability argument
 
 /-
-Add to Mathlib. Maybe generalize over any relation.
+Add order automorphism + group instance to Mathlib. Maybe generalize over any relation (RelIso). (Doesnt seem to be in mathlib but not sure)
 -/
 abbrev OrderAut (α : Type*) [LE α] := OrderIso α α
 
@@ -36,6 +25,9 @@ def TuringDegree.automorphismGroup : Type := OrderAut TuringDegree
 
 instance TuringDegree.automorphismGroup.isGroup : Group (TuringDegree.automorphismGroup) :=
   OrderAutGroup TuringDegree
+
+instance TuringDegree.automorphismGroup.existsAut : Inhabited (TuringDegree.automorphismGroup) :=
+  ⟨OrderIso.refl TuringDegree⟩
 
 theorem TuringDegree.automorphismGroup.isCountable : Countable (TuringDegree.automorphismGroup) :=
   sorry
