@@ -1,6 +1,6 @@
 # Oracle Computability and Turing Degrees in Lean
 
-This project formalizes **oracle-relative computability** and the **theory of Turing degrees** in Lean. It defines relativized partial recursive functions, formalizes Turing reducibility and equivalence, constructs the Turing degrees as a quotient type, and explores structural properties including the join operation and jump operator.
+This project formalizes **oracle-relative computability** and the **theory of Turing degrees** in Lean. We define a model of relative computability via partial recursive functions and define Turing reducibility, Turing equivalence, and Turing degrees. We aim to formalize significant parts of computability theory, particularly exploring the structure of the Turing degrees.
 
 ## Key Modules
 
