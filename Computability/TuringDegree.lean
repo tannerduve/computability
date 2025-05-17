@@ -144,6 +144,16 @@ open Sum
 lemma left_le_join (f g : ℕ →. ℕ) : f ≤ᵀ (f ⊕ g) := by
   sorry
 
+lemma right_le_join (f g : ℕ →. ℕ) : g ≤ᵀ (f ⊕ g) := by
+  sorry
+
+lemma join_le (f g h : ℕ →. ℕ) (hf : f ≤ᵀ h) (hg : g ≤ᵀ h) : (f ⊕ g) ≤ᵀ h := by
+  induction hf
+  case zero =>
+    simp [turingJoin]
+    sorry
+  all_goals {sorry}
+
 def TuringDegree.add (a b : TuringDegree) : TuringDegree :=
   Quotient.liftOn₂ a b (fun f g => ⟦f ⊕ g⟧)
     (by {
