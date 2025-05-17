@@ -12,18 +12,37 @@ if f : ℕ →. ℕ, then dom(f) : ℕ → Prop := λ n => n ∈ f.Dom. These ar
 state the jump theorems:
 -/
 
+/-
+A set A is recursively enumerable in a family of partial recursive functions g if its characteristic
+function is recursive in the family g.
+-/
 def recursively_enumerable_in (g : α → ℕ →. ℕ) (A : ℕ → Prop) :=
   ∃ f, (RecursiveIn (Set.range g) f) ∧ (∀ n, A n ↔ n ∈ f.Dom)
 
+/-
+A set A is re in a single partial recursive function g if its characteristic function is recursive in g.
+-/
 def recursively_enumerable_in₁ (g : ℕ →. ℕ) (A : ℕ → Prop) :=
   ∃ f, (RecursiveIn {g} f) ∧ (∀ n, A n ↔ n ∈ f.Dom)
 
+/-
+The jump of f is the diagonal of the universal machine relative to f:
+  f⌜ n = evalo (λ _ => f) (decodeCodeo n) n.
+Its domain is the set of n where the n-th oracle program halts on input n with oracle f, ie. the halting
+problem relative to f.
+-/
 def jump (f : ℕ →. ℕ) : ℕ →. ℕ :=
   λ n => evalo (λ _ : Unit => f) (decodeCodeo n) n
 
+/-
+The oracle corresponding to a decidable set A ⊆ ℕ, returning 0 on elements of A and undefined elsewhere.
+-/
 def setOracle (A : ℕ → Prop) [DecidablePred A] : ℕ →. ℕ :=
   λ n => if A n then Part.some 0 else Part.none
 
+/-
+The jump of a decidable set A ⊆ ℕ: the set of n such that the n-th oracle program halts on input n with oracle A.
+-/
 def jumpSet (A : ℕ → Prop) [DecidablePred A] : ℕ → Prop :=
   λ n => (evalo (λ (_ : Unit) => setOracle A) (decodeCodeo n) n).Dom
 
