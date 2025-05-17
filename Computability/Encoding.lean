@@ -90,7 +90,7 @@ def decodeCodeo : ℕ → codeo
     | 5 => codeo.pair (decodeCodeo m.unpair.1) (decodeCodeo m.unpair.2)
     | 6 => codeo.comp (decodeCodeo m.unpair.1) (decodeCodeo m.unpair.2)
     | 7 => codeo.prec (decodeCodeo m.unpair.1) (decodeCodeo m.unpair.2)
-    | _ => codeo.zero  -- dummy value; unreachable if `encodeCodeo` used properly
+    | _ => codeo.zero  -- dummy value?
 
 
 theorem encodeCodeo_decodeCodeo : ∀ c, encodeCodeo (decodeCodeo c) = c :=
