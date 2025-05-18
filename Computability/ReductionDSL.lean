@@ -25,7 +25,7 @@ to write reductions in a higher-level and more intuitive way than formal `Recurs
 * `RedExpr.eval`: A big-step inductive semantics for interpreting expressions as
   partial functions `ℕ →. ℕ`, relative to an environment and a fixed oracle.
 
-* `RedExpr.compileAux`: A compileAuxr that walks a `RedExpr` and returns:
+* `RedExpr.compile`: A compile that walks a `RedExpr` and returns:
   - the partial function `f : ℕ →. ℕ` it computes
   - a proof that `f` is `RecursiveIn {g}`
 
@@ -42,7 +42,9 @@ to write reductions in a higher-level and more intuitive way than formal `Recurs
   mechanically extracting both the resulting function and its `RecursiveIn` proof.
 -/
 
-
+/-
+Syntax tree for reduction expressions.
+-/
 inductive RedExpr
 | var   : ℕ → RedExpr
 | zero  : RedExpr
@@ -53,6 +55,11 @@ inductive RedExpr
 | prec  : RedExpr → RedExpr → RedExpr
 | rfind : RedExpr → RedExpr
 
+
+/-
+State monad for writing reductions.
+It tracks the next available variable ID and a mapping of IDs to bound expressions.
+-/
 structure RedState where
   nextId   : ℕ
   bindings : Std.HashMap ℕ RedExpr
@@ -105,6 +112,10 @@ def add1_oracle : RedM ℕ := do
   let y ← .emit (.succ (.var x))
   .emit (.pair (.var x) (.var y))
 
+
+/-
+Interpreter/operational semantics for reduction expressions.
+-/
 inductive RedExpr.eval : Env → (ℕ →. ℕ) → RedExpr → (ℕ →. ℕ) → Prop
 | var {env g i e f} :
     env i = some e →
@@ -145,9 +156,63 @@ inductive RedExpr.eval : Env → (ℕ →. ℕ) → RedExpr → (ℕ →. ℕ) �
           (fun y => y = 0) <$> f (Nat.pair a (x + m))
         ).map (· + m))
 
+/-
+A compiled reduction expression is a pair of:
+1. A partial function `f : ℕ →. ℕ`
+2. A proof that `f` is `RecursiveIn {g}`
+-/
 abbrev Compiled (g : ℕ →. ℕ) :=
   { f : ℕ →. ℕ // RecursiveIn {g} f }
 
+/--
+Compiler from `RedExpr` to `Compiled g`, producing both the partial function and its `RecursiveIn` proof.
+-/
+def RedExpr.compileAux (env : Env) (g : ℕ →. ℕ) : RedExpr → Option (Compiled g)
+  | var i =>
+    match env i with   -- well‑scoped ⇒ always some
+    | some e => compileAux env g e
+    | none   => none  -- unreachable for DSL terms
+  | zero =>
+    some ⟨fun _ => 0, RecursiveIn.zero⟩
+  | succ e => do
+    let ⟨f, hf⟩ ← compileAux env g e
+    let f' : ℕ →. ℕ :=        --  n ↦ f n ▷ succ
+      fun n => f n >>= fun x => Part.some (Nat.succ x)
+    return ⟨f', RecursiveIn.comp RecursiveIn.succ hf⟩
+  | oracle => some ⟨g, RecursiveIn.oracle g (by simp)⟩
+  | pair cf cg => do
+    let ⟨f, hf⟩ ← compileAux env g cf
+    let ⟨g', hg'⟩ ← compileAux env g cg
+    let f' : ℕ →. ℕ :=        -- n ↦ (f n ▷ pair) ▷ (g' n ▷ pair)
+      fun n => (Nat.pair <$> f n <*> g' n)
+    return ⟨f', RecursiveIn.pair hf hg'⟩
+  | comp cf cg => do
+    let ⟨f, hf⟩ ← compileAux env g cf
+    let ⟨g', hg'⟩ ← compileAux env g cg
+    let f' : ℕ →. ℕ :=        -- n ↦ (g' n ▷ f)
+      fun n => g' n >>= f
+    return ⟨f', RecursiveIn.comp hf hg'⟩
+  | prec cf cg => do
+    let ⟨f, hf⟩ ← compileAux env g cf
+    let ⟨g', hg'⟩ ← compileAux env g cg
+    let f' : ℕ →. ℕ :=        -- n ↦ (g' n ▷ f) ▷ (f a ▷ prec)
+      fun p =>
+        let (a, n) := Nat.unpair p
+        n.rec (f a) fun y IH =>
+          IH >>= fun i =>
+            g' (Nat.pair a (Nat.pair y i))
+    return ⟨f', RecursiveIn.prec hf hg'⟩
+  | rfind cf => do
+    let ⟨f, hf⟩ ← compileAux env g cf
+    let f' : ℕ →. ℕ :=        -- n ↦ (f n ▷ rfind) ▷ (Nat.rfind ▷ f)
+      fun a =>
+        Nat.rfind fun n => (fun m => m = 0) <$> f (Nat.pair a n)
+    return ⟨f', RecursiveIn.rfind hf⟩
+partial_fixpoint
+
+/-
+A relational compiler
+-/
 inductive RedExpr.Compiles
     (env : Env) (g : ℕ →. ℕ) :
     RedExpr → Compiled g → Prop
@@ -196,3 +261,22 @@ inductive RedExpr.Compiles
       ⟨(λ a =>
           Nat.rfind (λ n => (λ m => m = 0) <$> f (Nat.pair a n))),
         RecursiveIn.rfind hf⟩
+
+lemma compileAux_terminates
+    (env : Env) (g : ℕ →. ℕ) :
+  ∀ {e : RedExpr},
+    ∀ {c : Compiled g},
+      RedExpr.compileAux env g e = some c →
+      ∃ f, RedExpr.eval env g e f ∧ c.val = f := by sorry
+
+lemma compileAux_sound
+    (env : Env) (g : ℕ →. ℕ) :
+  ∀ {e : RedExpr} {c : Compiled g},
+    RedExpr.compileAux env g e = some c →
+    RedExpr.Compiles env g e c := by sorry
+
+lemma compileAux_complete
+    {env : Env} {g : ℕ →. ℕ} {e : RedExpr} {c : Compiled g}
+    (hs : RedExpr.Compiles env g e c)
+    (hscoped : ∀ i, e = .var i → ∃ e', env i = some e') :
+  RedExpr.compileAux env g e = some c := by sorry
