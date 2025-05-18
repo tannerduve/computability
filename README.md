@@ -57,7 +57,7 @@ Defines the automorphism group of the Turing degrees:
 
 ### `ReductionDSL.lean`
 
-Monadic DSL for writing computable reductions relative to a fixed oracle:
+Monadic DSL for writing reductions that compile into `RecursiveIn` proofs:
 
 - `RedExpr`: Syntax tree for reduction expressions.
 - `RedM`: Monadic builder for well-scoped reduction programs.
