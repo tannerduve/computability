@@ -55,21 +55,6 @@ Defines the automorphism group of the Turing degrees:
 - Group structure via `OrderIso`.
 - `Countable` instance is stated (`sorry`).
 
-### `ReductionDSL.lean`
-
-Monadic DSL for writing reductions that compile into `RecursiveIn` proofs:
-
-- `RedExpr`: Syntax tree for reduction expressions.
-- `RedM`: Monadic builder for well-scoped reduction programs.
-- `RedExpr.eval`: Big-step semantics for `RedExpr`.
-- `RedExpr.compileAux`: Functional compiler producing `(f : ℕ →. ℕ) × RecursiveIn {g} f`.
-- `RedExpr.Compiles`: Relational compiler specification.
-- Correctness:
-  - `compileAux_sound`: functional compiler satisfies the relational spec.
-  - `compileAux_complete`: completeness for well-scoped expressions.
-
----
-
 ## In Progress
 
 - Prove the jump theorems (see `Jump.lean`).
