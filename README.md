@@ -69,6 +69,7 @@ Defines the automorphism group of the Turing degrees:
 - Prove countability of `TuringDegree.automorphismGroup`.
 - Explore structure theore of the automorphism group
 - Formalize a finite injury priority argument (e.g. Kleene–Post theorem).
+- Complexity theory
 
 ---
 
