@@ -183,6 +183,17 @@ lemma RecursiveIn.partrec_of_zero (fRecInZero : RecursiveIn {fun _ => Part.some 
   repeat {constructor; assumption; try assumption}
 
 /--
+If a function is partial recursive in the constant none function,
+then it is partial recursive.
+-/
+lemma RecursiveIn.partrec_of_none (fRecInNone : RecursiveIn {fun _ => Part.none} f) : Nat.Partrec f := by
+  induction' fRecInNone with g hg g h _ _ ih₁ ih₂ g h _ _ ih₁ ih₂ g h _ _ ih₁ ih₂ g _ ih
+  repeat {constructor}
+  · rw [Set.mem_singleton_iff] at hg; rw [hg];
+    exact Nat.Partrec.none
+  repeat {constructor; assumption; try assumption}
+
+/--
 A partial function `f` is partial recursive if and only if it is recursive in
 every partial function `g`.
 -/

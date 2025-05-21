@@ -141,6 +141,18 @@ infix :50 " ⊕ " => turingJoin
 
 open Sum
 
+def projL : ℕ →. ℕ :=
+λ n =>
+  match decode (α := ℕ ⊕ ℕ) n with
+  | some (Sum.inl x) => Part.some x
+  | _                => Part.none
+
+def projR : ℕ →. ℕ :=
+  fun n =>
+    match decode (α := ℕ ⊕ ℕ) n with
+    | some (Sum.inr x) => Part.some x
+    | _                => Part.none
+
 lemma left_le_join (f g : ℕ →. ℕ) : f ≤ᵀ (f ⊕ g) := by
   sorry
 

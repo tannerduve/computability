@@ -112,7 +112,6 @@ def add1_oracle : RedM ℕ := do
   let y ← .emit (.succ (.var x))
   .emit (.pair (.var x) (.var y))
 
-
 /-
 Interpreter/operational semantics for reduction expressions.
 -/
@@ -262,21 +261,45 @@ inductive RedExpr.Compiles
           Nat.rfind (λ n => (λ m => m = 0) <$> f (Nat.pair a n))),
         RecursiveIn.rfind hf⟩
 
-lemma compileAux_terminates
-    (env : Env) (g : ℕ →. ℕ) :
-  ∀ {e : RedExpr},
-    ∀ {c : Compiled g},
-      RedExpr.compileAux env g e = some c →
-      ∃ f, RedExpr.eval env g e f ∧ c.val = f := by sorry
+def freeVars (e : RedExpr) : Set ℕ :=
+  match e with
+  | .var i => {i}
+  | .zero => ∅
+  | .succ e => freeVars e
+  | .oracle => ∅
+  | .pair e₁ e₂ => freeVars e₁ ∪ freeVars e₂
+  | .comp e₁ e₂ => freeVars e₁ ∪ freeVars e₂
+  | .prec e₁ e₂ => freeVars e₁ ∪ freeVars e₂
+  | .rfind e => freeVars e
+
+def wellScoped (e : RedExpr) (env : Env) : Prop :=
+  ∀ i, i ∈ freeVars e → (∃ v, env i = some v)
 
 lemma compileAux_sound
     (env : Env) (g : ℕ →. ℕ) :
   ∀ {e : RedExpr} {c : Compiled g},
+    (hscoped : wellScoped e env) →
     RedExpr.compileAux env g e = some c →
-    RedExpr.Compiles env g e c := by sorry
+    RedExpr.Compiles env g e c := by
+    intro e c scope hec
+    simp [wellScoped] at scope
+    induction e generalizing c
+    · case var i =>
+      simp [RedExpr.compileAux] at hec
+      simp [freeVars] at scope
+      cases' scope with v hv
+      simp [hv] at hec
+      apply RedExpr.Compiles.var_some
+      apply hv
+      sorry
+    all_goals sorry
+
 
 lemma compileAux_complete
     {env : Env} {g : ℕ →. ℕ} {e : RedExpr} {c : Compiled g}
-    (hs : RedExpr.Compiles env g e c)
-    (hscoped : ∀ i, e = .var i → ∃ e', env i = some e') :
-  RedExpr.compileAux env g e = some c := by sorry
+    (hs : RedExpr.Compiles env g e c) :
+  RedExpr.compileAux env g e = some c := by
+  induction hs
+  · case var_some i e' c' ha hb ih =>
+    sorry
+  all_goals sorry
