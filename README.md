@@ -55,6 +55,18 @@ Defines the automorphism group of the Turing degrees:
 - Group structure via `OrderIso`.
 - `Countable` instance is stated (`sorry`).
 
+### `ArithHierarchy.lean`
+
+Defines the classical arithmetical hierarchy using oracle-relative computability.
+
+- `arithJumpBase n`: the `n`-fold jump of the empty oracle
+- `arithJumpSet n`: the set `∅⁽ⁿ⁾`, i.e., the domain of `arithJumpBase n`
+- `decidableIn O A`: `A` is decidable relative to oracle set `O`
+- `Sigma0 n A`: `A` is `Σ⁰ₙ` — r.e. in `arithJumpBase (n - 1)` (decidable if `n = 0`)
+- `Pi0 n A`, `Delta0 n A`: complements and intersections of `Σ⁰ₙ`
+
+Includes notations `Σ⁰_`, `Π⁰_`, `Δ⁰_`. Defines `K := arithJumpSet 1` as the halting set.
+
 ## In Progress
 
 - Prove the jump theorems (see `Jump.lean`).
