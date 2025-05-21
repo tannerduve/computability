@@ -26,6 +26,14 @@ abbrev K := arithJumpSet 1
 def decidableIn (O : Set (ℕ →. ℕ)) (A : Set ℕ) : Prop :=
   ∃ f : ℕ → Bool, ComputableIn O f ∧ ∀ n, A n ↔ f n = true
 
+/-
+The arithmetical hierarchy:
+  Σ⁰₀ = ∆⁰₀ = Π⁰₀ = ∅
+  Σ⁰₁ = {n | ∃ m, ∀ k, (m + k) ∈ A}
+  Σ⁰ₙ = {n | ∃ m, ∀ k, (m + k) ∈ Σ⁰ₙ₋₁}
+  Π⁰ₙ = Σ⁰ₙᶜ
+  ∆⁰ₙ = Σ⁰ₙ ∩ Π⁰ₙ
+-/
 def Sigma0 (n : ℕ) (A : Set ℕ) : Prop :=
   match n with
   | 0 => decidableIn {} A

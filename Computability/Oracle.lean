@@ -110,9 +110,9 @@ lemma Nat.Partrec.recursiveIn (pF : Nat.Partrec f) : RecursiveIn O f := by
     apply RecursiveIn.rfind ih
 
 /--
-If a function is computable, then it is computable in every partial function.
+If a function is computable, then it is computable in every oracle.
 -/
-theorem Computable.recursiveIn {f : α → β} [Primcodable α]
+theorem Computable.computableIn {f : α → β} [Primcodable α]
 [Primcodable β]
 (hf : Computable f) : ComputableIn O f :=
   Nat.Partrec.recursiveIn (by simpa [Computable] using hf)
@@ -122,7 +122,7 @@ RecursiveIn O (fun n => f n) := Nat.Partrec.recursiveIn (Nat.Partrec.of_primrec 
 
 theorem Primrec.to_computableIn {α σ} [Primcodable α] [Primcodable σ]
     {f : α → σ} (hf : Primrec f) (O : Set (ℕ →. ℕ)) :
-    ComputableIn O f := Computable.recursiveIn (Primrec.to_comp hf)
+    ComputableIn O f := Computable.computableIn (Primrec.to_comp hf)
 
 nonrec theorem Primrec₂.to_computableIn₂ {α β σ} [Primcodable α] [Primcodable β] [Primcodable σ]
     {f : α → β → σ} (hf : Primrec₂ f) (O : Set (ℕ →. ℕ)) :
