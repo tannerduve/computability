@@ -93,6 +93,8 @@ def decodeCodeo : ℕ → codeo
     | _ => codeo.zero  -- dummy value?
 
 
+theorem decodeCodeo_encodeCodeo : ∀ c, decodeCodeo (encodeCodeo c) = c := by sorry
+
 theorem encodeCodeo_decodeCodeo : ∀ c, encodeCodeo (decodeCodeo c) = c :=
 λ c => match c with
   | 0 => by simp [decodeCodeo, encodeCodeo]
@@ -125,6 +127,8 @@ def const_inj : ∀ {n₁ n₂}, const n₁ = const n₂ → n₁ = n₂
     dsimp [const] at h
     injection h with h₁ h₂
     simp only [const_inj h₂]
+
+theorem evalo_const {α : Type} [Primcodable α] (g : α → ℕ →. ℕ) : evalo g (const a) _b = a := by sorry
 
 /-- A code for the identity function. -/
 def id_code : codeo :=
