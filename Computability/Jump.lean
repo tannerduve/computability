@@ -16,27 +16,28 @@ state the jump theorems:
 A set A is recursively enumerable in a set of partial recursive functions `O` if its characteristic
 function is recursive in `O`.
 -/
-def recursively_enumerable_in (O : Set (ℕ →. ℕ)) (A : Set ℕ) :=
-  ∃ f, (RecursiveIn O f) ∧ A = f.Dom
+-- def recursively_enumerable_in (O : Set (ℕ →. ℕ)) (A : Set ℕ) :=
+--   ∃ f, (RecursiveIn O f) ∧ A = f.Dom
 
 /-
 A set A is recursively enumerable in a family of partial recursive functions `X` if its characteristic
 function is recursive in `X`.
 -/
-def recursively_enumerable_in₁ (X : α → ℕ →. ℕ) (A : Set ℕ) :=
-  ∃ f, (RecursiveIn (Set.range X) f) ∧ A = f.Dom
+-- def recursively_enumerable_in₁ (X : α → ℕ →. ℕ) (A : Set ℕ) :=
+--   ∃ f, (RecursiveIn (Set.range X) f) ∧ A = f.Dom
 
 /-
 A set A is re in a single partial recursive function g if its characteristic function is recursive in g.
 -/
-def recursively_enumerable_in₂ (g : ℕ →. ℕ) (A : ℕ → Prop) :=
- ∃ f, (RecursiveIn {g} f) ∧ A = f.Dom
+-- def recursively_enumerable_in₂ (g : ℕ →. ℕ) (A : ℕ → Prop) :=
+--  ∃ f, (RecursiveIn {g} f) ∧ A = f.Dom
 
 /-
 A set A is recursively enumerable if its characteristic function is recursive in the empty set.
 -/
-def recursively_enumerable (A : Set ℕ) :=
-  ∃ f, (RecursiveIn {} f) ∧ A = f.Dom
+-- def recursively_enumerable (A : Set ℕ) :=
+--   ∃ f, (RecursiveIn {} f) ∧ A = f.Dom
+
 
 /-
 The jump of f is the diagonal of the universal machine relative to f:
@@ -44,26 +45,29 @@ The jump of f is the diagonal of the universal machine relative to f:
 Its domain is the set of n where the n-th oracle program halts on input n with oracle f, ie. the halting
 problem relative to f.
 -/
-def jump (f : ℕ →. ℕ) : ℕ →. ℕ :=
-  -- λ n => evalo (λ _ : Unit => f) (decodeCodeo n) n
-  λ n => evalo (λ _ : Unit => f) (decodeCodeo (Nat.unpair n).1) (Nat.unpair n).2
+open Classical in
+noncomputable def jump (f : ℕ →. ℕ) : ℕ →. ℕ := λ n => if (evalo f (decodeCodeo (Nat.unpair n).1) (Nat.unpair n).2).Dom then 1 else 0
+    -- if let (evalo f (decodeCodeo (Nat.unpair n).1) (Nat.unpair n).2) := Part.none then 0 else 1
+    -- match (evalo f (decodeCodeo (Nat.unpair n).1) (Nat.unpair n).2).Dom with
+    --   | False => 0
+    --   | nomatch => 1
 
 /-
 The oracle corresponding to a decidable set A ⊆ ℕ, returning 0 on elements of A and undefined elsewhere.
 -/
-def setOracle (A : ℕ → Prop) [DecidablePred A] : ℕ →. ℕ :=
-  λ n => if A n then Part.some 0 else Part.none
+-- def setOracle (A : ℕ → Prop) [DecidablePred A] : ℕ →. ℕ :=
+--   λ n => if A n then Part.some 0 else Part.none
 
-/-
-The jump of a decidable set A ⊆ ℕ: the set of n such that the n-th oracle program halts on input n with oracle A.
--/
-def jumpSet (A : ℕ → Prop) [DecidablePred A] : ℕ → Prop :=
-  λ n => (evalo (λ (_ : Unit) => setOracle A) (decodeCodeo n) n).Dom
+-- /-
+-- The jump of a decidable set A ⊆ ℕ: the set of n such that the n-th oracle program halts on input n with oracle A.
+-- -/
+-- def jumpSet (A : ℕ → Prop) [DecidablePred A] : ℕ → Prop :=
+--   λ n => (evalo (λ (_ : Unit) => setOracle A) (decodeCodeo n) n).Dom
 
 /-
 Wₑᶠ is the domain of the eth partial function recursive in the oracle family {fₐ}.
 -/
-abbrev W [Primcodable α] (e : ℕ) (f : α → ℕ →. ℕ) := (evalo f (decodeCodeo e)).Dom
+abbrev W (e : ℕ) (f : ℕ →. ℕ) := (evalo f (decodeCodeo e)).Dom
 
 -- Theorems to prove (2.3 Jump Theorem in Soare Recursively Enumerable Sets and Degrees)
 -- 1. f⌜ is recursive in f
@@ -85,39 +89,43 @@ theorem Primrec.projection {f : α → β → σ} {a:α} (h:Primrec₂ f) : Prim
 
 
 
-
-
-
 -- theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by sorry
+-- theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
+--   have main: RecursiveIn (jump f) (f) := by
+--     have giseq: f = (fun x => Nat.pair (encodeCodeo (codeo.oracle)) x >>= (jump f)) := by
+--       funext xs
+--       simp
+--       rw [jump]
+--       simp
+--       -- rw [decodeCodeo.eq_def]
+--       simp
+--       constructor
+
+--     nth_rewrite 2 [giseq]
+--     apply RecursiveIn.comp
+--     · constructor
+--       simp
+--     · simp
+--       apply Nat.Partrec.recursiveIn
+--       refine Partrec.nat_iff.mp ?_
+--       refine Partrec.comp ?_ ?_
+--       · exact Partrec.some
+--       · refine Primrec.to_comp ?_
+--         rw [encodeCodeo]
+--         simp
+--         exact Primrec.projection Primrec₂.natPair
+--     -- sorry
+--   exact main
+
 theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
-  have main: RecursiveIn {jump f} (f) := by
-    have giseq: f = (fun x => Nat.pair (encodeCodeo (codeo.oracle 0)) x >>= (jump f)) := by
+  have f_eq_f': f = (fun x => Nat.pair (encodeCodeo (codeo.oracle)) x >>= (jump f)) := by
       funext xs
       simp
       rw [jump]
       simp
-      rw [decodeCodeo.eq_def]
+      -- rw [decodeCodeo.eq_def]
       simp
       constructor
-
-    nth_rewrite 2 [giseq]
-    apply RecursiveIn.comp
-    · constructor
-      simp
-    · simp
-      apply Nat.Partrec.recursiveIn
-      refine Partrec.nat_iff.mp ?_
-      refine Partrec.comp ?_ ?_
-      · exact Partrec.some
-      · refine Primrec.to_comp ?_
-        rw [encodeCodeo]
-        simp
-        exact Primrec.projection Primrec₂.natPair
-
-
-
-    -- sorry
-  exact main
 
 theorem k0lek (f : ℕ →. ℕ) : (f⌜) ≤ᵀ  (λ n => evalo (λ _ : Unit => f) (decodeCodeo n) n) := by
   let k := λ n => evalo (λ _ : Unit => f) (decodeCodeo n) n

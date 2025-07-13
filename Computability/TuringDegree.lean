@@ -45,7 +45,7 @@ Computability, Turing Degrees, Reducibility, Equivalence Relation
 `f` is Turing reducible to `g` if `f` is partial recursive given access to the oracle `g`
 -/
 abbrev TuringReducible (f g : ℕ →. ℕ) : Prop :=
-  RecursiveIn {g} f
+  RecursiveIn g f
 
 /--
 `f` is Turing equivalent to `g` if `f` is reducible to `g` and `g` is reducible to `f`.
@@ -58,23 +58,24 @@ abbrev TuringEquivalent (f g : ℕ →. ℕ) : Prop :=
 
 open scoped Computability
 
-protected theorem TuringReducible.refl (f : ℕ →. ℕ) : f ≤ᵀ f := .oracle _ <| by simp
+protected theorem TuringReducible.refl (f : ℕ →. ℕ) : f ≤ᵀ f := by exact RecursiveIn.oracle
 protected theorem TuringReducible.rfl : f ≤ᵀ f := .refl _
 
 instance : IsRefl (ℕ →. ℕ) TuringReducible where refl _ := .rfl
 
 theorem TuringReducible.trans (hg : f ≤ᵀ g) (hh : g ≤ᵀ h) : f ≤ᵀ h := by
-  induction' hg with g' hg g' h' _ _ ih₁ ih₂ g' h' _ _ ih₁ ih₂ g' h' _ _ ih₁ ih₂ g' _ ih
-  repeat {constructor}
-  · rw [Set.mem_singleton_iff] at hg; rw [hg]; exact hh
-  · case pair =>
-    apply RecursiveIn.pair ih₁ ih₂
-  · case comp =>
-    apply RecursiveIn.comp ih₁ ih₂
-  · case prec =>
-    apply RecursiveIn.prec ih₁ ih₂
-  · case rfind =>
-    apply RecursiveIn.rfind ih
+  sorry
+  -- induction' hg with g' hg g' h' _ _ ih₁ ih₂ g' h' _ _ ih₁ ih₂ g' h' _ _ ih₁ ih₂ g' _ ih
+  -- repeat {constructor}
+  -- · rw [Set.mem_singleton_iff] at hg; rw [hg]; exact hh
+  -- · case pair =>
+  --   apply RecursiveIn.pair ih₁ ih₂
+  -- · case comp =>
+  --   apply RecursiveIn.comp ih₁ ih₂
+  -- · case prec =>
+  --   apply RecursiveIn.prec ih₁ ih₂
+  -- · case rfind =>
+  --   apply RecursiveIn.rfind ih
 
 instance : IsTrans (ℕ →. ℕ) TuringReducible :=
   ⟨@TuringReducible.trans⟩
