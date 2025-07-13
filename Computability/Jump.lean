@@ -2,7 +2,10 @@ import Computability.Encoding
 import Mathlib.Computability.Reduce
 import Mathlib.Computability.Halting
 
+import Mathlib.Data.PFun
+
 open Computability
+open Classical
 
 /-
 In this file we define the jump operator (⌜) for partial recursive functions and prove its main properties.
@@ -45,12 +48,18 @@ The jump of f is the diagonal of the universal machine relative to f:
 Its domain is the set of n where the n-th oracle program halts on input n with oracle f, ie. the halting
 problem relative to f.
 -/
-open Classical in
-noncomputable def jump (f : ℕ →. ℕ) : ℕ →. ℕ := λ n => if (evalo f (decodeCodeo (Nat.unpair n).1) (Nat.unpair n).2).Dom then 1 else 0
-    -- if let (evalo f (decodeCodeo (Nat.unpair n).1) (Nat.unpair n).2) := Part.none then 0 else 1
-    -- match (evalo f (decodeCodeo (Nat.unpair n).1) (Nat.unpair n).2).Dom with
-    --   | False => 0
-    --   | nomatch => 1
+-- noncomputable def jump (f : ℕ →. ℕ) : ℕ →. ℕ := λ n =>
+--   let part := evalo f (decodeCodeo (Nat.unpair n).1) (Nat.unpair n).2
+--   if part.Dom then part >>= (Nat.succ:PFun ℕ ℕ) else 0
+noncomputable def jump (f : ℕ →. ℕ) : ℕ → ℕ := λ n =>
+  let part := evalo f (decodeCodeo (Nat.unpair n).1) (Nat.unpair n).2
+  if part.Dom then Nat.succ (part.get _) else 0
+
+-- theorem jump_totality (f : ℕ →. ℕ) : (jump f).Dom = ℕ := by
+--   rw [@Set.coe_eq_subtype]
+--   apply?
+--   -- rw [if_false_left]
+--   exact?
 
 /-
 The oracle corresponding to a decidable set A ⊆ ℕ, returning 0 on elements of A and undefined elsewhere.
@@ -117,12 +126,95 @@ theorem Primrec.projection {f : α → β → σ} {a:α} (h:Primrec₂ f) : Prim
 --     -- sorry
 --   exact main
 
+
+theorem test01 (x:ℕ): Nat.succ x ≠ 0 := by
+  exact Ne.symm (Nat.zero_ne_add_one x)
+
+open Part
+theorem test0 (x:Part ℕ): (x >>= (Nat.succ:PFun ℕ ℕ) = Part.some 0) = (False) := by
+
+  cases eq_none_or_eq_some x
+  case inl h =>
+    rw [h]
+    simp
+    -- rw?
+
+    -- exact?
+  case inr h =>
+    rcases h with ⟨x2,hx2⟩
+    rw [hx2]
+    simp
+
+
+
+
+theorem test1 (x:ℕ): (if ((if p then x+1 else 0)=0) then y else z) = (if p then z else y) := by
+  simp
+
+theorem test2 (x:Part ℕ): (if ((if p then (x >>= (Nat.succ:PFun ℕ ℕ)) else Part.some 0)=Part.some 0) then y else z) = (if p then z else y) := by
+  simp
+  -- rw [test0]
+  have hf (x:Part ℕ) : ((if p then (x >>= (Nat.succ:PFun ℕ ℕ)) else Part.some 0)=Part.some 0) → ¬ p := by
+    simp
+    -- simp [test0]
+    refine fun a ↦ ?_
+    simp only [test0] at a
+    exact?
+  intro
+  -- rw [test0]
+  -- simp [test0]
+  -- apply test0
+  exact?
+  -- refine ite_congr rfl ?_ ?_
+
+  -- apply [rfl]
+  -- exact?
+  -- rw?
+  -- apply?
+  -- exact?
+
+def Nat.dec : (ℕ → ℕ) := fun n ↦ n-1
+
 theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
-  have f_eq_f': f = (fun x => Nat.pair (encodeCodeo (codeo.oracle)) x >>= (jump f)) := by
-      funext xs
-      simp
-      rw [jump]
-      simp
+
+  have f_eq_f': f = (fun x =>
+    let computation := Nat.pair (encodeCodeo (codeo.oracle)) x >>= (jump f);
+    if (computation=0) then Part.none else computation >>= (Nat.dec:PFun ℕ ℕ)) := by
+      -- funext xs
+      -- simp [Nat]
+      simp [jump]
+      rw [test0]
+      -- simp
+      -- simp only [jump]
+      -- simp
+
+
+      -- simp only [Nat.add_one_ne_zero]
+      simp!
+
+      have h0 :  := by exact?
+      -- rw [decodeCodeo_encodeCodeo]
+      refine PFun.ext' ?_ ?_
+      · simp [evalo]
+        refine fun a ↦ ?_
+        refine Iff.symm ((fun {a b} ↦ iff_iff_implies_and_implies.mpr) ?_)
+        constructor
+        · intro h
+          have h2 : (((f a).Dom → f a + 1) = 0) ∨ ¬ (((f a).Dom → f a + 1) = 0) := Classical.em (((f a).Dom → f a + 1) = 0)
+          -- classical.em
+          cases h2
+          case inl h3 =>
+
+            rw [h3] at h
+
+            exact?
+          exact?
+        exact?
+
+      exact?
+
+
+
       -- rw [decodeCodeo.eq_def]
       simp
       constructor
