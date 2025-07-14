@@ -64,18 +64,16 @@ protected theorem TuringReducible.rfl : f ≤ᵀ f := .refl _
 instance : IsRefl (ℕ →. ℕ) TuringReducible where refl _ := .rfl
 
 theorem TuringReducible.trans (hg : f ≤ᵀ g) (hh : g ≤ᵀ h) : f ≤ᵀ h := by
-  sorry
-  -- induction' hg with g' hg g' h' _ _ ih₁ ih₂ g' h' _ _ ih₁ ih₂ g' h' _ _ ih₁ ih₂ g' _ ih
-  -- repeat {constructor}
-  -- · rw [Set.mem_singleton_iff] at hg; rw [hg]; exact hh
-  -- · case pair =>
-  --   apply RecursiveIn.pair ih₁ ih₂
-  -- · case comp =>
-  --   apply RecursiveIn.comp ih₁ ih₂
-  -- · case prec =>
-  --   apply RecursiveIn.prec ih₁ ih₂
-  -- · case rfind =>
-  --   apply RecursiveIn.rfind ih
+  induction hg
+  · exact RecursiveIn.zero
+  · exact RecursiveIn.succ
+  · exact RecursiveIn.left
+  · exact RecursiveIn.right
+  · exact hh
+  · (expose_names; exact RecursiveIn.pair hf_ih hh_ih)
+  · (expose_names; exact RecursiveIn.comp hf_ih hh_ih)
+  · (expose_names; exact RecursiveIn.prec hf_ih hh_ih)
+  · (expose_names; exact RecursiveIn.rfind hf_ih)
 
 instance : IsTrans (ℕ →. ℕ) TuringReducible :=
   ⟨@TuringReducible.trans⟩
