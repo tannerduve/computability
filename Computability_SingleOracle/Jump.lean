@@ -132,8 +132,7 @@ def divergentFunc : (ℕ →. ℕ) := fun x => Part.none
 theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
   let f':ℕ→.ℕ := (fun x =>
     let computation := (jump f) (Nat.pair (encodeCodeo (codeo.oracle)) x);
-    -- if (computation=0) then Part.none else Nat.dec computation)
-    if (computation=0) then divergentFunc x else Nat.dec computation)
+    if (computation=0) then Part.none else Nat.dec computation)
   have f_eq_f': f = f' := by
       simp [f', jump, decodeCodeo_encodeCodeo]
       funext xs
@@ -154,10 +153,9 @@ theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
     -- simp [jump]
 
     have test :
-    let compute : (ℕ→ℕ) := fun y => y;
-    RecursiveIn ↑(f⌜) fun x ↦
-  if compute x = 0 then divergentFunc x
-  else Nat.dec (compute x) := by
+    RecursiveIn ↑(f⌜) (fun x =>
+    let compute := fun y => (jump f) (Nat.pair (encodeCodeo (codeo.oracle)) y);
+    if ((↑compute:ℕ→.ℕ) x=0) then Part.none else Nat.dec (compute x)) := by
       simp
       apply cond2
       -- simp [cond2]
