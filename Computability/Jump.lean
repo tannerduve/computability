@@ -53,7 +53,8 @@ problem relative to f.
 --   if part.Dom then part >>= (Nat.succ:PFun ℕ ℕ) else 0
 noncomputable def jump (f : ℕ →. ℕ) : ℕ → ℕ := λ n =>
   let part := evalo f (decodeCodeo (Nat.unpair n).1) (Nat.unpair n).2
-  if part.Dom then Nat.succ (part.get _) else 0
+  dite part.Dom (λ proof => Nat.succ $ part.get proof) (λ _ => 0)
+  -- if part.Dom then Nat.succ (part.get _) else 0
 
 -- theorem jump_totality (f : ℕ →. ℕ) : (jump f).Dom = ℕ := by
 --   rw [@Set.coe_eq_subtype]
@@ -151,73 +152,113 @@ theorem test0 (x:Part ℕ): (x >>= (Nat.succ:PFun ℕ ℕ) = Part.some 0) = (Fal
 theorem test1 (x:ℕ): (if ((if p then x+1 else 0)=0) then y else z) = (if p then z else y) := by
   simp
 
-theorem test2 (x:Part ℕ): (if ((if p then (x >>= (Nat.succ:PFun ℕ ℕ)) else Part.some 0)=Part.some 0) then y else z) = (if p then z else y) := by
-  simp
-  -- rw [test0]
-  have hf (x:Part ℕ) : ((if p then (x >>= (Nat.succ:PFun ℕ ℕ)) else Part.some 0)=Part.some 0) → ¬ p := by
-    simp
-    -- simp [test0]
-    refine fun a ↦ ?_
-    simp only [test0] at a
-    exact?
-  intro
-  -- rw [test0]
-  -- simp [test0]
-  -- apply test0
-  exact?
-  -- refine ite_congr rfl ?_ ?_
+-- theorem test2 (x:Part ℕ): (if ((if p then (x >>= (Nat.succ:PFun ℕ ℕ)) else Part.some 0)=Part.some 0) then y else z) = (if p then z else y) := by
+--   simp
+--   -- rw [test0]
+--   have hf (x:Part ℕ) : ((if p then (x >>= (Nat.succ:PFun ℕ ℕ)) else Part.some 0)=Part.some 0) → ¬ p := by
+--     simp
+--     -- simp [test0]
+--     refine fun a ↦ ?_
+--     simp only [test0] at a
+--     exact?
+--   intro
+--   -- rw [test0]
+--   -- simp [test0]
+--   -- apply test0
+--   exact?
+--   -- refine ite_congr rfl ?_ ?_
 
-  -- apply [rfl]
-  -- exact?
-  -- rw?
-  -- apply?
-  -- exact?
+--   -- apply [rfl]
+--   -- exact?
+--   -- rw?
+--   -- apply?
+--   -- exact?
 
 def Nat.dec : (ℕ → ℕ) := fun n ↦ n-1
 
-theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
+/-
+There are lots of primrec theorems we would like to use like
 
-  have f_eq_f': f = (fun x =>
-    let computation := Nat.pair (encodeCodeo (codeo.oracle)) x >>= (jump f);
-    if (computation=0) then Part.none else computation >>= (Nat.dec:PFun ℕ ℕ)) := by
-      -- funext xs
+theorem cond {c : α → Bool} {f : α → σ} {g : α → σ} (hc : Primrec c) (hf : Primrec f)
+    (hg : Primrec g) : Primrec fun a => bif (c a) then (f a) else (g a) :=
+  (nat_casesOn (encode_iff.2 hc) hg (hf.comp fst).to₂).of_eq fun a => by cases c a <;> rfl
+
+-- Now, if f is primrec + oracle g,
+It'd be nice to be able to automatically extend all of these to smth like
+
+theorem cond {c : α → Bool} {f : α → σ} {g : α → σ} (hc : PrimrecOracle O c) (hf : PrimrecOracle O f)
+    (hg : PrimrecOracle O g) : PrimrecOracle O fun a => bif (c a) then (f a) else (g a)
+
+-/
+
+
+/- Partially recursive partial functions `α → σ` between `Primcodable` types -/
+-- def PartrecIn2 {β τ α σ} [Primcodable β] [Primcodable τ] [Primcodable α] [Primcodable σ] (g : β →. τ) (f : α →. σ) :=
+--   RecursiveIn (fun n => Part.bind (Encodable.decode (β := β) n) fun a => (g a).map Encodable.encode) fun n => Part.bind (Encodable.decode (α := α) n) fun a => (f a).map Encodable.encode
+-- def PartrecIn1 {α σ} [Primcodable α] [Primcodable σ] (g : ℕ→.ℕ) (f : α →. σ) :=
+--   RecursiveIn g fun n => Part.bind (Encodable.decode (α := α) n) fun a => (f a).map Encodable.encode
+
+theorem cond2 (tc:c.Dom=ℕ) (hc : RecursiveIn O c) (hf : RecursiveIn O f)
+    (hg : RecursiveIn O g) : RecursiveIn O fun a => if (c a=0) then (f a) else (g a) := by sorry
+
+-- theorem ite_recIn (g:ℕ→.ℕ) (h:ℕ→.ℕ) (h0:f≤ᵀO) (h1:f.Dom=ℕ) : RecursiveIn O (fun x => if (f x=0) then g x else h x) := by
+--   simp [jump] at h0
+--   exact?
+
+theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
+  let f':ℕ→.ℕ := (fun x =>
+    let computation := (jump f) (Nat.pair (encodeCodeo (codeo.oracle)) x);
+    if (computation=0) then Part.none else Nat.dec computation)
+  have f_eq_f': f = f' := by
       -- simp [Nat]
-      simp [jump]
-      rw [test0]
+      simp [f', jump, decodeCodeo_encodeCodeo]
+      funext xs
+      -- simp [test1]
+      -- simp [decodeCodeo_encodeCodeo]
+
+      -- rw [test0]
       -- simp
       -- simp only [jump]
       -- simp
 
 
       -- simp only [Nat.add_one_ne_zero]
-      simp!
+      -- simp!
 
-      have h0 :  := by exact?
+      -- have h0 :  := by exact?
       -- rw [decodeCodeo_encodeCodeo]
-      refine PFun.ext' ?_ ?_
-      · simp [evalo]
-        refine fun a ↦ ?_
-        refine Iff.symm ((fun {a b} ↦ iff_iff_implies_and_implies.mpr) ?_)
-        constructor
-        · intro h
-          have h2 : (((f a).Dom → f a + 1) = 0) ∨ ¬ (((f a).Dom → f a + 1) = 0) := Classical.em (((f a).Dom → f a + 1) = 0)
-          -- classical.em
-          cases h2
-          case inl h3 =>
 
-            rw [h3] at h
-
-            exact?
-          exact?
-        exact?
-
-      exact?
+      cases Classical.em ((evalo f codeo.oracle xs).Dom) with
+      | inl h =>
+        -- rw [h]
+        simp [h]
+        exact get_eq_iff_eq_some.mp rfl
+      | inr h =>
+        simp [h, jump]
+        exact eq_none_iff'.mpr h
 
 
+  have f'_recIn_fJump : f' ≤ᵀ (f⌜) := by
+    simp [f', jump, decodeCodeo_encodeCodeo]
+    simp [TuringReducible]
 
-      -- rw [decodeCodeo.eq_def]
-      simp
-      constructor
+  -- need to rewrite Part.none as a function _ => Part.none
+    apply cond2
+    -- simp [cond2 ?_ ?_ ?_ ?_]
+    -- simp [cond2]
+    -- i probably need a lemma here saying that "computation" is computable, the so is "if (computation=0) then f else computation)"
+    --
+    -- rw [cond2]
+    -- simp [cond2]
+    -- rw [cond2 _ _]
+
+    -- apply RecursiveIn.comp
+    -- exact?
+
+
+
+
+
 
 theorem k0lek (f : ℕ →. ℕ) : (f⌜) ≤ᵀ  (λ n => evalo (λ _ : Unit => f) (decodeCodeo n) n) := by
   let k := λ n => evalo (λ _ : Unit => f) (decodeCodeo n) n
