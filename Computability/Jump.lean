@@ -99,35 +99,6 @@ theorem Primrec.projection {f : α → β → σ} {a:α} (h:Primrec₂ f) : Prim
 
 
 
--- theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by sorry
--- theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
---   have main: RecursiveIn (jump f) (f) := by
---     have giseq: f = (fun x => Nat.pair (encodeCodeo (codeo.oracle)) x >>= (jump f)) := by
---       funext xs
---       simp
---       rw [jump]
---       simp
---       -- rw [decodeCodeo.eq_def]
---       simp
---       constructor
-
---     nth_rewrite 2 [giseq]
---     apply RecursiveIn.comp
---     · constructor
---       simp
---     · simp
---       apply Nat.Partrec.recursiveIn
---       refine Partrec.nat_iff.mp ?_
---       refine Partrec.comp ?_ ?_
---       · exact Partrec.some
---       · refine Primrec.to_comp ?_
---         rw [encodeCodeo]
---         simp
---         exact Primrec.projection Primrec₂.natPair
---     -- sorry
---   exact main
-
-
 theorem test01 (x:ℕ): Nat.succ x ≠ 0 := by
   exact Ne.symm (Nat.zero_ne_add_one x)
 
@@ -201,43 +172,19 @@ theorem cond {c : α → Bool} {f : α → σ} {g : α → σ} (hc : PrimrecOrac
 theorem cond2 {c f g : ℕ→.ℕ} (tc:c.Dom=ℕ) (hc : RecursiveIn O c) (hf : RecursiveIn O f)
     (hg : RecursiveIn O g) : RecursiveIn O fun a => if (c a=0) then (f a) else (g a) := by sorry
 
--- theorem ite_recIn (g:ℕ→.ℕ) (h:ℕ→.ℕ) (h0:f≤ᵀO) (h1:f.Dom=ℕ) : RecursiveIn O (fun x => if (f x=0) then g x else h x) := by
---   simp [jump] at h0
---   exact?
 
 def divergentFunc : (ℕ →. ℕ) := fun x => Part.none
 
 theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
-  -- let f':ℕ→.ℕ := (fun x =>
-  --   let computation := (jump f) (Nat.pair (encodeCodeo (codeo.oracle)) x);
-  --   -- if (computation=0) then Part.none else Nat.dec computation)
-  --   if (computation=0) then divergentFunc x else Nat.dec computation)
   let f':ℕ→.ℕ := (fun x =>
-    let compute := fun y => (jump f) (Nat.pair (encodeCodeo (codeo.oracle)) y);
+    let computation := (jump f) (Nat.pair (encodeCodeo (codeo.oracle)) x);
     -- if (computation=0) then Part.none else Nat.dec computation)
-    if (compute x=0) then divergentFunc x else Nat.dec (compute x))
+    if (computation=0) then divergentFunc x else Nat.dec computation)
   have f_eq_f': f = f' := by
-      -- simp [Nat]
       simp [f', jump, decodeCodeo_encodeCodeo]
       funext xs
-      -- simp [test1]
-      -- simp [decodeCodeo_encodeCodeo]
-
-      -- rw [test0]
-      -- simp
-      -- simp only [jump]
-      -- simp
-
-
-      -- simp only [Nat.add_one_ne_zero]
-      -- simp!
-
-      -- have h0 :  := by exact?
-      -- rw [decodeCodeo_encodeCodeo]
-
       cases Classical.em ((evalo f codeo.oracle xs).Dom) with
       | inl h =>
-        -- rw [h]
         simp [h]
         exact get_eq_iff_eq_some.mp rfl
       | inr h =>
@@ -261,41 +208,24 @@ theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
       apply cond2
       -- simp [cond2]
 
-  -- need to rewrite Part.none as a function _ => Part.none
-    -- rw [cond2]
-    refine cond2 _ _ _ _
-    -- refine cond2
-    -- simp [cond2 ?_ ?_ ?_ ?_]
-    -- simp [cond2]
-    -- i probably need a lemma here saying that "computation" is computable, the so is "if (computation=0) then f else computation)"
-    --
-    -- rw [cond2]
-    -- simp [cond2]
-    -- rw [cond2 _ _]
-
-    -- apply RecursiveIn.comp
-    -- exact?
 
 
 
-
-
-
-theorem k0lek (f : ℕ →. ℕ) : (f⌜) ≤ᵀ  (λ n => evalo (λ _ : Unit => f) (decodeCodeo n) n) := by
-  let k := λ n => evalo (λ _ : Unit => f) (decodeCodeo n) n
-  let h := λ (ex:ℕ) => encodeCodeo (codeo.comp (decodeCodeo ex.unpair.1) (const ex.unpair.2))
-  -- h takes as input (e,x), and outputs the index for the function which calculates and returns [e:f](x).
-  -- which is... encodeCodeo (codeo.comp (decodeCodeo e) (codeo.succ codeo.succ ... codeo.zero))
-  -- which is... encodeCodeo (codeo.comp (decodeCodeo e) (const x))
-  have k0_intermsof_k : f⌜ = k ∘ h := by
-    simp [k, h]
-    rw [@Function.comp_def]
-    simp [decodeCodeo_encodeCodeo]
-    simp [evalo]
-    simp [evalo_const]
-    exact rfl
-  simp [k0_intermsof_k]
-  sorry
+-- theorem k0lek (f : ℕ →. ℕ) : (f⌜) ≤ᵀ  (λ n => evalo (λ _ : Unit => f) (decodeCodeo n) n) := by
+--   let k := λ n => evalo (λ _ : Unit => f) (decodeCodeo n) n
+--   let h := λ (ex:ℕ) => encodeCodeo (codeo.comp (decodeCodeo ex.unpair.1) (const ex.unpair.2))
+--   -- h takes as input (e,x), and outputs the index for the function which calculates and returns [e:f](x).
+--   -- which is... encodeCodeo (codeo.comp (decodeCodeo e) (codeo.succ codeo.succ ... codeo.zero))
+--   -- which is... encodeCodeo (codeo.comp (decodeCodeo e) (const x))
+--   have k0_intermsof_k : f⌜ = k ∘ h := by
+--     simp [k, h]
+--     rw [@Function.comp_def]
+--     simp [decodeCodeo_encodeCodeo]
+--     simp [evalo]
+--     simp [evalo_const]
+--     exact rfl
+--   simp [k0_intermsof_k]
+--   sorry
 
 
 
