@@ -198,17 +198,24 @@ theorem cond {c : α → Bool} {f : α → σ} {g : α → σ} (hc : PrimrecOrac
 -- def PartrecIn1 {α σ} [Primcodable α] [Primcodable σ] (g : ℕ→.ℕ) (f : α →. σ) :=
 --   RecursiveIn g fun n => Part.bind (Encodable.decode (α := α) n) fun a => (f a).map Encodable.encode
 
-theorem cond2 (tc:c.Dom=ℕ) (hc : RecursiveIn O c) (hf : RecursiveIn O f)
+theorem cond2 {c f g : ℕ→.ℕ} (tc:c.Dom=ℕ) (hc : RecursiveIn O c) (hf : RecursiveIn O f)
     (hg : RecursiveIn O g) : RecursiveIn O fun a => if (c a=0) then (f a) else (g a) := by sorry
 
 -- theorem ite_recIn (g:ℕ→.ℕ) (h:ℕ→.ℕ) (h0:f≤ᵀO) (h1:f.Dom=ℕ) : RecursiveIn O (fun x => if (f x=0) then g x else h x) := by
 --   simp [jump] at h0
 --   exact?
 
+def divergentFunc : (ℕ →. ℕ) := fun x => Part.none
+
 theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
+  -- let f':ℕ→.ℕ := (fun x =>
+  --   let computation := (jump f) (Nat.pair (encodeCodeo (codeo.oracle)) x);
+  --   -- if (computation=0) then Part.none else Nat.dec computation)
+  --   if (computation=0) then divergentFunc x else Nat.dec computation)
   let f':ℕ→.ℕ := (fun x =>
-    let computation := (jump f) (Nat.pair (encodeCodeo (codeo.oracle)) x);
-    if (computation=0) then Part.none else Nat.dec computation)
+    let compute := fun y => (jump f) (Nat.pair (encodeCodeo (codeo.oracle)) y);
+    -- if (computation=0) then Part.none else Nat.dec computation)
+    if (compute x=0) then divergentFunc x else Nat.dec (compute x))
   have f_eq_f': f = f' := by
       -- simp [Nat]
       simp [f', jump, decodeCodeo_encodeCodeo]
@@ -239,11 +246,25 @@ theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
 
 
   have f'_recIn_fJump : f' ≤ᵀ (f⌜) := by
-    simp [f', jump, decodeCodeo_encodeCodeo]
-    simp [TuringReducible]
+    -- simp [f', jump, decodeCodeo_encodeCodeo]
+    -- simp [TuringReducible]
+
+    simp [f',TuringReducible]
+    -- simp [jump]
+
+    have test :
+    let compute : (ℕ→ℕ) := fun y => y;
+    RecursiveIn ↑(f⌜) fun x ↦
+  if compute x = 0 then divergentFunc x
+  else Nat.dec (compute x) := by
+      simp
+      apply cond2
+      -- simp [cond2]
 
   -- need to rewrite Part.none as a function _ => Part.none
-    apply cond2
+    -- rw [cond2]
+    refine cond2 _ _ _ _
+    -- refine cond2
     -- simp [cond2 ?_ ?_ ?_ ?_]
     -- simp [cond2]
     -- i probably need a lemma here saying that "computation" is computable, the so is "if (computation=0) then f else computation)"
