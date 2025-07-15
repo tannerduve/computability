@@ -1,4 +1,4 @@
-import Computability.Encoding
+import Computability.SingleOracle.Encoding
 import Mathlib.Computability.Reduce
 import Mathlib.Computability.Halting
 

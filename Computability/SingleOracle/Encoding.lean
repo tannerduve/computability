@@ -1,4 +1,4 @@
-import Computability.TuringDegree
+import Computability.SingleOracle.TuringDegree
 import Mathlib.Data.Option.Basic
 import Mathlib.Tactic.Linarith
 import Mathlib.Logic.Denumerable
