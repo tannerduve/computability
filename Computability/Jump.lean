@@ -99,52 +99,6 @@ theorem Primrec.projection {f : α → β → σ} {a:α} (h:Primrec₂ f) : Prim
 
 
 
-theorem test01 (x:ℕ): Nat.succ x ≠ 0 := by
-  exact Ne.symm (Nat.zero_ne_add_one x)
-
-open Part
-theorem test0 (x:Part ℕ): (x >>= (Nat.succ:PFun ℕ ℕ) = Part.some 0) = (False) := by
-
-  cases eq_none_or_eq_some x
-  case inl h =>
-    rw [h]
-    simp
-    -- rw?
-
-    -- exact?
-  case inr h =>
-    rcases h with ⟨x2,hx2⟩
-    rw [hx2]
-    simp
-
-
-
-
-theorem test1 (x:ℕ): (if ((if p then x+1 else 0)=0) then y else z) = (if p then z else y) := by
-  simp
-
--- theorem test2 (x:Part ℕ): (if ((if p then (x >>= (Nat.succ:PFun ℕ ℕ)) else Part.some 0)=Part.some 0) then y else z) = (if p then z else y) := by
---   simp
---   -- rw [test0]
---   have hf (x:Part ℕ) : ((if p then (x >>= (Nat.succ:PFun ℕ ℕ)) else Part.some 0)=Part.some 0) → ¬ p := by
---     simp
---     -- simp [test0]
---     refine fun a ↦ ?_
---     simp only [test0] at a
---     exact?
---   intro
---   -- rw [test0]
---   -- simp [test0]
---   -- apply test0
---   exact?
---   -- refine ite_congr rfl ?_ ?_
-
---   -- apply [rfl]
---   -- exact?
---   -- rw?
---   -- apply?
---   -- exact?
-
 def Nat.dec : (ℕ → ℕ) := fun n ↦ n-1
 
 /-
@@ -186,10 +140,10 @@ theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
       cases Classical.em ((evalo f codeo.oracle xs).Dom) with
       | inl h =>
         simp [h]
-        exact get_eq_iff_eq_some.mp rfl
+        exact Part.get_eq_iff_eq_some.mp rfl
       | inr h =>
         simp [h, jump]
-        exact eq_none_iff'.mpr h
+        exact Part.eq_none_iff'.mpr h
 
 
   have f'_recIn_fJump : f' ≤ᵀ (f⌜) := by
