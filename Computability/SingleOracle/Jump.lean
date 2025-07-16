@@ -133,15 +133,9 @@ theorem cond {c : α → Bool} {f : α → σ} {g : α → σ} (hc : PrimrecOrac
 -- lemma someTotalDomain {f:ℕ→ℕ} : PFun.Dom (Part.some ∘ f) = ℕ := by
 
 
-
-
-theorem cond2 {f g : ℕ→.ℕ} {c:ℕ→ℕ} (hc : RecursiveIn O c) (hf : RecursiveIn O f)
+theorem RecursiveIn.ite {f g : ℕ→.ℕ} {c:ℕ→ℕ} (hc : RecursiveIn O c) (hf : RecursiveIn O f)
     (hg : RecursiveIn O g) : RecursiveIn O fun a => if (c a=0) then (f a) else (g a) := by sorry
 
-
-
-
-def divergentFunc : (ℕ →. ℕ) := fun x => Part.none
 
 theorem partcomp (O: ℕ →. ℕ) (f:ℕ→ℕ) (hf : RecursiveIn O f) : RecursiveIn g (Part.some ∘ f) := by
   sorry
@@ -170,7 +164,7 @@ theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
 
   have f'_recIn_fJump : f' ≤ᵀ (f⌜) := by
     simp only [f',TuringReducible]
-    apply cond2
+    apply RecursiveIn.ite
     · exact compute_recIn_fJump
     · exact RecursiveIn.none
     · apply RecursiveIn.totalComp
