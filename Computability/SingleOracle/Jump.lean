@@ -49,19 +49,10 @@ The jump of f is the diagonal of the universal machine relative to f:
 Its domain is the set of n where the n-th oracle program halts on input n with oracle f, ie. the halting
 problem relative to f.
 -/
--- noncomputable def jump (f : ℕ →. ℕ) : ℕ →. ℕ := λ n =>
---   let part := evalo f (decodeCodeo (Nat.unpair n).1) (Nat.unpair n).2
---   if part.Dom then part >>= (Nat.succ:PFun ℕ ℕ) else 0
 @[simp] noncomputable def jump (f : ℕ →. ℕ) : ℕ → ℕ := λ n =>
   let part := evalo f (decodeCodeo (Nat.unpair n).1) (Nat.unpair n).2
   dite part.Dom (λ proof => Nat.succ $ part.get proof) (λ _ => 0)
-  -- if part.Dom then Nat.succ (part.get _) else 0
 
--- theorem jump_totality (f : ℕ →. ℕ) : (jump f).Dom = ℕ := by
---   rw [@Set.coe_eq_subtype]
---   apply?
---   -- rw [if_false_left]
---   exact?
 
 /-
 The oracle corresponding to a decidable set A ⊆ ℕ, returning 0 on elements of A and undefined elsewhere.
@@ -168,7 +159,15 @@ theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
 
 
 
+@[simp] noncomputable def K (O : ℕ →. ℕ) : ℕ → ℕ := λ n =>
+  let part := evalo O (decodeCodeo n) n
+  dite part.Dom (λ proof => Nat.succ $ part.get proof) (λ _ => 0)
 
+
+-- for this one we need to be able to construct the index for evalo.
+theorem k0lek (O : ℕ →. ℕ) : (O⌜) ≤ᵀ (K O) := by
+
+  sorry
 
 -- theorem k0lek (f : ℕ →. ℕ) : (f⌜) ≤ᵀ  (λ n => evalo (λ _ : Unit => f) (decodeCodeo n) n) := by
 --   let k := λ n => evalo (λ _ : Unit => f) (decodeCodeo n) n
@@ -189,7 +188,9 @@ theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
 
 
 
-theorem jump_not_reducible (f : ℕ →. ℕ) : ¬(f⌜ ≤ᵀ f) := by sorry
+theorem jump_not_reducible (f : ℕ →. ℕ) : ¬(f⌜ ≤ᵀ f) := by
+  intro h
+  sorry
 
 theorem re_iff_one_one_jump  (A : Set ℕ) (f : ℕ →. ℕ) :
 recursively_enumerable_in₂ f A ↔ OneOneReducible A (f⌜).Dom := by sorry
