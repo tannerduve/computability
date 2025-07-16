@@ -15,8 +15,8 @@ the notion of `Nat.Partrec` by allowing access to a set of oracle functions.
 ## Main Definitions
 
 * `RecursiveIn O f`:
-  A partial function `f : ℕ →. ℕ` is recursive in a set of oracles `O ⊆ ℕ →. ℕ` if it can be
-  constructed from constants, basic operations, and functions in `O` using pairing, composition,
+  A partial function `f : ℕ →. ℕ` is recursive in an oracle `O = ℕ →. ℕ` if it can be
+  constructed from constants, basic operations, and `O` using pairing, composition,
   primitive recursion, and μ-recursion.
 * `liftPrim`: Encodes a function `α →. σ` as a function `ℕ →. ℕ` using `Primcodable`.
 * `RecursiveIn'`, `RecursiveIn₂`, `ComputableIn`, `ComputableIn₂`:
@@ -40,22 +40,18 @@ Computability, Oracle, Recursion, Primitive Recursion
 open Primrec Nat.Partrec Part Encodable
 open Classical
 
--- variable {f g h : ℕ →. ℕ}
-
 
 /--
-The type of partial functions recursive in a set of oracles `O` is the smallest type containing
-the constant zero, the successor, left and right projections, each oracle `g ∈ O`,
+The type of partial functions recursive in an `O` is the smallest type containing
+the constant zero, the successor, left and right projections, `O`,
 and is closed under pairing, composition, primitive recursion, and μ-recursion.
 -/
 inductive RecursiveIn (O : ℕ →. ℕ) : (ℕ →. ℕ) → Prop
--- inductive RecursiveIn (g : Set ℕ) : (ℕ →. ℕ) → Prop
   | zero : RecursiveIn O fun _ => 0
   | succ : RecursiveIn O Nat.succ
   | left : RecursiveIn O fun n => (Nat.unpair n).1
   | right : RecursiveIn O fun n => (Nat.unpair n).2
   | oracle : RecursiveIn O O
-  -- | oracle : RecursiveIn g fun x => if x ∈ g then 1 else 0
   | pair {f h : ℕ →. ℕ} (hf : RecursiveIn O f) (hh : RecursiveIn O h) :
       RecursiveIn O fun n => (Nat.pair <$> f n <*> h n)
   | comp {f h : ℕ →. ℕ} (hf : RecursiveIn O f) (hh : RecursiveIn O h) :
@@ -202,21 +198,3 @@ every partial function `g`.
 -/
 theorem partrec_iff_forall_recursiveIn : Nat.Partrec f ↔ ∀ g, RecursiveIn g f:=
   ⟨fun hf _ ↦ hf.recursiveIn, (· _ |>.partrec_of_zero)⟩
-
--- @[simp] lemma recursiveIn_empty_iff_partrec : RecursiveIn {} f ↔ Nat.Partrec f  where
---   mp fRecInNone := by
---     induction' fRecInNone with g hg g h _ _ ih₁ ih₂ g h _ _ ih₁ ih₂ g h _ _ ih₁ ih₂ g _ ih
---     repeat {constructor}
---     · simp at hg
---     repeat {constructor; assumption; try assumption}
---   mpr pF := by
---     induction' pF with f' g' _ _ ih₁ ih₂ f' g' _ _ ih₁ ih₂ f' g' _ _ ih₁ ih₂ f' _ ih
---     repeat {constructor}
---     · case pair =>
---       apply RecursiveIn.pair ih₁ ih₂
---     · case comp =>
---       apply RecursiveIn.comp ih₁ ih₂
---     · case prec =>
---       apply RecursiveIn.prec ih₁ ih₂
---     · case rfind =>
---       apply RecursiveIn.rfind ih
