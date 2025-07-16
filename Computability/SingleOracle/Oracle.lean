@@ -48,26 +48,26 @@ The type of partial functions recursive in a set of oracles `O` is the smallest 
 the constant zero, the successor, left and right projections, each oracle `g ∈ O`,
 and is closed under pairing, composition, primitive recursion, and μ-recursion.
 -/
-inductive RecursiveIn (g : ℕ →. ℕ) : (ℕ →. ℕ) → Prop
+inductive RecursiveIn (O : ℕ →. ℕ) : (ℕ →. ℕ) → Prop
 -- inductive RecursiveIn (g : Set ℕ) : (ℕ →. ℕ) → Prop
-  | zero : RecursiveIn g fun _ => 0
-  | succ : RecursiveIn g Nat.succ
-  | left : RecursiveIn g fun n => (Nat.unpair n).1
-  | right : RecursiveIn g fun n => (Nat.unpair n).2
-  | oracle : RecursiveIn g g
+  | zero : RecursiveIn O fun _ => 0
+  | succ : RecursiveIn O Nat.succ
+  | left : RecursiveIn O fun n => (Nat.unpair n).1
+  | right : RecursiveIn O fun n => (Nat.unpair n).2
+  | oracle : RecursiveIn O O
   -- | oracle : RecursiveIn g fun x => if x ∈ g then 1 else 0
-  | pair {f h : ℕ →. ℕ} (hf : RecursiveIn g f) (hh : RecursiveIn g h) :
-      RecursiveIn g fun n => (Nat.pair <$> f n <*> h n)
-  | comp {f h : ℕ →. ℕ} (hf : RecursiveIn g f) (hh : RecursiveIn g h) :
-      RecursiveIn g fun n => h n >>= f
-  | prec {f h : ℕ →. ℕ} (hf : RecursiveIn g f) (hh : RecursiveIn g h) :
-      RecursiveIn g fun p =>
+  | pair {f h : ℕ →. ℕ} (hf : RecursiveIn O f) (hh : RecursiveIn O h) :
+      RecursiveIn O fun n => (Nat.pair <$> f n <*> h n)
+  | comp {f h : ℕ →. ℕ} (hf : RecursiveIn O f) (hh : RecursiveIn O h) :
+      RecursiveIn O fun n => h n >>= f
+  | prec {f h : ℕ →. ℕ} (hf : RecursiveIn O f) (hh : RecursiveIn O h) :
+      RecursiveIn O fun p =>
         let (a, n) := Nat.unpair p
         n.rec (f a) fun y IH => do
           let i ← IH
           h (Nat.pair a (Nat.pair y i))
-  | rfind {f : ℕ →. ℕ} (hf : RecursiveIn g f) :
-      RecursiveIn g fun a =>
+  | rfind {f : ℕ →. ℕ} (hf : RecursiveIn O f) :
+      RecursiveIn O fun a =>
         Nat.rfind fun n => (fun m => m = 0) <$> f (Nat.pair a n)
 
 def liftPrim {α σ} [Primcodable α] [Primcodable σ] (f : α →. σ) : ℕ →. ℕ :=
