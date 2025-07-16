@@ -103,6 +103,4 @@ theorem jump_reducible_iff (f g : ℕ →. ℕ) :
 theorem jump_equiv (f g : ℕ →. ℕ) :
   g ≡ᵀ f ↔ g⌜ ≡ᵀ f⌜ := by sorry
 
-lemma fun : 2 + 2 = 4 := by simp
-
 #check StateM
