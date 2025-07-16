@@ -91,9 +91,9 @@ def decodeCodeo : ℕ → codeo
     | _ => codeo.zero  -- dummy value?
 
 
-theorem decodeCodeo_encodeCodeo : ∀ c, decodeCodeo (encodeCodeo c) = c := by sorry
+@[simp] theorem decodeCodeo_encodeCodeo : ∀ c, decodeCodeo (encodeCodeo c) = c := by sorry
 
-theorem encodeCodeo_decodeCodeo : ∀ c, encodeCodeo (decodeCodeo c) = c :=
+@[simp] theorem encodeCodeo_decodeCodeo : ∀ c, encodeCodeo (decodeCodeo c) = c :=
 λ c => match c with
   | 0 => by simp [decodeCodeo, encodeCodeo]
   | 1 => by simp [decodeCodeo, encodeCodeo]
