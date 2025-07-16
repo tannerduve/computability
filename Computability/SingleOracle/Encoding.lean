@@ -37,24 +37,24 @@ inductive codeo : Type
 
 
 /-- Semantics of `codeo`, relative to an indexed oracle family. -/
-def evalo (f : ℕ →. ℕ) : codeo → ℕ →. ℕ
+def evalo (O : ℕ →. ℕ) : codeo → ℕ →. ℕ
 | codeo.zero => pure 0
 | codeo.succ => fun n => some (n + 1)
 | codeo.left => fun n => some (Nat.unpair n).1
 | codeo.right => fun n => some (Nat.unpair n).2
-| codeo.oracle => f
+| codeo.oracle => O
 | codeo.pair cf cg =>
-    fun n => Nat.pair <$> evalo f cf n <*> evalo f cg n
+    fun n => Nat.pair <$> evalo O cf n <*> evalo O cg n
 | codeo.comp cf cg =>
-    fun n => evalo f cg n >>= evalo f cf
+    fun n => evalo O cg n >>= evalo O cf
 | codeo.prec cf cg =>
     Nat.unpaired fun a n =>
-      n.rec (evalo f cf a) fun y IH => do
+      n.rec (evalo O cf a) fun y IH => do
         let i ← IH
-        evalo f cg (Nat.pair a (Nat.pair y i))
+        evalo O cg (Nat.pair a (Nat.pair y i))
 | codeo.rfind' cf =>
     Nat.unpaired fun a m =>
-      (Nat.rfind fun n => (fun x => x = 0) <$> evalo f cf (Nat.pair a (n + m))).map (· + m)
+      (Nat.rfind fun n => (fun x => x = 0) <$> evalo O cf (Nat.pair a (n + m))).map (· + m)
 
 def encodeCodeo : codeo → ℕ
 | codeo.zero        => 0
@@ -90,6 +90,12 @@ def decodeCodeo : ℕ → codeo
     | 7 => codeo.prec (decodeCodeo m.unpair.1) (decodeCodeo m.unpair.2)
     | _ => codeo.zero  -- dummy value?
 
+instance : OfNat (codeo) m where ofNat := decodeCodeo m
+instance : Coe (ℕ) (codeo) := ⟨decodeCodeo⟩
+
+/-- Converts an `codeo` into a `ℕ`. -/
+@[coe]
+def ofcodeo : codeo → ℕ := encodeCodeo
 
 @[simp] theorem decodeCodeo_encodeCodeo : ∀ c, decodeCodeo (encodeCodeo c) = c := by sorry
 
@@ -149,8 +155,8 @@ theorem rfind'o {g : ℕ →. ℕ} {cf : codeo}
 
 /-- A function is partial recursive relative to an indexed set of oracles `O` if and only if there is a code implementing it.
 Therefore, `evalo` is a **universal partial recursive function relative to `g`**. -/
-theorem exists_code_rel (g : ℕ →. ℕ) (f : ℕ →. ℕ) :
-  RecursiveIn g f ↔ ∃ c : codeo, evalo g c = f := by
+theorem exists_code_rel (O : ℕ →. ℕ) (f : ℕ →. ℕ) :
+  RecursiveIn O f ↔ ∃ c : codeo, evalo O c = f := by
   constructor
   · intro gf
     induction gf
@@ -204,3 +210,9 @@ theorem exists_code_rel (g : ℕ →. ℕ) (f : ℕ →. ℕ) :
     | rfind' cf pf =>
       apply rfind'o
       exact pf
+
+theorem exists_codeN_rel (O : ℕ →. ℕ) (f : ℕ →. ℕ) :
+  RecursiveIn O f ↔ ∃ c : ℕ , evalo O c = f := by sorry
+
+
+theorem RecursiveIn.evaloRecInO {O:ℕ→.ℕ}: RecursiveIn O (fun x => evalo O (x.unpair.1) x.unpair.2) := by sorry

@@ -1,4 +1,5 @@
-import Computability.SingleOracle.Encoding
+import Computability.SingleOracle.RecursiveInTheorems
+-- import Computability.SingleOracle.Encoding
 import Mathlib.Computability.Reduce
 import Mathlib.Computability.Halting
 
@@ -125,29 +126,6 @@ theorem cond {c : α → Bool} {f : α → σ} {g : α → σ} (hc : PrimrecOrac
 
 
 @[simp] lemma some_zero : (0 : Part ℕ) = Part.some 0 := by exact rfl
-@[simp] lemma RecursiveIn.partCompTotal {O f:ℕ→.ℕ} {g:ℕ→ℕ} (h1: RecursiveIn O f) (h2: RecursiveIn O g) : (RecursiveIn O ↑(f∘g)) := by
-  have h3 : (↑(f∘g):ℕ→.ℕ) = fun x => g x >>= (↑f:ℕ→.ℕ) := by
-    funext xs
-    simp
-  rw [h3]
-  exact comp h1 h2
-@[simp] lemma RecursiveIn.totalComp {O:ℕ→.ℕ} {f g:ℕ→ℕ} (h1: RecursiveIn O f) (h2: RecursiveIn O g) : (RecursiveIn O ↑(f∘g)) := by
-  have h3 : (↑(f∘g):ℕ→.ℕ) = fun x => g x >>= (↑f:ℕ→.ℕ) := by
-    funext xs
-    simp
-  rw [h3]
-  exact comp h1 h2
-@[simp] lemma RecursiveIn.id (O:ℕ→.ℕ) : RecursiveIn O fun x => x := by apply of_primrec Nat.Primrec.id
-@[simp] lemma RecursiveIn.someTotal (O:ℕ→.ℕ) (f:ℕ→ℕ) (h1: RecursiveIn O f): RecursiveIn O fun x => Part.some (f x) := by
-  apply RecursiveIn.totalComp
-  · exact h1
-  · apply RecursiveIn.id
-
--- lemma someTotalDomain {f:ℕ→ℕ} : PFun.Dom (Part.some ∘ f) = ℕ := by
-
-
-theorem RecursiveIn.ite {f g : ℕ→.ℕ} {c:ℕ→ℕ} (hc : RecursiveIn O c) (hf : RecursiveIn O f)
-    (hg : RecursiveIn O g) : RecursiveIn O fun a => if (c a=0) then (f a) else (g a) := by sorry
 
 
 theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
