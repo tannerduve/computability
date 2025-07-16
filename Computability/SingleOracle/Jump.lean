@@ -99,8 +99,6 @@ theorem Primrec.projection {f : α → β → σ} {a:α} (h:Primrec₂ f) : Prim
 
 
 
-def Nat.dec : (ℕ → ℕ) := fun n ↦ n-1
-
 /-
 There are lots of primrec theorems we would like to use like
 
@@ -127,9 +125,24 @@ theorem cond {c : α → Bool} {f : α → σ} {g : α → σ} (hc : PrimrecOrac
 
 
 @[simp] lemma some_zero : (0 : Part ℕ) = Part.some 0 := by exact rfl
-@[simp] lemma RecursiveIn.some2 (O:ℕ→.ℕ) (f:ℕ→ℕ): RecursiveIn O fun x => Part.some (f x) := by sorry
-@[simp] lemma RecursiveIn.totalComp {O:ℕ→.ℕ} {f g:ℕ→ℕ} (h1: RecursiveIn O f) (h2: RecursiveIn O g) : (RecursiveIn O ↑(f∘g)) := by sorry
-@[simp] lemma RecursiveIn.totalToPartComp {O f:ℕ→.ℕ} {g:ℕ→ℕ} (h1: RecursiveIn O f) (h2: RecursiveIn O g) : (RecursiveIn O ↑(f∘g)) := by sorry
+@[simp] lemma RecursiveIn.partCompTotal {O f:ℕ→.ℕ} {g:ℕ→ℕ} (h1: RecursiveIn O f) (h2: RecursiveIn O g) : (RecursiveIn O ↑(f∘g)) := by
+  have h3 : (↑(f∘g):ℕ→.ℕ) = fun x => g x >>= (↑f:ℕ→.ℕ) := by
+    funext xs
+    simp
+  rw [h3]
+  exact comp h1 h2
+@[simp] lemma RecursiveIn.totalComp {O:ℕ→.ℕ} {f g:ℕ→ℕ} (h1: RecursiveIn O f) (h2: RecursiveIn O g) : (RecursiveIn O ↑(f∘g)) := by
+  have h3 : (↑(f∘g):ℕ→.ℕ) = fun x => g x >>= (↑f:ℕ→.ℕ) := by
+    funext xs
+    simp
+  rw [h3]
+  exact comp h1 h2
+@[simp] lemma RecursiveIn.id (O:ℕ→.ℕ) : RecursiveIn O fun x => x := by apply of_primrec Nat.Primrec.id
+@[simp] lemma RecursiveIn.someTotal (O:ℕ→.ℕ) (f:ℕ→ℕ) (h1: RecursiveIn O f): RecursiveIn O fun x => Part.some (f x) := by
+  apply RecursiveIn.totalComp
+  · exact h1
+  · apply RecursiveIn.id
+
 -- lemma someTotalDomain {f:ℕ→ℕ} : PFun.Dom (Part.some ∘ f) = ℕ := by
 
 
@@ -137,13 +150,10 @@ theorem RecursiveIn.ite {f g : ℕ→.ℕ} {c:ℕ→ℕ} (hc : RecursiveIn O c) 
     (hg : RecursiveIn O g) : RecursiveIn O fun a => if (c a=0) then (f a) else (g a) := by sorry
 
 
-theorem partcomp (O: ℕ →. ℕ) (f:ℕ→ℕ) (hf : RecursiveIn O f) : RecursiveIn g (Part.some ∘ f) := by
-  sorry
-
-
 theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
   let compute := (jump f) ∘ (Nat.pair (encodeCodeo (codeo.oracle)));
   let f':ℕ→.ℕ := (fun x => if compute x=0 then Part.none else (Nat.pred ∘ compute) x)
+
   have f_eq_f': f = f' := by
       simp [f']
       funext xs
@@ -160,7 +170,10 @@ theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
   have compute_recIn_fJump : compute ≤ᵀ (f⌜) := by
     apply RecursiveIn.totalComp
     · exact RecursiveIn.oracle
-    · apply RecursiveIn.some2
+    · apply RecursiveIn.of_primrec
+      refine Primrec.nat_iff.mp ?_
+      apply Primrec.projection
+      exact Primrec₂.natPair
 
   have f'_recIn_fJump : f' ≤ᵀ (f⌜) := by
     simp only [f',TuringReducible]
