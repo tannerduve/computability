@@ -51,7 +51,7 @@ problem relative to f.
 -- noncomputable def jump (f : ℕ →. ℕ) : ℕ →. ℕ := λ n =>
 --   let part := evalo f (decodeCodeo (Nat.unpair n).1) (Nat.unpair n).2
 --   if part.Dom then part >>= (Nat.succ:PFun ℕ ℕ) else 0
-noncomputable def jump (f : ℕ →. ℕ) : ℕ → ℕ := λ n =>
+@[simp] noncomputable def jump (f : ℕ →. ℕ) : ℕ → ℕ := λ n =>
   let part := evalo f (decodeCodeo (Nat.unpair n).1) (Nat.unpair n).2
   dite part.Dom (λ proof => Nat.succ $ part.get proof) (λ _ => 0)
   -- if part.Dom then Nat.succ (part.get _) else 0
@@ -123,42 +123,64 @@ theorem cond {c : α → Bool} {f : α → σ} {g : α → σ} (hc : PrimrecOrac
 -- def PartrecIn1 {α σ} [Primcodable α] [Primcodable σ] (g : ℕ→.ℕ) (f : α →. σ) :=
 --   RecursiveIn g fun n => Part.bind (Encodable.decode (α := α) n) fun a => (f a).map Encodable.encode
 
-theorem cond2 {c f g : ℕ→.ℕ} (tc:c.Dom=ℕ) (hc : RecursiveIn O c) (hf : RecursiveIn O f)
+-- instance : OfNat (Part ℕ) m where ofNat := Part.some (m)
+
+
+@[simp] lemma some_zero : (0 : Part ℕ) = Part.some 0 := by exact rfl
+@[simp] lemma RecursiveIn.some2 (O:ℕ→.ℕ) (f:ℕ→ℕ): RecursiveIn O fun x => Part.some (f x) := by sorry
+@[simp] lemma RecursiveIn.totalComp {O:ℕ→.ℕ} {f g:ℕ→ℕ} (h1: RecursiveIn O f) (h2: RecursiveIn O g) : (RecursiveIn O ↑(f∘g)) := by sorry
+@[simp] lemma RecursiveIn.totalToPartComp {O f:ℕ→.ℕ} {g:ℕ→ℕ} (h1: RecursiveIn O f) (h2: RecursiveIn O g) : (RecursiveIn O ↑(f∘g)) := by sorry
+-- lemma someTotalDomain {f:ℕ→ℕ} : PFun.Dom (Part.some ∘ f) = ℕ := by
+
+
+
+
+theorem cond2 {f g : ℕ→.ℕ} {c:ℕ→ℕ} (hc : RecursiveIn O c) (hf : RecursiveIn O f)
     (hg : RecursiveIn O g) : RecursiveIn O fun a => if (c a=0) then (f a) else (g a) := by sorry
+
+
 
 
 def divergentFunc : (ℕ →. ℕ) := fun x => Part.none
 
+theorem partcomp (O: ℕ →. ℕ) (f:ℕ→ℕ) (hf : RecursiveIn O f) : RecursiveIn g (Part.some ∘ f) := by
+  sorry
+
+
 theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
-  let f':ℕ→.ℕ := (fun x =>
-    let computation := (jump f) (Nat.pair (encodeCodeo (codeo.oracle)) x);
-    if (computation=0) then Part.none else Nat.dec computation)
+  let compute := (jump f) ∘ (Nat.pair (encodeCodeo (codeo.oracle)));
+  let f':ℕ→.ℕ := (fun x => if compute x=0 then Part.none else (Nat.pred ∘ compute) x)
   have f_eq_f': f = f' := by
-      simp [f', jump, decodeCodeo_encodeCodeo]
+      simp [f']
       funext xs
-      cases Classical.em ((evalo f codeo.oracle xs).Dom) with
+      cases Classical.em (compute xs = 0) with
       | inl h =>
         simp [h]
-        exact Part.get_eq_iff_eq_some.mp rfl
-      | inr h =>
-        simp [h, jump]
+        simp [compute, evalo] at h
         exact Part.eq_none_iff'.mpr h
+      | inr h =>
+        simp [compute, evalo]
+        simp [compute, evalo] at h
+        simp [h]
 
+  have compute_recIn_fJump : compute ≤ᵀ (f⌜) := by
+    apply RecursiveIn.totalComp
+    · exact RecursiveIn.oracle
+    · apply RecursiveIn.some2
 
   have f'_recIn_fJump : f' ≤ᵀ (f⌜) := by
-    -- simp [f', jump, decodeCodeo_encodeCodeo]
-    -- simp [TuringReducible]
+    simp only [f',TuringReducible]
+    apply cond2
+    · exact compute_recIn_fJump
+    · exact RecursiveIn.none
+    · apply RecursiveIn.totalComp
+      · apply Nat.Partrec.recursiveIn
+        apply Nat.Partrec.of_primrec
+        exact Nat.Primrec.pred
+      · exact compute_recIn_fJump
 
-    simp [f',TuringReducible]
-    -- simp [jump]
+  exact RecursiveIn.of_eq f'_recIn_fJump (congrFun (id (Eq.symm f_eq_f')))
 
-    have test :
-    RecursiveIn ↑(f⌜) (fun x =>
-    let compute := fun y => (jump f) (Nat.pair (encodeCodeo (codeo.oracle)) y);
-    if ((↑compute:ℕ→.ℕ) x=0) then Part.none else Nat.dec (compute x)) := by
-      simp
-      apply cond2
-      -- simp [cond2]
 
 
 
