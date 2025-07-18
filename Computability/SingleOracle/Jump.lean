@@ -116,9 +116,6 @@ theorem cond {c : α → Bool} {f : α → σ} {g : α → σ} (hc : PrimrecOrac
 -- instance : OfNat (Part ℕ) m where ofNat := Part.some (m)
 
 
-@[simp] lemma some_zero : (0 : Part ℕ) = Part.some 0 := by exact rfl
-
-
 theorem RecursiveIn.jumpDecodeIte {O} {compute:ℕ→ℕ} (compute_recIn_fJump: compute ≤ᵀ O): RecursiveIn O fun x ↦ if compute x = 0 then Part.none else ↑(some ((Nat.pred ∘ compute) x)) := by
   apply RecursiveIn.ite
   · exact compute_recIn_fJump
@@ -274,6 +271,9 @@ theorem K0eqK {O} : (K O) ≡ᵀ (K0 O) := by
   constructor
   · exact K_leq_K0 O
   · exact K0_leq_K O
+
+
+
 
 
 theorem jump_not_reducible (f : ℕ →. ℕ) : ¬(f⌜ ≤ᵀ f) := by
