@@ -163,11 +163,125 @@ theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
   let part := evalo O (decodeCodeo n) n
   dite part.Dom (λ proof => Nat.succ $ part.get proof) (λ _ => 0)
 
+theorem RecursiveInK (O : ℕ →. ℕ) : O ≤ᵀ (K O) := by
+  let compute := (K O) ∘ codeo_calculate ∘ Nat.pair (encodeCodeo codeo.oracle)
+  let h:ℕ→.ℕ := (fun x => if compute x=0 then Part.none else (Nat.pred ∘ compute) x)
+
+  have main : O = h := by
+
+    simp only [h]
+    funext xs
+    cases Classical.em (compute xs = 0) with
+    | inl h =>
+        simp [h]
+
+        simp [compute,codeo_calculate'] at h
+        exact Part.eq_none_iff'.mpr h
+      | inr h =>
+        simp [compute]
+        simp [compute] at h
+        simp [h]
+        simp [codeo_calculate']
+        exact rfl
+
+  have compute_recIn_KO : compute ≤ᵀ (K O) := by
+    simp only [compute, TuringReducible]
+
+    apply RecursiveIn.totalComp
+    · exact RecursiveIn.oracle
+    · apply RecursiveIn.totalComp
+      · refine Nat.Partrec.recursiveIn ?_
+        refine Nat.Partrec.of_primrec ?_
+        exact Primrec.codeo_calculate
+      · rw [RecursiveIn.pair']
+        apply RecursiveIn.pair
+        · simp only [encodeCodeo]
+          refine RecursiveIn.of_primrec ?_
+          exact Nat.Primrec.const 4
+        · exact RecursiveIn.id
+
+
+  rw (config := {occs := .pos [1]}) [main]
+  simp only [h]
+  -- todo: abstract the below!
+  apply RecursiveIn.ite
+  · exact compute_recIn_KO
+  · exact RecursiveIn.none
+  · apply RecursiveIn.totalComp
+    · apply Nat.Partrec.recursiveIn
+      apply Nat.Partrec.of_primrec
+      exact Nat.Primrec.pred
+    · exact compute_recIn_KO
+
+theorem klek0 (O : ℕ →. ℕ) : (K O) ≤ᵀ (O⌜) := by sorry
 
 -- for this one we need to be able to construct the index for evalo.
 theorem k0lek (O : ℕ →. ℕ) : (O⌜) ≤ᵀ (K O) := by
+  -- let compute := (K O) ∘ codeo_calculate ∘ (fun x => Nat.pair x 0)
+  let compute := (K O) ∘ codeo_calculate
+  -- let compute := (K O) ∘ codeo_calculate ∘ (fun ex => Nat.pair (ex.unpair.1) (ex.unpair.2) : ℕ→ℕ)
+  -- let h:ℕ→.ℕ := (fun x => if compute x=0 then Part.none else (Nat.pred ∘ compute) x)
+  let h:ℕ→.ℕ := (compute)
 
-  sorry
+  have main : O⌜ = h := by
+    simp only [h]
+    funext xs
+    cases Classical.em (compute xs = 0) with
+    | inl h =>
+        simp [h]
+        simp [compute,] at h
+        rw [show xs = Nat.pair (xs.unpair.1) (xs.unpair.2) from Eq.symm (Nat.pair_unpair xs)] at h
+        simp only [codeo_calculate'] at h
+        exact h
+        -- rw [codeo_calculate''] at h
+
+
+
+        -- exact?
+        -- exact Part.eq_none_iff'.mpr h
+      | inr h =>
+        simp [compute]
+        simp [compute] at h
+        simp [h]
+        rw [show xs = Nat.pair (xs.unpair.1) (xs.unpair.2) from Eq.symm (Nat.pair_unpair xs)] at h
+        simp only [codeo_calculate'] at h
+        simp [h]
+        have temp : codeo_calculate xs = codeo_calculate (Nat.pair (xs.unpair.1) (xs.unpair.2)) := by exact rfl
+        simp [temp]
+        simp only [codeo_calculate']
+
+
+  have compute_recIn_KO : compute ≤ᵀ (K O) := by
+    simp only [compute, TuringReducible]
+
+    apply RecursiveIn.totalComp
+    · exact RecursiveIn.oracle
+    · exact RecursiveIn.of_primrec Primrec.codeo_calculate
+
+
+  rw [main]
+  simp only [h]
+  exact compute_recIn_KO
+
+
+
+
+  -- -- h should take as input a pair (e,x), and return the index of the function which computes [e:O](x).
+  -- let h := (fun (x) => (evalo O (x.unpair.1) (x.unpair.2)) >>= (↑(encodeCodeo ∘ codeo_const):(ℕ→.ℕ)) : (ℕ→.ℕ))
+  -- have h_recIn_O : RecursiveIn O h := by
+  --   apply RecursiveIn.comp
+  --   · apply RecursiveIn.codeo_const
+  --   · exact RecursiveIn.evaloRecInO
+  -- -- have exists_index_for_h : ∃ c : ℕ, evalo O c = h := by exact (exists_codeN_rel O h).mp h_recIn_O
+  -- -- rcases exists_index_for_h with ⟨index_h,index_h_is_h⟩
+
+  -- have main : (↑O⌜:(ℕ→.ℕ))= fun x => h x >>= (↑(K O):(ℕ→.ℕ)) := by sorry
+  -- simp [main]
+  -- simp [TuringReducible]
+  -- apply RecursiveIn.comp
+  -- · exact RecursiveIn.oracle
+  -- ·
+  -- sorry
 
 -- theorem k0lek (f : ℕ →. ℕ) : (f⌜) ≤ᵀ  (λ n => evalo (λ _ : Unit => f) (decodeCodeo n) n) := by
 --   let k := λ n => evalo (λ _ : Unit => f) (decodeCodeo n) n

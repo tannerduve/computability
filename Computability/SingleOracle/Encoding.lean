@@ -7,6 +7,8 @@ import Mathlib.Data.Nat.PSub
 import Mathlib.Data.PFun
 import Mathlib.Data.Part
 
+import Mathlib.Computability.PartrecCode
+
 open Denumerable Encodable
 -- This section provides and encoding for oracle partial recursive functions and a definition
 -- of the universal partial recursive function relative to an oracle, along with a proof that it is universal.
@@ -34,6 +36,8 @@ inductive codeo : Type
 | prec : codeo → codeo → codeo
 | rfind' : codeo → codeo
 
+-- instance Primcodable.codeo : Primcodable codeo := by
+--   exact?
 
 
 /-- Semantics of `codeo`, relative to an indexed oracle family. -/
@@ -121,18 +125,18 @@ def ofcodeo : codeo → ℕ := encodeCodeo
   }
 
 /-- Returns a code for the constant function outputting a particular natural. -/
-def const : ℕ → codeo
+def codeo_const : ℕ → codeo
   | 0 => codeo.zero
-  | n + 1 => codeo.comp codeo.succ (const n)
+  | n + 1 => codeo.comp codeo.succ (codeo_const n)
 
-def const_inj : ∀ {n₁ n₂}, const n₁ = const n₂ → n₁ = n₂
+def const_inj : ∀ {n₁ n₂}, codeo_const n₁ = codeo_const n₂ → n₁ = n₂
   | 0, 0, _ => by simp
   | n₁ + 1, n₂ + 1, h => by
-    dsimp [const] at h
+    dsimp [codeo_const] at h
     injection h with h₁ h₂
     simp only [const_inj h₂]
 
-theorem evalo_const (g : ℕ →. ℕ) : evalo g (const a) _b = a := by sorry
+theorem evalo_const (g : ℕ →. ℕ) : evalo g (codeo_const a) _b = a := by sorry
 
 /-- A code for the identity function. -/
 def id_code : codeo :=
@@ -141,7 +145,7 @@ def id_code : codeo :=
 /-- Given a code `c` taking a pair as input, returns a code using `n` as the first argument to `c`.
 -/
 def curry (c : codeo) (n : ℕ) : codeo :=
-  codeo.comp c (codeo.pair (const n) id_code)
+  codeo.comp c (codeo.pair (codeo_const n) id_code)
 
 -- -- helper lemma to prove rfind' case of univ theorem, since rfind' is defined differently from rfind
 theorem rfind'o {g : ℕ →. ℕ} {cf : codeo}
@@ -205,8 +209,28 @@ theorem exists_code_rel (O : ℕ →. ℕ) (f : ℕ →. ℕ) :
       apply rfind'o
       exact pf
 
+
+-- open Nat.Partrec.Code in
+-- theorem Primrec.codeo_const {O : ℕ →. ℕ} : Primrec const := by
+theorem Primrec.codeo_const {O : ℕ →. ℕ} : Primrec (fun n => encodeCodeo $ codeo_const n) := by
+  sorry
+  -- apply (_root_.Primrec.id.nat_iterate (_root_.Primrec.const Nat.Partrec.Code.zero) (primrec₂_comp.comp (_root_.Primrec.const succ) Primrec.snd).to₂)
+  -- (_root_.Primrec.id.nat_iterate (_root_.Primrec.const zero)
+  --   (primrec₂_comp.comp (_root_.Primrec.const succ) Primrec.snd).to₂).of_eq
+  --   fun n => by simp; induction n <;>
+  --     simp [*, Code.const, Function.iterate_succ', -Function.iterate_succ]
+theorem RecursiveIn.codeo_const {O : ℕ →. ℕ} : RecursiveIn O (fun n => encodeCodeo $ codeo_const n) := by sorry
+
 theorem exists_codeN_rel (O : ℕ →. ℕ) (f : ℕ →. ℕ) :
   RecursiveIn O f ↔ ∃ c : ℕ , evalo O c = f := by sorry
 
 
 theorem RecursiveIn.evaloRecInO {O:ℕ→.ℕ}: RecursiveIn O (fun x => evalo O (x.unpair.1) x.unpair.2) := by sorry
+
+
+def codeo_calculate := (fun ex => 1 : ℕ→ℕ)
+theorem codeo_calculate'' : evalo O (decodeCodeo (codeo_calculate (Nat.pair e x))) _z = evalo O e x := by sorry
+theorem codeo_calculate' : evalo O (codeo_calculate (Nat.pair e x)) _z = evalo O e x := by sorry
+
+theorem Primrec.codeo_calculate : Nat.Primrec (fun ex => codeo_calculate ex) := by
+  sorry
