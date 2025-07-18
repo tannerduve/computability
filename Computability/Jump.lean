@@ -5,6 +5,7 @@ import Computability.Oracle
 
 open Computability
 open Classical
+open Classical
 
 /-
 In this file we define the jump operator (⌜) for partial recursive functions and prove its main properties.
