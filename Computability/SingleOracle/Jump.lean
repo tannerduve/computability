@@ -280,28 +280,20 @@ theorem jump_not_reducible (f : ℕ →. ℕ) : ¬(f⌜ ≤ᵀ f) := by
   intro h
   sorry
 
-theorem re_iff_one_one_jump  (A : Set ℕ) (f : ℕ →. ℕ) :
-recursively_enumerable_in₂ f A ↔ OneOneReducible A (f⌜).Dom := by sorry
+-- theorem re_iff_one_one_jump  (A : Set ℕ) (f : ℕ →. ℕ) :
+-- recursively_enumerable_in₂ f A ↔ OneOneReducible A (f⌜).Dom := by sorry
 
-theorem re_in_trans (A : Set ℕ) (f h : ℕ →. ℕ) :
-  recursively_enumerable_in₂ f A →
-  f ≤ᵀ h →
-  recursively_enumerable_in₂ h A := by
-  intro freInA fh
-  simp [recursively_enumerable_in₂] at *
-  obtain ⟨g, hg, hA⟩ := freInA
-  use g
-  constructor
-  have tred : g ≤ᵀ f := by
-    simp [TuringReducible]
-    assumption
-  exact TuringReducible.trans tred fh
-  exact hA
-
-theorem jump_reducible_iff (f g : ℕ →. ℕ) :
-  g ≤ᵀ f ↔ g⌜ ≤ᵀ f⌜ := by sorry
-
-theorem jump_equiv (f g : ℕ →. ℕ) :
-  g ≡ᵀ f ↔ g⌜ ≡ᵀ f⌜ := by sorry
-
-#check StateM
+-- theorem re_in_trans (A : Set ℕ) (f h : ℕ →. ℕ) :
+--   recursively_enumerable_in₂ f A →
+--   f ≤ᵀ h →
+--   recursively_enumerable_in₂ h A := by
+--   intro freInA fh
+--   simp [recursively_enumerable_in₂] at *
+--   obtain ⟨g, hg, hA⟩ := freInA
+--   use g
+--   constructor
+--   have tred : g ≤ᵀ f := by
+--     simp [TuringReducible]
+--     assumption
+--   exact TuringReducible.trans tred fh
+--   exact hA
