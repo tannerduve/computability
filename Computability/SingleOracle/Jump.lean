@@ -52,7 +52,7 @@ problem relative to f.
 @[simp] noncomputable def jump (f : ℕ →. ℕ) : ℕ → ℕ := λ n =>
   let part := evalo f (decodeCodeo (Nat.unpair n).1) (Nat.unpair n).2
   dite part.Dom (λ proof => Nat.succ $ part.get proof) (λ _ => 0)
-
+noncomputable abbrev K0 (O : ℕ →. ℕ) := jump O
 
 /-
 The oracle corresponding to a decidable set A ⊆ ℕ, returning 0 on elements of A and undefined elsewhere.
@@ -166,7 +166,7 @@ theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
   let part := evalo O (decodeCodeo n) n
   dite part.Dom (λ proof => Nat.succ $ part.get proof) (λ _ => 0)
 
-theorem RecursiveInK (O : ℕ →. ℕ) : O ≤ᵀ (K O) := by
+theorem OracleRecursiveInK (O : ℕ →. ℕ) : O ≤ᵀ (K O) := by
   let compute := (K O) ∘ codeo_calculate ∘ Nat.pair (encodeCodeo codeo.oracle)
   let h:ℕ→.ℕ := (fun x => if compute x=0 then Part.none else (Nat.pred ∘ compute) x)
 
@@ -206,18 +206,29 @@ theorem RecursiveInK (O : ℕ →. ℕ) : O ≤ᵀ (K O) := by
           exact RecursiveIn.of_primrec (Nat.Primrec.const 4)
         · exact RecursiveIn.id
 
-
   rw (config := {occs := .pos [1]}) [main]
   simp only [h]
-  -- todo: abstract the below!
   exact RecursiveIn.jumpDecodeIte compute_recIn_KO
 
-theorem klek0 (O : ℕ →. ℕ) : (K O) ≤ᵀ (O⌜) := by sorry
+theorem K_leq_K0 (O : ℕ →. ℕ) : (K O) ≤ᵀ (K0 O) := by
+  let h:ℕ→ℕ := (fun x => Nat.pair x x)
 
--- for this one we need to be able to construct the index for evalo.
-theorem k0lek (O : ℕ →. ℕ) : (O⌜) ≤ᵀ (K O) := by
+  have construction_eq_goal : K O = O⌜ ∘ h := by
+    simp only [h]
+    funext xs
+    simp only [K]
+    simp only [Nat.succ_eq_add_one, Function.comp_apply, jump, Nat.unpair_pair]
+
+  rw [construction_eq_goal]
+  simp only [h]
+  rw [TuringReducible]
+  refine RecursiveIn.totalComp ?_ ?_
+  · exact RecursiveIn.oracle
+  · exact RecursiveIn.of_primrec (Nat.Primrec.pair Nat.Primrec.id Nat.Primrec.id)
+
+
+theorem K0_leq_K (O : ℕ →. ℕ) : (K0 O) ≤ᵀ (K O) := by
   let compute := (K O) ∘ codeo_calculate
-
   let h:ℕ→.ℕ := (compute)
 
   have main : O⌜ = h := by
@@ -247,7 +258,6 @@ theorem k0lek (O : ℕ →. ℕ) : (O⌜) ≤ᵀ (K O) := by
       simp only [temp]
       simp only [codeo_calculate']
 
-
   have compute_recIn_KO : compute ≤ᵀ (K O) := by
     simp only [compute, TuringReducible]
 
@@ -255,12 +265,15 @@ theorem k0lek (O : ℕ →. ℕ) : (O⌜) ≤ᵀ (K O) := by
     · exact RecursiveIn.oracle
     · exact RecursiveIn.of_primrec Primrec.codeo_calculate
 
-
   rw [main]
   simp only [h]
   exact compute_recIn_KO
 
-
+theorem K0eqK {O} : (K O) ≡ᵀ (K0 O) := by
+  rw [TuringEquivalent]
+  constructor
+  · exact K_leq_K0 O
+  · exact K0_leq_K O
 
 
 theorem jump_not_reducible (f : ℕ →. ℕ) : ¬(f⌜ ≤ᵀ f) := by
