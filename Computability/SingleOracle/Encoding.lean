@@ -234,8 +234,7 @@ theorem exists_codeN_rel (O : ℕ →. ℕ) (f : ℕ →. ℕ) :
 theorem RecursiveIn.evaloRecInO {O:ℕ→.ℕ}: RecursiveIn O (fun x => evalo O (x.unpair.1) x.unpair.2) := by sorry
 
 
-def codeo_calculate := (fun ex => 1 : ℕ→ℕ)
-theorem codeo_calculate'' : evalo O (decodeCodeo (codeo_calculate (Nat.pair e x))) _z = evalo O e x := by sorry
+def codeo_calculate := (fun ex => 1 : ℕ→ℕ) -- placeholder
 theorem codeo_calculate' : evalo O (codeo_calculate (Nat.pair e x)) _z = evalo O e x := by sorry
 
 theorem Primrec.codeo_calculate : Nat.Primrec (fun ex => codeo_calculate ex) := by
