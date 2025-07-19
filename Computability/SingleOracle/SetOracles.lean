@@ -24,7 +24,6 @@ protected theorem SetTuringReducible.refl (A:Set ℕ) : SetTuringReducible A A :
 protected theorem SetTuringReducible.rfl (A:Set ℕ) : SetTuringReducible A A := SetTuringReducible.refl _
 instance : IsRefl (Set ℕ) SetTuringReducible where refl _ := by (expose_names; exact SetTuringReducible.refl x)
 theorem SetTuringReducible.trans {A B C:Set ℕ} (hg : SetTuringReducible A B) (hh : SetTuringReducible B C) : SetTuringReducible A C := by sorry
-
 instance : IsTrans (Set ℕ) SetTuringReducible := ⟨@SetTuringReducible.trans⟩
 instance : IsPreorder (Set ℕ) SetTuringReducible where refl := .refl
 theorem SetTuringEquivalent.equivalence : Equivalence SetTuringEquivalent := (AntisymmRel.setoid _ _).iseqv
@@ -32,7 +31,6 @@ theorem SetTuringEquivalent.equivalence : Equivalence SetTuringEquivalent := (An
 @[symm] theorem SetTuringEquivalent.symm {f g : Set ℕ} (h : SetTuringEquivalent f g) : SetTuringEquivalent g f := Equivalence.symm equivalence h
 @[trans] theorem SetTuringEquivalent.trans (f g h : Set ℕ) (h₁ : SetTuringEquivalent f g) (h₂ : SetTuringEquivalent g h) : SetTuringEquivalent f h := Equivalence.trans equivalence h₁ h₂
 instance : IsPreorder (Set ℕ) SetTuringReducible where refl := SetTuringReducible.refl ; trans := @SetTuringReducible.trans
-
 -- Turing degrees are the equivalence classes of sets of naturals under Turing equivalence.
 abbrev TuringDegree := Antisymmetrization (Set ℕ) SetTuringReducible
 private instance : Preorder (Set ℕ) where
@@ -40,19 +38,14 @@ private instance : Preorder (Set ℕ) where
   le_refl := .refl
   le_trans _ _ _ := SetTuringReducible.trans
   lt := SetTuringReducibleStrict
-instance TuringDegree.instPartialOrder : PartialOrder TuringDegree :=
-  instPartialOrderAntisymmetrization
+instance TuringDegree.PO : PartialOrder TuringDegree := instPartialOrderAntisymmetrization
 notation:100 A"⌜" => SetJump A
--- @[inherit_doc] scoped[Computability] infix:50 " ≤ᵀ " => SetTuringReducible
--- @[inherit_doc] scoped[Computability] infix:50 " <ᵀ " => SetTuringReducibleStrict
--- @[inherit_doc] scoped[Computability] infix:50 " ≡ᵀ " => SetTuringEquivalent
--- scoped[Computability] infix:50 " ≤ᵀ " => fun x y => TuringDegree.instPartialOrder.le (toAntisymmetrization SetTuringReducible x) (toAntisymmetrization SetTuringReducible y)
-scoped[Computability] infix:50 " ≤ᵀ " => fun x y => TuringDegree.instPartialOrder.le ⟦x⟧ ⟦y⟧
-scoped[Computability] infix:50 " <ᵀ " => fun x y => TuringDegree.instPartialOrder.lt ⟦x⟧ ⟦y⟧
-scoped[Computability] infix:50 " ≡ᵀ " => fun x y => AntisymmRel TuringDegree.instPartialOrder.le ⟦x⟧ ⟦y⟧
-
--- #check (∅ ≤ᵀ (SetK ∅))
-#check (toAntisymmetrization SetTuringReducible (∅:Set ℕ))
+@[reducible,simp] def SetTuringDegreeLE (A B : Set ℕ) : Prop := TuringDegree.PO.le ⟦A⟧ ⟦B⟧
+@[reducible,simp] def SetTuringDegreeLT (A B : Set ℕ) : Prop := TuringDegree.PO.lt ⟦A⟧ ⟦B⟧
+@[reducible,simp] def SetTuringDegreeEQ (A B : Set ℕ) : Prop := AntisymmRel TuringDegree.PO.le ⟦A⟧ ⟦B⟧
+@[reducible,simp] scoped[Computability] infix:50 " ≤ᵀ " => SetTuringDegreeLE
+@[reducible,simp] scoped[Computability] infix:50 " <ᵀ " => SetTuringDegreeLT
+@[reducible,simp] scoped[Computability] infix:50 " ≡ᵀ " => SetTuringDegreeEQ
 
 
 -- lemmas
@@ -361,6 +354,7 @@ theorem CE_range : CE O A ↔ ∃ c:ℕ, A = WR O c := by sorry
 def immune (O:Set ℕ) (A:Set ℕ) : Prop := (A.Infinite) ∧ (∀c:ℕ, (W O c).Infinite → ¬(W O c ⊆ A))
 -- simple O A := A is simple in O
 def simple (O:Set ℕ) (A:Set ℕ) : Prop := (CE O A) ∧ immune O Aᶜ
+theorem simple_above_empty (h:simple ∅ A): ∅<ᵀA := by sorry
 
 theorem exists_simple_set : ∃ A:Set ℕ, simple O A := by
   sorry
@@ -379,4 +373,9 @@ theorem exists_low_simple_set : ∃ A:Set ℕ, simple ∅ A ∧ low 1 A := by
   sorry
 
 theorem posts_problem_solution : ∃ A:Set ℕ, ∅<ᵀA ∧ A<ᵀ∅⌜ := by
-  sorry
+  rcases exists_low_simple_set with ⟨A,hA⟩
+  use A
+  have ⟨h0,h1⟩ := hA
+  constructor
+  · exact simple_above_empty h0
+  · exact low_below_K h1
