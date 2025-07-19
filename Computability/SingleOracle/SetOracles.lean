@@ -8,12 +8,20 @@ noncomputable def χ (O:Set ℕ) : ℕ→ℕ := fun x ↦ if x ∈ O then 1 else
 theorem χsimp {O} : χ O = fun x ↦ if x ∈ O then 1 else 0 := by exact rfl
 def SetRecursiveIn (O A:Set ℕ): Prop := RecursiveIn (χ O) (χ A)
 abbrev SetTuringReducible (O A:Set ℕ) : Prop := SetRecursiveIn O A
+abbrev SetTuringReducibleStrict (O A:Set ℕ) : Prop := SetRecursiveIn O A ∧ ¬ SetRecursiveIn A O
 abbrev SetTuringEquivalent (O A:Set ℕ) : Prop := AntisymmRel SetTuringReducible O A
 noncomputable def evaloSet (O : Set ℕ) : codeo → ℕ →. ℕ := evalo (fun x => if x∈O then 1 else 0:ℕ→ℕ)
 def SetK0 (A:Set ℕ) := {ex:ℕ | (evaloSet A ex.unpair.1 ex.unpair.2).Dom}
 def SetK (A:Set ℕ) := {x:ℕ | (evaloSet A x x).Dom}
+abbrev SetJump := SetK
+def jumpn : ℕ → Set ℕ → Set ℕ
+| 0 => id
+| i+1 => SetJump ∘ jumpn i
 
-
+notation:100 A"⌜" => SetJump A
+@[inherit_doc] scoped[Computability] infix:50 " ≤ᵀ " => SetTuringReducible
+@[inherit_doc] scoped[Computability] infix:50 " <ᵀ " => SetTuringReducibleStrict
+@[inherit_doc] scoped[Computability] infix:50 " ≡ᵀ " => SetTuringEquivalent
 
 -- lemmas
 
@@ -277,7 +285,7 @@ abbrev W (O : Set ℕ) (e : ℕ) := (evaloSet O e).Dom
 abbrev WR (O : Set ℕ) (e : ℕ) := (evaloSet O e).ran
 
 def dom_to_ran : (ℕ→ℕ) := fun x => x
-theorem dom_to_ran' : SetTuringEquivalent (W e O) (WR (dom_to_ran e) O) := by sorry
+theorem dom_to_ran' : SetTuringEquivalent (W O e) (WR O (dom_to_ran e)) := by sorry
 theorem Nat.Primrec.dom_to_ran' : Nat.Primrec dom_to_ran := by sorry
 
 def dovetail {h:RecursiveIn O f} : ℕ→ℕ := fun x => 0
@@ -319,4 +327,15 @@ def simple (O:Set ℕ) (A:Set ℕ) : Prop := (CE O A) ∧ immune O Aᶜ
 theorem exists_simple_set : ∃ A:Set ℕ, simple O A := by
   sorry
 
--- def low (n:ℕ) (A:Set ℕ) : Prop := (CE O A) ∧ immune O Aᶜ
+
+-- in cooper p.220 theres the requirement also that A≤ᵀjumpn 1 ∅. is this necessary?
+def low (n:ℕ) (A:Set ℕ) : Prop := jumpn n A = jumpn n ∅
+
+theorem low_below_K (h:low 1 A) : A<ᵀ∅⌜ := by sorry
+-- by h, we have A'=∅'. The result follows.
+
+theorem exists_low_simple_set : ∃ A:Set ℕ, simple ∅ A ∧ low 1 A:= by
+  sorry
+
+theorem posts_problem_solution : ∃ A:Set ℕ, ∅<ᵀA ∧ A<ᵀ∅⌜ := by
+  sorry

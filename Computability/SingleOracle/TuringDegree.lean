@@ -47,6 +47,9 @@ Computability, Turing Degrees, Reducibility, Equivalence Relation
 abbrev TuringReducible (f g : ℕ →. ℕ) : Prop :=
   RecursiveIn g f
 
+abbrev TuringReducibleStrict (f g : ℕ →. ℕ) : Prop :=
+  RecursiveIn g f ∧ ¬ RecursiveIn f g
+
 /--
 `f` is Turing equivalent to `g` if `f` is reducible to `g` and `g` is reducible to `f`.
 -/
@@ -55,6 +58,7 @@ abbrev TuringEquivalent (f g : ℕ →. ℕ) : Prop :=
 
 @[inherit_doc] scoped[Computability] infix:50 " ≤ᵀ " => TuringReducible
 @[inherit_doc] scoped[Computability] infix:50 " ≡ᵀ " => TuringEquivalent
+@[inherit_doc] scoped[Computability] infix:50 " <ᵀ " => TuringReducibleStrict
 
 open scoped Computability
 

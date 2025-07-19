@@ -242,6 +242,10 @@ theorem jump_not_reducible (f:ℕ→.ℕ) : ¬(f⌜ ≤ᵀ f) := by
     rw [contra] at h
     exact h trivial
 
+theorem id_le_K0 {O:ℕ→.ℕ} : O <ᵀ (K0 O) := by
+  constructor
+  exact jump_recIn O
+  exact jump_not_reducible O
 
 -- theorem re_iff_one_one_jump  (A : Set ℕ) (f : ℕ →. ℕ) :
 -- recursively_enumerable_in₂ f A ↔ OneOneReducible A (f⌜).Dom := by sorry
