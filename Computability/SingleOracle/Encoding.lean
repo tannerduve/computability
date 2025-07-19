@@ -231,9 +231,13 @@ theorem exists_codeN_rel (O : ℕ →. ℕ) (f : ℕ →. ℕ) :
   RecursiveIn O f ↔ ∃ c : ℕ , evalo O c = f := by sorry
 
 
-theorem RecursiveIn.evaloRecInO {O:ℕ→.ℕ}: RecursiveIn O (fun x => evalo O (x.unpair.1) x.unpair.2) := by sorry
+theorem RecursiveIn.evalo_computable {O:ℕ→.ℕ}: RecursiveIn O (fun x => evalo O (x.unpair.1) x.unpair.2) := by sorry
 
 
+/--
+codeo_calculate takes as input a pair (e,x), and returns an index to a program which
+calculates ψᴼₑ(x) regardless of its input.
+-/
 def codeo_calculate := (fun ex => 1 : ℕ→ℕ) -- placeholder
 theorem codeo_calculate' : evalo O (codeo_calculate (Nat.pair e x)) _z = evalo O e x := by sorry
 

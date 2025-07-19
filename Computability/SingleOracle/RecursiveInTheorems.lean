@@ -110,7 +110,15 @@ lemma Nat.Primrec.pair_proj : Nat.Primrec (Nat.pair x) := by
 theorem RecursiveIn.evaloRecInO' {f O:ℕ→.ℕ} (h:RecursiveIn O f) : RecursiveIn O (fun x => (f x) >>= (evalo' O)) := by
   simp
   refine comp ?_ h
-  apply RecursiveIn.evaloRecInO
+  apply RecursiveIn.evalo_computable
+theorem RecursiveIn.evalo_K_computable : RecursiveIn O (fun x ↦ evalo O x x) := by
+  have h : (fun (x:ℕ) ↦ evalo O x x) = (fun (x:ℕ) => evalo O x.unpair.1 x.unpair.2) ∘ (fun x=>Nat.pair x x) := by
+    funext xs
+    simp only [Function.comp_apply, Nat.unpair_pair]
+  rw [h]
+  refine RecursiveIn.partCompTotal ?_ ?_
+  exact RecursiveIn.evalo_computable
+  exact RecursiveIn.of_primrec (Nat.Primrec.pair Nat.Primrec.id Nat.Primrec.id)
 
 theorem RecursiveIn.ite {O:ℕ→.ℕ} {f g : ℕ→.ℕ} {c:ℕ→ℕ} (hc : RecursiveIn O c) (hf : RecursiveIn O f) (hg : RecursiveIn O g) : RecursiveIn O fun a => if (c a=0) then (f a) else (g a) := by
     have exists_index_for_f : ∃ c : ℕ, evalo O c = f := by exact (exists_codeN_rel O f).mp hf

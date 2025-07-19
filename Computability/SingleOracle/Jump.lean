@@ -258,14 +258,7 @@ theorem K0_leq_K (O : ℕ →. ℕ) : (K0 O) ≤ᵀ (K O) := by
   simp only [h]
   exact compute_recIn_KO
 
-theorem K0eqK {O} : (K O) ≡ᵀ (K0 O) := by
-  rw [TuringEquivalent]
-  constructor
-  · exact K_leq_K0 O
-  · exact K0_leq_K O
-
-
-
+theorem K0_eq_K {O} : (K O) ≡ᵀ (K0 O) := ⟨K_leq_K0 O,K0_leq_K O⟩
 
 
 theorem jump_not_reducible (f:ℕ→.ℕ) : ¬(f⌜ ≤ᵀ f) := by
