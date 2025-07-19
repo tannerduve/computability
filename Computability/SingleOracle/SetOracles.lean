@@ -79,34 +79,22 @@ theorem χ_leq_χK0 {O:Set ℕ} : RecursiveIn (χ (SetK0 O)) (χ O) := by
   have f_eq_f': (χ O) = f' := by
       simp only [f']
       funext xs
-      simp [χK0]
+      simp only [χK0]
+      simp only [PFun.coe_val, Nat.unpair_pair, Part.coe_some, Part.some_inj]
       rw [index_g_is_g]
-      simp [g]
+      simp only [g]
 
       cases Classical.em (χ O xs = 0) with
       | inl h => simp [h]
       | inr h =>
-        simp [h]
+        simp only [h]
+        simp only [↓reduceIte, Part.some_dom]
         cases χ_eq_0or1
         · (expose_names; exact False.elim (h h_1))
         · (expose_names; exact h_1)
 
-
-  -- i dont need f'_recIn_χ... i proved it accidentally.
-  have f'_recIn_χ : RecursiveIn (χ O) f' := by
-    simp [f', χK0, index_g_is_g, g]
-    rw [χsimp]
-    simp
-    have intermediate : (fun x ↦ Part.some (if (if x ∈ O then Part.some 0 else Part.none).Dom then 1 else 0)) = (χ O : ℕ→.ℕ):= by
-      funext xs
-      cases Classical.em (xs ∈ O) with
-      | inl h => simp [h, χ]
-      | inr h => simp [h, χ]
-    rw [intermediate]
-    apply RecursiveIn.oracle
-
   have f'_recIn_χK0 : RecursiveIn (χK0) f' := by
-    simp [f']
+    simp only [f']
     refine RecursiveIn.someTotal (↑χK0) (fun x ↦ χK0 (Nat.pair index_g x)) ?_
     refine RecursiveIn.totalComp' ?_ ?_
     · exact RecursiveIn.oracle
@@ -123,9 +111,10 @@ theorem χK0_leq_K0χ {O:Set ℕ} : RecursiveIn (K0 (χ O)) (χ (SetK0 O)) := by
   let construction := Nat.flatten ∘ K0 (χ O)
   have construction_eq_goal : χK0 = construction := by
     funext xs
-    simp [construction, χK0]
+    simp only [construction, χK0]
+    simp only [Function.comp_apply, Nat.flatten, jump.eq_1, Nat.succ_eq_add_one, dite_eq_right_iff, Nat.add_eq_zero, one_ne_zero, and_false, imp_false, ite_not]
   have construction_constructible : RecursiveIn (K0 (χ O)) construction := by
-    simp [construction]
+    simp only [construction]
     exact RecursiveIn.totalComp (RecursiveIn.of_primrec Nat.Primrec.flatten) RecursiveIn.oracle
 
   rw [h0]
@@ -200,10 +189,9 @@ theorem χ_leq_χK {O:Set ℕ} : RecursiveIn (χ (SetK O)) (χ O) := by
   have f_eq_f': (χ O) = f' := by
     simp only [f']
     funext xs
-    simp [χK]
-    simp [codeo_calculate']
+    simp only [χK, codeo_calculate']
     rw [index_g_is_g]
-    simp [g]
+    simp only [g]
 
     cases Classical.em (χ O xs = 0) with
     | inl h => simp [h]
@@ -214,7 +202,7 @@ theorem χ_leq_χK {O:Set ℕ} : RecursiveIn (χ (SetK O)) (χ O) := by
       · (expose_names; exact h_1)
 
   have f'_recIn_χK : RecursiveIn (χK) f' := by
-    simp [f']
+    simp only [f']
     refine RecursiveIn.someTotal (↑χK) (fun x ↦ χK (codeo_calculate (Nat.pair index_g x))) ?_
     refine RecursiveIn.totalComp' ?_ ?_
     · exact RecursiveIn.oracle
@@ -243,7 +231,7 @@ theorem Kχ_leq_χK {O:Set ℕ} : RecursiveIn (χ (SetK O)) (K (χ O)) := by
       simp only [h]
       simp only [↓reduceIte]
       simp only [(h1 xs)] at h
-      simp [h]
+      simp only [PFun.coe_val, K, h, ↓reduceDIte]
       exact rfl
     | inr h =>
       simp only [h]
@@ -271,7 +259,7 @@ theorem Kχ_leq_χK {O:Set ℕ} : RecursiveIn (χ (SetK O)) (K (χ O)) := by
 theorem χK_leq_χK0 {O:Set ℕ} : RecursiveIn (χ (SetK0 O)) (χ (SetK O)) := by
   have main : (χ (SetK O)) = (χ (SetK0 O)) ∘ fun x=> Nat.pair x x := by
     funext xs
-    simp [SetK0, SetK, χ]
+    simp only [χ, SetK, Set.mem_setOf_eq, SetK0, Function.comp_apply, Nat.unpair_pair]
   rw [main]
   exact RecursiveIn.totalComp RecursiveIn.oracle (RecursiveIn.of_primrec (Nat.Primrec.pair Nat.Primrec.id Nat.Primrec.id))
 

@@ -8,15 +8,6 @@ import Mathlib.Data.PFun
 open Computability
 open Classical
 
-/-
-In this file we define the jump operator (⌜) for partial recursive functions and prove its main properties.
-
-We can identify part rec functions with recursively enumerable sets by taking their domain,
-if f : ℕ →. ℕ, then dom(f) : ℕ → Prop := λ n => n ∈ f.Dom. These are the terms in which we
-state the jump theorems:
--/
-
-
 
 @[simp] noncomputable def jump (f : ℕ →. ℕ) : ℕ → ℕ := λ n =>
   let part := evalo f (decodeCodeo (Nat.unpair n).1) (Nat.unpair n).2
