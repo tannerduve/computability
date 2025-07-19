@@ -137,4 +137,4 @@ theorem RecursiveIn.ite {O:ℕ→.ℕ} {f g : ℕ→.ℕ} {c:ℕ→ℕ} (hc : Re
 --   (hg : (h:¬(c a=0)) → RecursiveIn O (g a h)) :
 --   RecursiveIn O fun a => if h:(c a=0) then (f a h a) else (g a h a) := by
 --     have construction : (fun a => if h:(c a=0) then (f a h a) else (g a h a)) = (fun a => if h:(c a=0) then (f a h a) else (g a h a)) := by sorry
-  -- RecursiveIn O fun a => dite (c a=0) (fun h => f (cast (by (expose_names; exact False.elim h_1)) h) a) (g h a) := by sorry
+--   RecursiveIn O fun a => dite (c a=0) (fun h => f (cast (by (expose_names; exact False.elim h_1)) h) a) (g h a) := by sorry
