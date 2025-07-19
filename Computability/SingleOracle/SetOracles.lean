@@ -7,9 +7,9 @@ open Classical
 noncomputable def χ (O:Set ℕ) : ℕ→ℕ := fun x ↦ if x ∈ O then 1 else 0
 theorem χsimp {O} : χ O = fun x ↦ if x ∈ O then 1 else 0 := by exact rfl
 def SetRecursiveIn (O A:Set ℕ): Prop := RecursiveIn (χ O) (χ A)
-abbrev SetTuringReducible (O A:Set ℕ) : Prop := SetRecursiveIn O A
-abbrev SetTuringReducibleStrict (O A:Set ℕ) : Prop := SetRecursiveIn O A ∧ ¬ SetRecursiveIn A O
-abbrev SetTuringEquivalent (O A:Set ℕ) : Prop := AntisymmRel SetTuringReducible O A
+@[simp] abbrev SetTuringReducible (A O:Set ℕ) : Prop := SetRecursiveIn O A
+@[simp] abbrev SetTuringReducibleStrict (A O:Set ℕ) : Prop := SetRecursiveIn O A ∧ ¬ SetRecursiveIn A O
+@[simp] abbrev SetTuringEquivalent (O A:Set ℕ) : Prop := AntisymmRel SetTuringReducible O A
 noncomputable def evaloSet (O : Set ℕ) : codeo → ℕ →. ℕ := evalo (fun x => if x∈O then 1 else 0:ℕ→ℕ)
 def SetK0 (A:Set ℕ) := {ex:ℕ | (evaloSet A ex.unpair.1 ex.unpair.2).Dom}
 def SetK (A:Set ℕ) := {x:ℕ | (evaloSet A x x).Dom}
@@ -151,8 +151,8 @@ theorem K0χ_leq_χK0 {O:Set ℕ} : RecursiveIn (χ (SetK0 O)) (K0 (χ O)) := by
     · exact RecursiveIn.succ
     · apply TuringReducible.trans h5 χ_leq_χK0
 
-theorem K0χ_eq_χK0 {O:Set ℕ} : TuringEquivalent (K0 (χ O)) (χ (SetK0 O)) := ⟨K0χ_leq_χK0, χK0_leq_K0χ⟩
-theorem χK0_eq_K0χ {O:Set ℕ} : TuringEquivalent (χ (SetK0 O)) (K0 (χ O)) := K0χ_eq_χK0.symm
+theorem K0χ_eq_χK0 {O:Set ℕ} : (K0 (χ O)) ≡ᵀ (χ (SetK0 O)) := ⟨K0χ_leq_χK0, χK0_leq_K0χ⟩
+theorem χK0_eq_K0χ {O:Set ℕ} : (χ (SetK0 O)) ≡ᵀ (K0 (χ O)) := K0χ_eq_χK0.symm
 
 
 -- the next two theorems are more or less equivalent to some of the above, with minor tweaks.
@@ -250,7 +250,7 @@ theorem χK_leq_χK0 {O:Set ℕ} : RecursiveIn (χ (SetK0 O)) (χ (SetK O)) := b
   rw [main]
   exact RecursiveIn.totalComp RecursiveIn.oracle (RecursiveIn.of_primrec (Nat.Primrec.pair Nat.Primrec.id Nat.Primrec.id))
 
-theorem Kχ_eq_χK {O:Set ℕ} : TuringEquivalent (χ (SetK O)) (K (χ O)) := by
+theorem Kχ_eq_χK {O:Set ℕ} : (χ (SetK O)) ≡ᵀ (K (χ O)) := by
   constructor
   · apply TuringReducible.trans (χK_leq_χK0)
     apply TuringReducible.trans (K0χ_eq_χK0.ge)
@@ -259,24 +259,33 @@ theorem Kχ_eq_χK {O:Set ℕ} : TuringEquivalent (χ (SetK O)) (K (χ O)) := by
   · exact Kχ_leq_χK
 
 
-theorem χK0_eq_χK {O:Set ℕ} : TuringEquivalent (χ (SetK0 O)) (χ (SetK O)) := by
+theorem χK0_eq_χK {O:Set ℕ} : (χ (SetK0 O)) ≡ᵀ (χ (SetK O)) := by
   apply TuringEquivalent.trans
   · exact χK0_eq_K0χ
   · apply TuringEquivalent.trans
     · exact K0_eq_K.symm
     · exact Kχ_eq_χK.symm
 
-theorem SetK0_eq_SetK {O:Set ℕ} : SetTuringEquivalent (SetK0 O) (SetK O) := by
-  simp only [SetTuringEquivalent]
-
+theorem SetK0_eq_SetK {O:Set ℕ} : (SetK0 O) ≡ᵀ (SetK O) := by
   constructor
-  · simp only [SetTuringReducible, SetRecursiveIn]
-    exact χK0_eq_χK.ge
-  · simp only [SetTuringReducible, SetRecursiveIn]
-    exact χK0_eq_χK.le
+  · exact χK0_eq_χK.le
+  · exact χK0_eq_χK.ge
+
+theorem Set_leq_SetK {O:Set ℕ} : O ≤ᵀ (SetK O) := χ_leq_χK
+
+theorem SetJump_not_leq_Set {O:Set ℕ} : ¬O⌜≤ᵀO := by
+  intro h
+  simp [SetRecursiveIn, SetJump] at h
+  apply TuringReducible.trans (Kχ_eq_χK.ge) at h
+  apply K_not_leq_f
+  exact h
 
 
 
+theorem Set_lt_SetJump {O:Set ℕ} : O <ᵀ (SetK O) := by
+  constructor
+  · exact Set_leq_SetK
+  · exact?
 
 
 -- W O e := domain of e^th oracle program
@@ -334,7 +343,7 @@ def low (n:ℕ) (A:Set ℕ) : Prop := jumpn n A = jumpn n ∅
 theorem low_below_K (h:low 1 A) : A<ᵀ∅⌜ := by sorry
 -- by h, we have A'=∅'. The result follows.
 
-theorem exists_low_simple_set : ∃ A:Set ℕ, simple ∅ A ∧ low 1 A:= by
+theorem exists_low_simple_set : ∃ A:Set ℕ, simple ∅ A ∧ low 1 A := by
   sorry
 
 theorem posts_problem_solution : ∃ A:Set ℕ, ∅<ᵀA ∧ A<ᵀ∅⌜ := by

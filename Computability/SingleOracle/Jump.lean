@@ -28,12 +28,6 @@ notation:100 f"⌜" => jump f
 
 
 
-
-
-
-
-
-
 /-
 There are lots of primrec theorems we would like to use like
 
@@ -209,7 +203,7 @@ theorem K0_leq_K (O : ℕ →. ℕ) : (K0 O) ≤ᵀ (K O) := by
 theorem K0_eq_K {O} : (K O) ≡ᵀ (K0 O) := ⟨K_leq_K0 O,K0_leq_K O⟩
 
 
-theorem jump_not_reducible (f:ℕ→.ℕ) : ¬(f⌜ ≤ᵀ f) := by
+theorem jump_not_leq_f (f:ℕ→.ℕ) : ¬(f⌜ ≤ᵀ f) := by
   intro jump_reducible
   let g : (ℕ→.ℕ) := fun (x:ℕ) => if (f⌜) (Nat.pair x x) = 0 then 0 else Part.none
 
@@ -242,10 +236,19 @@ theorem jump_not_reducible (f:ℕ→.ℕ) : ¬(f⌜ ≤ᵀ f) := by
     rw [contra] at h
     exact h trivial
 
-theorem id_le_K0 {O:ℕ→.ℕ} : O <ᵀ (K0 O) := by
+theorem K_not_leq_f (f:ℕ→.ℕ) : ¬(K f ≤ᵀ f) := by
+  intro h
+  have h2 : f⌜ ≤ᵀ f := by
+    apply TuringReducible.trans
+    · apply K0_leq_K
+    · exact h
+  apply jump_not_leq_f
+  exact h2
+
+theorem id_lt_K0 {O:ℕ→.ℕ} : O <ᵀ (K0 O) := by
   constructor
   exact jump_recIn O
-  exact jump_not_reducible O
+  exact jump_not_leq_f O
 
 -- theorem re_iff_one_one_jump  (A : Set ℕ) (f : ℕ →. ℕ) :
 -- recursively_enumerable_in₂ f A ↔ OneOneReducible A (f⌜).Dom := by sorry
