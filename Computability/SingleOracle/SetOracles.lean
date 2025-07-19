@@ -1,4 +1,5 @@
 import Computability.SingleOracle.Jump
+import Mathlib.Order.Basic
 
 open scoped Computability
 open Classical
@@ -18,27 +19,40 @@ def jumpn : ℕ → Set ℕ → Set ℕ
 | 0 => id
 | i+1 => SetJump ∘ jumpn i
 
-notation:100 A"⌜" => SetJump A
-@[inherit_doc] scoped[Computability] infix:50 " ≤ᵀ " => SetTuringReducible
-@[inherit_doc] scoped[Computability] infix:50 " <ᵀ " => SetTuringReducibleStrict
-@[inherit_doc] scoped[Computability] infix:50 " ≡ᵀ " => SetTuringEquivalent
-
--- setting up instances
-instance : LE (Set ℕ) := ⟨SetTuringReducible⟩
 -- from TuringDegree.lean
-protected theorem SetTuringReducible.refl (A:Set ℕ) : A ≤ᵀ A := by exact RecursiveIn.oracle
-protected theorem SetTuringReducible.rfl (A:Set ℕ) : A ≤ᵀ A := SetTuringReducible.refl _
+protected theorem SetTuringReducible.refl (A:Set ℕ) : SetTuringReducible A A := by exact RecursiveIn.oracle
+protected theorem SetTuringReducible.rfl (A:Set ℕ) : SetTuringReducible A A := SetTuringReducible.refl _
 instance : IsRefl (Set ℕ) SetTuringReducible where refl _ := by (expose_names; exact SetTuringReducible.refl x)
-theorem SetTuringReducible.trans (A B C:Set ℕ) (hg : A ≤ᵀ B) (hh : B ≤ᵀ C) : A ≤ᵀ C := by sorry
+theorem SetTuringReducible.trans {A B C:Set ℕ} (hg : SetTuringReducible A B) (hh : SetTuringReducible B C) : SetTuringReducible A C := by sorry
 
 instance : IsTrans (Set ℕ) SetTuringReducible := ⟨@SetTuringReducible.trans⟩
 instance : IsPreorder (Set ℕ) SetTuringReducible where refl := .refl
 theorem SetTuringEquivalent.equivalence : Equivalence SetTuringEquivalent := (AntisymmRel.setoid _ _).iseqv
-@[refl] protected theorem SetTuringEquivalent.refl (f : Set ℕ) : f ≡ᵀ f := Equivalence.refl equivalence f
-@[symm] theorem SetTuringEquivalent.symm {f g : Set ℕ} (h : f ≡ᵀ g) : g ≡ᵀ f := Equivalence.symm equivalence h
-@[trans] theorem SetTuringEquivalent.trans (f g h : Set ℕ) (h₁ : f ≡ᵀ g) (h₂ : g ≡ᵀ h) : f ≡ᵀ h := Equivalence.trans equivalence h₁ h₂
+@[refl] protected theorem SetTuringEquivalent.refl (f : Set ℕ) : SetTuringEquivalent f f := Equivalence.refl equivalence f
+@[symm] theorem SetTuringEquivalent.symm {f g : Set ℕ} (h : SetTuringEquivalent f g) : SetTuringEquivalent g f := Equivalence.symm equivalence h
+@[trans] theorem SetTuringEquivalent.trans (f g h : Set ℕ) (h₁ : SetTuringEquivalent f g) (h₂ : SetTuringEquivalent g h) : SetTuringEquivalent f h := Equivalence.trans equivalence h₁ h₂
 instance : IsPreorder (Set ℕ) SetTuringReducible where refl := SetTuringReducible.refl ; trans := @SetTuringReducible.trans
 
+-- Turing degrees are the equivalence classes of sets of naturals under Turing equivalence.
+abbrev TuringDegree := Antisymmetrization (Set ℕ) SetTuringReducible
+private instance : Preorder (Set ℕ) where
+  le := SetTuringReducible
+  le_refl := .refl
+  le_trans _ _ _ := SetTuringReducible.trans
+  lt := SetTuringReducibleStrict
+instance TuringDegree.instPartialOrder : PartialOrder TuringDegree :=
+  instPartialOrderAntisymmetrization
+notation:100 A"⌜" => SetJump A
+-- @[inherit_doc] scoped[Computability] infix:50 " ≤ᵀ " => SetTuringReducible
+-- @[inherit_doc] scoped[Computability] infix:50 " <ᵀ " => SetTuringReducibleStrict
+-- @[inherit_doc] scoped[Computability] infix:50 " ≡ᵀ " => SetTuringEquivalent
+-- scoped[Computability] infix:50 " ≤ᵀ " => fun x y => TuringDegree.instPartialOrder.le (toAntisymmetrization SetTuringReducible x) (toAntisymmetrization SetTuringReducible y)
+scoped[Computability] infix:50 " ≤ᵀ " => fun x y => TuringDegree.instPartialOrder.le ⟦x⟧ ⟦y⟧
+scoped[Computability] infix:50 " <ᵀ " => fun x y => TuringDegree.instPartialOrder.lt ⟦x⟧ ⟦y⟧
+scoped[Computability] infix:50 " ≡ᵀ " => fun x y => AntisymmRel TuringDegree.instPartialOrder.le ⟦x⟧ ⟦y⟧
+
+-- #check (∅ ≤ᵀ (SetK ∅))
+#check (toAntisymmetrization SetTuringReducible (∅:Set ℕ))
 
 
 -- lemmas
@@ -293,7 +307,7 @@ theorem Set_leq_SetK {O:Set ℕ} : O ≤ᵀ (SetK O) := χ_leq_χK
 
 theorem SetJump_not_leq_Set {O:Set ℕ} : ¬O⌜≤ᵀO := by
   intro h
-  simp [SetRecursiveIn, SetJump] at h
+  simp only [SetJump] at h
   apply TuringReducible.trans (Kχ_eq_χK.ge) at h
   apply K_not_leq_f
   exact h
@@ -357,10 +371,9 @@ def low (n:ℕ) (A:Set ℕ) : Prop := jumpn n A = jumpn n ∅
 
 theorem low_below_K (h:low 1 A) : A<ᵀ∅⌜ := by
   simp [low, jumpn] at h
-  have h0 : A⌜≡ᵀ∅⌜ := by exact Eq.antisymmRel h
-  have h1 : A <ᵀ A⌜ := by exact Set_lt_SetJump
-  -- lt_of_eq_of_lt'
-  sorry
+  have h0 : A⌜≡ᵀ∅⌜ := by exact Eq.antisymmRel (congrArg (toAntisymmetrization SetTuringReducible) h)
+  have h1 : A<ᵀA⌜ := by exact Set_lt_SetJump
+  exact lt_of_lt_of_eq h1 (congrArg (toAntisymmetrization SetTuringReducible) h)
 
 theorem exists_low_simple_set : ∃ A:Set ℕ, simple ∅ A ∧ low 1 A := by
   sorry

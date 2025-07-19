@@ -107,19 +107,12 @@ instance : IsPreorder (ℕ →. ℕ) TuringReducible where
   refl := TuringReducible.refl
   trans := @TuringReducible.trans
 
-/--
-Turing degrees are the equivalence classes of partial functions under Turing equivalence.
--/
-abbrev TuringDegree :=
+abbrev FuncTuringDegree :=
   Antisymmetrization _ TuringReducible
-
 private instance : Preorder (ℕ →. ℕ) where
   le := TuringReducible
   le_refl := .refl
   le_trans _ _ _ := TuringReducible.trans
-
-instance TuringDegree.instPartialOrder : PartialOrder TuringDegree :=
-  instPartialOrderAntisymmetrization
 
 open scoped Computability
 open Encodable
@@ -127,56 +120,56 @@ open Encodable
 /-
 Join of two partial functions on two primcodable types.
 -/
-def gjoin {α β α' β' : Type} [Primcodable α] [Primcodable β] [Primcodable α'] [Primcodable β']
-(f : α →. β) (g : α' →. β') : α ⊕ α' →. β ⊕ β' :=
-  λ x =>
-    match x with
-    | Sum.inl a => (f a).map (λ b => Sum.inl b)
-    | Sum.inr b => (g b).map (λ a' => Sum.inr a')
+-- def gjoin {α β α' β' : Type} [Primcodable α] [Primcodable β] [Primcodable α'] [Primcodable β']
+-- (f : α →. β) (g : α' →. β') : α ⊕ α' →. β ⊕ β' :=
+--   λ x =>
+--     match x with
+--     | Sum.inl a => (f a).map (λ b => Sum.inl b)
+--     | Sum.inr b => (g b).map (λ a' => Sum.inr a')
 
-def liftPrimcodable {α σ} [Primcodable α] [Primcodable σ] (f : α →. σ) : ℕ →. ℕ :=
-  fun n => Part.bind (decode (α := α) n) fun a => (f a).map encode
+-- def liftPrimcodable {α σ} [Primcodable α] [Primcodable σ] (f : α →. σ) : ℕ →. ℕ :=
+--   fun n => Part.bind (decode (α := α) n) fun a => (f a).map encode
 
-def turingJoin (f g : ℕ →. ℕ) : ℕ →. ℕ :=
-  liftPrimcodable (gjoin f g)
+-- def turingJoin (f g : ℕ →. ℕ) : ℕ →. ℕ :=
+--   liftPrimcodable (gjoin f g)
 
-infix :50 " ⊕ " => turingJoin
+-- infix :50 " ⊕ " => turingJoin
 
-open Sum
+-- open Sum
 
-def projL : ℕ →. ℕ :=
-λ n =>
-  match decode (α := ℕ ⊕ ℕ) n with
-  | some (Sum.inl x) => Part.some x
-  | _                => Part.none
+-- def projL : ℕ →. ℕ :=
+-- λ n =>
+--   match decode (α := ℕ ⊕ ℕ) n with
+--   | some (Sum.inl x) => Part.some x
+--   | _                => Part.none
 
-def projR : ℕ →. ℕ :=
-  fun n =>
-    match decode (α := ℕ ⊕ ℕ) n with
-    | some (Sum.inr x) => Part.some x
-    | _                => Part.none
+-- def projR : ℕ →. ℕ :=
+--   fun n =>
+--     match decode (α := ℕ ⊕ ℕ) n with
+--     | some (Sum.inr x) => Part.some x
+--     | _                => Part.none
 
-lemma left_le_join (f g : ℕ →. ℕ) : f ≤ᵀ (f ⊕ g) := by
-  sorry
+-- lemma left_le_join (f g : ℕ →. ℕ) : f ≤ᵀ (f ⊕ g) := by
+--   sorry
 
-lemma right_le_join (f g : ℕ →. ℕ) : g ≤ᵀ (f ⊕ g) := by
-  sorry
+-- lemma right_le_join (f g : ℕ →. ℕ) : g ≤ᵀ (f ⊕ g) := by
+--   sorry
 
-lemma join_le (f g h : ℕ →. ℕ) (hf : f ≤ᵀ h) (hg : g ≤ᵀ h) : (f ⊕ g) ≤ᵀ h := by
-  induction hf
-  case zero =>
-    simp [turingJoin]
-    sorry
-  all_goals {sorry}
+-- lemma join_le (f g h : ℕ →. ℕ) (hf : f ≤ᵀ h) (hg : g ≤ᵀ h) : (f ⊕ g) ≤ᵀ h := by
+--   induction hf
+--   case zero =>
+--     simp [turingJoin]
+--     sorry
+--   all_goals {sorry}
 
-def TuringDegree.add (a b : TuringDegree) : TuringDegree :=
-  Quotient.liftOn₂ a b (fun f g => ⟦f ⊕ g⟧)
-    (by {
-      intro f₁ f₂ g₁ g₂ hf hg
-      apply Quot.sound
-      simp [AntisymmRel, TuringReducible]
-      constructor
-      cases' hf with hf₁ hf₂
-      cases' hg with hg₁ hg₂
-      all_goals {sorry}
-    })
+-- def TuringDegree.add (a b : TuringDegree) : TuringDegree :=
+--   Quotient.liftOn₂ a b (fun f g => ⟦f ⊕ g⟧)
+--     (by {
+--       intro f₁ f₂ g₁ g₂ hf hg
+--       apply Quot.sound
+--       simp [AntisymmRel, TuringReducible]
+--       constructor
+--       cases' hf with hf₁ hf₂
+--       cases' hg with hg₁ hg₂
+--       all_goals {sorry}
+--     })
