@@ -23,6 +23,24 @@ notation:100 A"⌜" => SetJump A
 @[inherit_doc] scoped[Computability] infix:50 " <ᵀ " => SetTuringReducibleStrict
 @[inherit_doc] scoped[Computability] infix:50 " ≡ᵀ " => SetTuringEquivalent
 
+-- setting up instances
+instance : LE (Set ℕ) := ⟨SetTuringReducible⟩
+-- from TuringDegree.lean
+protected theorem SetTuringReducible.refl (A:Set ℕ) : A ≤ᵀ A := by exact RecursiveIn.oracle
+protected theorem SetTuringReducible.rfl (A:Set ℕ) : A ≤ᵀ A := SetTuringReducible.refl _
+instance : IsRefl (Set ℕ) SetTuringReducible where refl _ := by (expose_names; exact SetTuringReducible.refl x)
+theorem SetTuringReducible.trans (A B C:Set ℕ) (hg : A ≤ᵀ B) (hh : B ≤ᵀ C) : A ≤ᵀ C := by sorry
+
+instance : IsTrans (Set ℕ) SetTuringReducible := ⟨@SetTuringReducible.trans⟩
+instance : IsPreorder (Set ℕ) SetTuringReducible where refl := .refl
+theorem SetTuringEquivalent.equivalence : Equivalence SetTuringEquivalent := (AntisymmRel.setoid _ _).iseqv
+@[refl] protected theorem SetTuringEquivalent.refl (f : Set ℕ) : f ≡ᵀ f := Equivalence.refl equivalence f
+@[symm] theorem SetTuringEquivalent.symm {f g : Set ℕ} (h : f ≡ᵀ g) : g ≡ᵀ f := Equivalence.symm equivalence h
+@[trans] theorem SetTuringEquivalent.trans (f g h : Set ℕ) (h₁ : f ≡ᵀ g) (h₂ : g ≡ᵀ h) : f ≡ᵀ h := Equivalence.trans equivalence h₁ h₂
+instance : IsPreorder (Set ℕ) SetTuringReducible where refl := SetTuringReducible.refl ; trans := @SetTuringReducible.trans
+
+
+
 -- lemmas
 
 lemma χ_eq_0or1 : (χ O x = 0) ∨ (χ O x = 1) := by
@@ -279,13 +297,10 @@ theorem SetJump_not_leq_Set {O:Set ℕ} : ¬O⌜≤ᵀO := by
   apply TuringReducible.trans (Kχ_eq_χK.ge) at h
   apply K_not_leq_f
   exact h
-
-
-
-theorem Set_lt_SetJump {O:Set ℕ} : O <ᵀ (SetK O) := by
+theorem Set_lt_SetJump {O:Set ℕ} : O<ᵀO⌜ := by
   constructor
   · exact Set_leq_SetK
-  · exact?
+  · exact SetJump_not_leq_Set
 
 
 -- W O e := domain of e^th oracle program
@@ -340,8 +355,12 @@ theorem exists_simple_set : ∃ A:Set ℕ, simple O A := by
 -- in cooper p.220 theres the requirement also that A≤ᵀjumpn 1 ∅. is this necessary?
 def low (n:ℕ) (A:Set ℕ) : Prop := jumpn n A = jumpn n ∅
 
-theorem low_below_K (h:low 1 A) : A<ᵀ∅⌜ := by sorry
--- by h, we have A'=∅'. The result follows.
+theorem low_below_K (h:low 1 A) : A<ᵀ∅⌜ := by
+  simp [low, jumpn] at h
+  have h0 : A⌜≡ᵀ∅⌜ := by exact Eq.antisymmRel h
+  have h1 : A <ᵀ A⌜ := by exact Set_lt_SetJump
+  -- lt_of_eq_of_lt'
+  sorry
 
 theorem exists_low_simple_set : ∃ A:Set ℕ, simple ∅ A ∧ low 1 A := by
   sorry
