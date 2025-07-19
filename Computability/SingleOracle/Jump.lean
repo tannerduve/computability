@@ -276,9 +276,39 @@ theorem K0eqK {O} : (K O) ≡ᵀ (K0 O) := by
 
 
 
-theorem jump_not_reducible (f : ℕ →. ℕ) : ¬(f⌜ ≤ᵀ f) := by
-  intro h
-  sorry
+theorem jump_not_reducible (f:ℕ→.ℕ) : ¬(f⌜ ≤ᵀ f) := by
+  intro jump_reducible
+  let g : (ℕ→.ℕ) := fun (x:ℕ) => if (f⌜) (Nat.pair x x) = 0 then 0 else Part.none
+
+  have g_recIn_f : RecursiveIn f g := by
+    simp only [g]
+    apply RecursiveIn.ite
+    · apply RecursiveIn.totalComp' jump_reducible
+      exact RecursiveIn.of_primrec (Nat.Primrec.pair Nat.Primrec.id Nat.Primrec.id)
+    · exact RecursiveIn.zero
+    · exact RecursiveIn.none
+
+  have exists_index_for_g : ∃ c : ℕ, evalo f c = g := by exact (exists_codeN_rel f g).mp g_recIn_f
+  rcases exists_index_for_g with ⟨index_g,index_g_is_g⟩
+
+  cases Classical.em (g index_g).Dom with
+  | inl h =>
+    have contra : g index_g = Part.none := by
+      simp only [g]
+      simp only [jump, Nat.unpair_pair, Nat.succ_eq_add_one, dite_eq_right_iff, Nat.add_eq_zero,one_ne_zero, and_false, imp_false, ite_not, ite_eq_left_iff]
+      simp only [index_g_is_g]
+      exact fun a ↦ False.elim (a h)
+    rw [contra] at h
+    exact h
+  | inr h =>
+    have contra : g index_g = 0 := by
+      simp only [g]
+      simp only [jump, Nat.unpair_pair, Nat.succ_eq_add_one, dite_eq_right_iff, Nat.add_eq_zero,one_ne_zero, and_false, imp_false, ite_not, ite_eq_left_iff]
+      simp only [index_g_is_g]
+      exact if_neg h
+    rw [contra] at h
+    exact h trivial
+
 
 -- theorem re_iff_one_one_jump  (A : Set ℕ) (f : ℕ →. ℕ) :
 -- recursively_enumerable_in₂ f A ↔ OneOneReducible A (f⌜).Dom := by sorry
