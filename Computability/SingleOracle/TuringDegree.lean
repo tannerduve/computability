@@ -22,8 +22,8 @@ as well as the notion of Turing degrees as equivalence classes under mutual redu
 
 ## Notation
 
-* `f ≤ᵀ g`: `f` is Turing reducible to `g`.
-* `f ≡ᵀ g`: `f` is Turing equivalent to `g`.
+* `f ≤ᵀᶠ g`: `f` is Turing reducible to `g`.
+* `f ≡ᵀᶠ g`: `f` is Turing equivalent to `g`.
 
 ## Implementation Notes
 
@@ -56,18 +56,18 @@ abbrev TuringReducibleStrict (f g : ℕ →. ℕ) : Prop :=
 abbrev TuringEquivalent (f g : ℕ →. ℕ) : Prop :=
   AntisymmRel TuringReducible f g
 
-@[inherit_doc] scoped[Computability] infix:50 " ≤ᵀ " => TuringReducible
-@[inherit_doc] scoped[Computability] infix:50 " ≡ᵀ " => TuringEquivalent
-@[inherit_doc] scoped[Computability] infix:50 " <ᵀ " => TuringReducibleStrict
+@[inherit_doc] scoped[Computability] infix:50 " ≤ᵀᶠ " => TuringReducible
+@[inherit_doc] scoped[Computability] infix:50 " ≡ᵀᶠ " => TuringEquivalent
+@[inherit_doc] scoped[Computability] infix:50 " <ᵀᶠ " => TuringReducibleStrict
 
 open scoped Computability
 
-protected theorem TuringReducible.refl (f : ℕ →. ℕ) : f ≤ᵀ f := by exact RecursiveIn.oracle
-protected theorem TuringReducible.rfl : f ≤ᵀ f := .refl _
+protected theorem TuringReducible.refl (f : ℕ →. ℕ) : f ≤ᵀᶠ f := by exact RecursiveIn.oracle
+protected theorem TuringReducible.rfl : f ≤ᵀᶠ f := .refl _
 
 instance : IsRefl (ℕ →. ℕ) TuringReducible where refl _ := .rfl
 
-theorem TuringReducible.trans (hg : f ≤ᵀ g) (hh : g ≤ᵀ h) : f ≤ᵀ h := by
+theorem TuringReducible.trans (hg : f ≤ᵀᶠ g) (hh : g ≤ᵀᶠ h) : f ≤ᵀᶠ h := by
   induction hg
   · exact RecursiveIn.zero
   · exact RecursiveIn.succ
@@ -89,15 +89,15 @@ theorem TuringEquivalent.equivalence : Equivalence TuringEquivalent :=
   (AntisymmRel.setoid _ _).iseqv
 
 @[refl]
-protected theorem TuringEquivalent.refl (f : ℕ →. ℕ) : f ≡ᵀ f :=
+protected theorem TuringEquivalent.refl (f : ℕ →. ℕ) : f ≡ᵀᶠ f :=
   Equivalence.refl equivalence f
 
 @[symm]
-theorem TuringEquivalent.symm {f g : ℕ →. ℕ} (h : f ≡ᵀ g) : g ≡ᵀ f :=
+theorem TuringEquivalent.symm {f g : ℕ →. ℕ} (h : f ≡ᵀᶠ g) : g ≡ᵀᶠ f :=
   Equivalence.symm equivalence h
 
 @[trans]
-theorem TuringEquivalent.trans (f g h : ℕ →. ℕ) (h₁ : f ≡ᵀ g) (h₂ : g ≡ᵀ h) : f ≡ᵀ h :=
+theorem TuringEquivalent.trans (f g h : ℕ →. ℕ) (h₁ : f ≡ᵀᶠ g) (h₂ : g ≡ᵀᶠ h) : f ≡ᵀᶠ h :=
   Equivalence.trans equivalence h₁ h₂
 
 /--
@@ -149,13 +149,13 @@ Join of two partial functions on two primcodable types.
 --     | some (Sum.inr x) => Part.some x
 --     | _                => Part.none
 
--- lemma left_le_join (f g : ℕ →. ℕ) : f ≤ᵀ (f ⊕ g) := by
+-- lemma left_le_join (f g : ℕ →. ℕ) : f ≤ᵀᶠ (f ⊕ g) := by
 --   sorry
 
--- lemma right_le_join (f g : ℕ →. ℕ) : g ≤ᵀ (f ⊕ g) := by
+-- lemma right_le_join (f g : ℕ →. ℕ) : g ≤ᵀᶠ (f ⊕ g) := by
 --   sorry
 
--- lemma join_le (f g h : ℕ →. ℕ) (hf : f ≤ᵀ h) (hg : g ≤ᵀ h) : (f ⊕ g) ≤ᵀ h := by
+-- lemma join_le (f g h : ℕ →. ℕ) (hf : f ≤ᵀᶠ h) (hg : g ≤ᵀᶠ h) : (f ⊕ g) ≤ᵀᶠ h := by
 --   induction hf
 --   case zero =>
 --     simp [turingJoin]

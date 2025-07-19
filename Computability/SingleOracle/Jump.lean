@@ -44,7 +44,7 @@ theorem cond {c : α → Bool} {f : α → σ} {g : α → σ} (hc : PrimrecOrac
 -- instance : OfNat (Part ℕ) m where ofNat := Part.some (m)
 
 
-theorem RecursiveIn.jumpDecodeIte {O} {compute:ℕ→ℕ} (compute_recIn_fJump: compute ≤ᵀ O): RecursiveIn O fun x ↦ if compute x = 0 then Part.none else ↑(some ((Nat.pred ∘ compute) x)) := by
+theorem RecursiveIn.jumpDecodeIte {O} {compute:ℕ→ℕ} (compute_recIn_fJump: compute ≤ᵀᶠ O): RecursiveIn O fun x ↦ if compute x = 0 then Part.none else ↑(some ((Nat.pred ∘ compute) x)) := by
   apply RecursiveIn.ite
   · exact compute_recIn_fJump
   · exact RecursiveIn.none
@@ -54,7 +54,7 @@ theorem RecursiveIn.jumpDecodeIte {O} {compute:ℕ→ℕ} (compute_recIn_fJump: 
       exact Nat.Primrec.pred
     · exact compute_recIn_fJump
 
-theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
+theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀᶠ (f⌜) := by
   let compute := (jump f) ∘ (Nat.pair (encodeCodeo (codeo.oracle)));
   let f':ℕ→.ℕ := (fun x => if compute x=0 then Part.none else (Nat.pred ∘ compute) x)
 
@@ -71,12 +71,12 @@ theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
         simp only [compute, Function.comp_apply, jump, Nat.unpair_pair, decodeCodeo_encodeCodeo,Nat.succ_eq_add_one, dite_eq_right_iff, Nat.add_eq_zero, one_ne_zero, and_false,imp_false, Decidable.not_not, evalo] at h
         simp only [h,↓reduceIte, ↓reduceDIte, add_tsub_cancel_right, Part.some_get]
 
-  have compute_recIn_fJump : compute ≤ᵀ (f⌜) := by
+  have compute_recIn_fJump : compute ≤ᵀᶠ (f⌜) := by
     apply RecursiveIn.totalComp
     · exact RecursiveIn.oracle
     · apply RecursiveIn.of_primrec Nat.Primrec.pair_proj
 
-  have f'_recIn_fJump : f' ≤ᵀ (f⌜) := by
+  have f'_recIn_fJump : f' ≤ᵀᶠ (f⌜) := by
     simp only [f',TuringReducible]
     exact RecursiveIn.jumpDecodeIte compute_recIn_fJump
 
@@ -88,7 +88,7 @@ theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
   let part := evalo O (decodeCodeo n) n
   dite part.Dom (λ proof => Nat.succ $ part.get proof) (λ _ => 0)
 
-theorem OracleRecursiveInK (O : ℕ →. ℕ) : O ≤ᵀ (K O) := by
+theorem OracleRecursiveInK (O : ℕ →. ℕ) : O ≤ᵀᶠ (K O) := by
   let compute := (K O) ∘ codeo_calculate ∘ Nat.pair (encodeCodeo codeo.oracle)
   let h:ℕ→.ℕ := (fun x => if compute x=0 then Part.none else (Nat.pred ∘ compute) x)
 
@@ -115,7 +115,7 @@ theorem OracleRecursiveInK (O : ℕ →. ℕ) : O ≤ᵀ (K O) := by
           Part.some_get]
         exact rfl
 
-  have compute_recIn_KO : compute ≤ᵀ (K O) := by
+  have compute_recIn_KO : compute ≤ᵀᶠ (K O) := by
     simp only [compute, TuringReducible]
 
     apply RecursiveIn.totalComp
@@ -132,7 +132,7 @@ theorem OracleRecursiveInK (O : ℕ →. ℕ) : O ≤ᵀ (K O) := by
   simp only [h]
   exact RecursiveIn.jumpDecodeIte compute_recIn_KO
 
-theorem K_leq_K0 (O : ℕ →. ℕ) : (K O) ≤ᵀ (K0 O) := by
+theorem K_leq_K0 (O : ℕ →. ℕ) : (K O) ≤ᵀᶠ (K0 O) := by
   let h:ℕ→ℕ := (fun x => Nat.pair x x)
 
   have construction_eq_goal : K O = O⌜ ∘ h := by
@@ -149,7 +149,7 @@ theorem K_leq_K0 (O : ℕ →. ℕ) : (K O) ≤ᵀ (K0 O) := by
   · exact RecursiveIn.of_primrec (Nat.Primrec.pair Nat.Primrec.id Nat.Primrec.id)
 
 
-theorem K0_leq_K (O : ℕ →. ℕ) : (K0 O) ≤ᵀ (K O) := by
+theorem K0_leq_K (O : ℕ →. ℕ) : (K0 O) ≤ᵀᶠ (K O) := by
   let compute := (K O) ∘ codeo_calculate
   let h:ℕ→.ℕ := (compute)
 
@@ -180,7 +180,7 @@ theorem K0_leq_K (O : ℕ →. ℕ) : (K0 O) ≤ᵀ (K O) := by
       simp only [temp]
       simp only [codeo_calculate']
 
-  have compute_recIn_KO : compute ≤ᵀ (K O) := by
+  have compute_recIn_KO : compute ≤ᵀᶠ (K O) := by
     simp only [compute, TuringReducible]
 
     apply RecursiveIn.totalComp
@@ -191,10 +191,10 @@ theorem K0_leq_K (O : ℕ →. ℕ) : (K0 O) ≤ᵀ (K O) := by
   simp only [h]
   exact compute_recIn_KO
 
-theorem K0_eq_K {O} : (K O) ≡ᵀ (K0 O) := ⟨K_leq_K0 O,K0_leq_K O⟩
+theorem K0_eq_K {O} : (K O) ≡ᵀᶠ (K0 O) := ⟨K_leq_K0 O,K0_leq_K O⟩
 
 
-theorem jump_not_leq_f (f:ℕ→.ℕ) : ¬(f⌜ ≤ᵀ f) := by
+theorem jump_not_leq_f (f:ℕ→.ℕ) : ¬(f⌜ ≤ᵀᶠ f) := by
   intro jump_reducible
   let g : (ℕ→.ℕ) := fun (x:ℕ) => if (f⌜) (Nat.pair x x) = 0 then 0 else Part.none
 
@@ -227,16 +227,16 @@ theorem jump_not_leq_f (f:ℕ→.ℕ) : ¬(f⌜ ≤ᵀ f) := by
     rw [contra] at h
     exact h trivial
 
-theorem K_not_leq_f (f:ℕ→.ℕ) : ¬(K f ≤ᵀ f) := by
+theorem K_not_leq_f (f:ℕ→.ℕ) : ¬(K f ≤ᵀᶠ f) := by
   intro h
-  have h2 : f⌜ ≤ᵀ f := by
+  have h2 : f⌜ ≤ᵀᶠ f := by
     apply TuringReducible.trans
     · apply K0_leq_K
     · exact h
   apply jump_not_leq_f
   exact h2
 
-theorem id_lt_K0 {O:ℕ→.ℕ} : O <ᵀ (K0 O) := by
+theorem id_lt_K0 {O:ℕ→.ℕ} : O <ᵀᶠ (K0 O) := by
   constructor
   exact jump_recIn O
   exact jump_not_leq_f O
@@ -246,14 +246,14 @@ theorem id_lt_K0 {O:ℕ→.ℕ} : O <ᵀ (K0 O) := by
 
 -- theorem re_in_trans (A : Set ℕ) (f h : ℕ →. ℕ) :
 --   recursively_enumerable_in₂ f A →
---   f ≤ᵀ h →
+--   f ≤ᵀᶠ h →
 --   recursively_enumerable_in₂ h A := by
 --   intro freInA fh
 --   simp [recursively_enumerable_in₂] at *
 --   obtain ⟨g, hg, hA⟩ := freInA
 --   use g
 --   constructor
---   have tred : g ≤ᵀ f := by
+--   have tred : g ≤ᵀᶠ f := by
 --     simp [TuringReducible]
 --     assumption
 --   exact TuringReducible.trans tred fh

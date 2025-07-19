@@ -7,7 +7,7 @@ open Classical
 -- definitions
 noncomputable def χ (O:Set ℕ) : ℕ→ℕ := fun x ↦ if x ∈ O then 1 else 0
 theorem χsimp {O} : χ O = fun x ↦ if x ∈ O then 1 else 0 := by exact rfl
-def SetRecursiveIn (O A:Set ℕ): Prop := RecursiveIn (χ O) (χ A)
+@[simp] def SetRecursiveIn (O A:Set ℕ): Prop := RecursiveIn (χ O) (χ A)
 @[simp] abbrev SetTuringReducible (A O:Set ℕ) : Prop := SetRecursiveIn O A
 @[simp] abbrev SetTuringReducibleStrict (A O:Set ℕ) : Prop := SetRecursiveIn O A ∧ ¬ SetRecursiveIn A O
 @[simp] abbrev SetTuringEquivalent (O A:Set ℕ) : Prop := AntisymmRel SetTuringReducible O A
@@ -23,7 +23,9 @@ def jumpn : ℕ → Set ℕ → Set ℕ
 protected theorem SetTuringReducible.refl (A:Set ℕ) : SetTuringReducible A A := by exact RecursiveIn.oracle
 protected theorem SetTuringReducible.rfl (A:Set ℕ) : SetTuringReducible A A := SetTuringReducible.refl _
 instance : IsRefl (Set ℕ) SetTuringReducible where refl _ := by (expose_names; exact SetTuringReducible.refl x)
-theorem SetTuringReducible.trans {A B C:Set ℕ} (hg : SetTuringReducible A B) (hh : SetTuringReducible B C) : SetTuringReducible A C := by sorry
+theorem SetTuringReducible.trans {A B C:Set ℕ} (hg : SetTuringReducible A B) (hh : SetTuringReducible B C) : SetTuringReducible A C := by
+  simp only [SetTuringReducible, SetRecursiveIn] at *
+  exact TuringReducible.trans hg hh
 instance : IsTrans (Set ℕ) SetTuringReducible := ⟨@SetTuringReducible.trans⟩
 instance : IsPreorder (Set ℕ) SetTuringReducible where refl := .refl
 theorem SetTuringEquivalent.equivalence : Equivalence SetTuringEquivalent := (AntisymmRel.setoid _ _).iseqv
@@ -165,8 +167,8 @@ theorem K0χ_leq_χK0 {O:Set ℕ} : RecursiveIn (χ (SetK0 O)) (K0 (χ O)) := by
     · exact RecursiveIn.succ
     · apply TuringReducible.trans h5 χ_leq_χK0
 
-theorem K0χ_eq_χK0 {O:Set ℕ} : (K0 (χ O)) ≡ᵀ (χ (SetK0 O)) := ⟨K0χ_leq_χK0, χK0_leq_K0χ⟩
-theorem χK0_eq_K0χ {O:Set ℕ} : (χ (SetK0 O)) ≡ᵀ (K0 (χ O)) := K0χ_eq_χK0.symm
+theorem K0χ_eq_χK0 {O:Set ℕ} : (K0 (χ O)) ≡ᵀᶠ (χ (SetK0 O)) := ⟨K0χ_leq_χK0, χK0_leq_K0χ⟩
+theorem χK0_eq_K0χ {O:Set ℕ} : (χ (SetK0 O)) ≡ᵀᶠ (K0 (χ O)) := K0χ_eq_χK0.symm
 
 
 -- the next two theorems are more or less equivalent to some of the above, with minor tweaks.
@@ -263,7 +265,7 @@ theorem χK_leq_χK0 {O:Set ℕ} : RecursiveIn (χ (SetK0 O)) (χ (SetK O)) := b
   rw [main]
   exact RecursiveIn.totalComp RecursiveIn.oracle (RecursiveIn.of_primrec (Nat.Primrec.pair Nat.Primrec.id Nat.Primrec.id))
 
-theorem Kχ_eq_χK {O:Set ℕ} : (χ (SetK O)) ≡ᵀ (K (χ O)) := by
+theorem Kχ_eq_χK {O:Set ℕ} : (χ (SetK O)) ≡ᵀᶠ (K (χ O)) := by
   constructor
   · apply TuringReducible.trans (χK_leq_χK0)
     apply TuringReducible.trans (K0χ_eq_χK0.ge)
@@ -272,7 +274,7 @@ theorem Kχ_eq_χK {O:Set ℕ} : (χ (SetK O)) ≡ᵀ (K (χ O)) := by
   · exact Kχ_leq_χK
 
 
-theorem χK0_eq_χK {O:Set ℕ} : (χ (SetK0 O)) ≡ᵀ (χ (SetK O)) := by
+theorem χK0_eq_χK {O:Set ℕ} : (χ (SetK0 O)) ≡ᵀᶠ (χ (SetK O)) := by
   apply TuringEquivalent.trans
   · exact χK0_eq_K0χ
   · apply TuringEquivalent.trans
@@ -326,17 +328,19 @@ until it finds the n^th input to [e] that halts.
 -/
 def dovetail_code (e:ℕ) : ℕ := 0
 theorem dovetail_code_total : (evalo O (dovetail_code e)).Dom = ℕ := by sorry
-theorem dovetail_eq : evalo O (dovetail_code e) ≡ᵀ evalo O e := by sorry
+theorem dovetail_eq : evalo O (dovetail_code e) ≡ᵀᶠ evalo O e := by sorry
 
 def PFun.nat_graph (f : ℕ →. ℕ) : Set ℕ := { xy | xy.unpair.2 ∈ f xy.unpair.1 }
 def total_graph (f : ℕ → ℕ) : Set ℕ := { xy | xy.unpair.2 = f xy.unpair.1 }
-theorem partfun_eq_χgraph {f:ℕ→ℕ} : f ≡ᵀ χ (total_graph f) := by sorry
+theorem partfun_eq_χgraph {f:ℕ→ℕ} : f ≡ᵀᶠ χ (total_graph f) := by sorry
 
 
 
 -- CE O A means that A is c.e. in O.
 def CE (O:Set ℕ) (A:Set ℕ) : Prop := ∃ c:ℕ, A = W O c
 theorem CE_range : CE O A ↔ ∃ c:ℕ, A = WR O c := by sorry
+
+theorem Computable_iff_CE_compCE : A≤ᵀB ↔ (CE B A ∧ CE B Aᶜ) := by sorry
 
 -- immune O A := A is immune in O
 def immune (O:Set ℕ) (A:Set ℕ) : Prop := (A.Infinite) ∧ (∀c:ℕ, (W O c).Infinite → ¬(W O c ⊆ A))
@@ -346,6 +350,7 @@ theorem simple_above_empty (h:simple ∅ A): ∅<ᵀA := by sorry
 
 theorem exists_simple_set : ∃ A:Set ℕ, simple O A := by
   sorry
+
 
 
 -- in cooper p.220 theres the requirement also that A≤ᵀjumpn 1 ∅. is this necessary?
