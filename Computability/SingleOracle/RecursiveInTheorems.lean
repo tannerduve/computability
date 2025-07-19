@@ -101,8 +101,7 @@ theorem RecursiveIn.evaloRecInO' {f O:ℕ→.ℕ} (h:RecursiveIn O f) : Recursiv
   refine comp ?_ h
   apply RecursiveIn.evaloRecInO
 
-theorem RecursiveIn.ite {f g : ℕ→.ℕ} {c:ℕ→ℕ} (hc : RecursiveIn O c) (hf : RecursiveIn O f) (hg : RecursiveIn O g) : RecursiveIn O fun a => if (c a=0) then (f a) else (g a) := by
--- theorem RecursiveIn.ite {f g : ℕ→.ℕ} {c:ℕ→ℕ} (hf : RecursiveIn O f) (hg : RecursiveIn O g) : RecursiveIn O fun a => if (c a=0) then (f a) else (g a) := by
+theorem RecursiveIn.ite {O:ℕ→.ℕ} {f g : ℕ→.ℕ} {c:ℕ→ℕ} (hc : RecursiveIn O c) (hf : RecursiveIn O f) (hg : RecursiveIn O g) : RecursiveIn O fun a => if (c a=0) then (f a) else (g a) := by
     have exists_index_for_f : ∃ c : ℕ, evalo O c = f := by exact (exists_codeN_rel O f).mp hf
     have exists_index_for_g : ∃ c : ℕ, evalo O c = g := by exact (exists_codeN_rel O g).mp hg
     rcases exists_index_for_f with ⟨index_f,index_f_is_f⟩
@@ -130,3 +129,12 @@ theorem RecursiveIn.ite {f g : ℕ→.ℕ} {c:ℕ→ℕ} (hc : RecursiveIn O c) 
       apply RecursiveIn.ifz1
       exact hc
     exact id
+
+
+-- theorem RecursiveIn.dite {O:ℕ→ℕ} {c:ℕ→ℕ} {f :(a:ℕ)→(c a=0)→ℕ} {g:(a:ℕ)→¬(c a=0)→ℕ}
+--   (hc : RecursiveIn O c)
+--   (hf : (h:c a=0) → RecursiveIn O (f a h))
+--   (hg : (h:¬(c a=0)) → RecursiveIn O (g a h)) :
+--   RecursiveIn O fun a => if h:(c a=0) then (f a h a) else (g a h a) := by
+--     have construction : (fun a => if h:(c a=0) then (f a h a) else (g a h a)) = (fun a => if h:(c a=0) then (f a h a) else (g a h a)) := by sorry
+  -- RecursiveIn O fun a => dite (c a=0) (fun h => f (cast (by (expose_names; exact False.elim h_1)) h) a) (g h a) := by sorry
