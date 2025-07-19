@@ -3,6 +3,7 @@ import Mathlib.Computability.Reduce
 import Mathlib.Computability.Halting
 
 open Computability
+open Classical
 
 /-
 In this file we define the jump operator (⌜) for partial recursive functions and prove its main properties.
@@ -44,8 +45,9 @@ The jump of f is the diagonal of the universal machine relative to f:
 Its domain is the set of n where the n-th oracle program halts on input n with oracle f, ie. the halting
 problem relative to f.
 -/
-def jump (f : ℕ →. ℕ) : ℕ →. ℕ :=
-  λ n => evalo (λ _ : Unit => f) (decodeCodeo n) n
+noncomputable def jump (f : ℕ →. ℕ) : ℕ → ℕ := λ n =>
+  let part := evalo (λ _ : Unit => f) (decodeCodeo (Nat.unpair n).1) (Nat.unpair n).2
+  dite part.Dom (λ proof => Nat.succ $ part.get proof) (λ _ => 0)
 
 /-
 The oracle corresponding to a decidable set A ⊆ ℕ, returning 0 on elements of A and undefined elsewhere.
@@ -80,7 +82,7 @@ theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by sorry
 theorem jump_not_reducible (f : ℕ →. ℕ) : ¬(f⌜ ≤ᵀ f) := by sorry
 
 theorem re_iff_one_one_jump  (A : Set ℕ) (f : ℕ →. ℕ) :
-recursively_enumerable_in₂ f A ↔ OneOneReducible A (f⌜).Dom := by sorry
+recursively_enumerable_in₂ f A ↔ OneOneReducible A (↑f⌜:ℕ→.ℕ).Dom := by sorry
 
 theorem re_in_trans (A : Set ℕ) (f h : ℕ →. ℕ) :
   recursively_enumerable_in₂ f A →
@@ -96,11 +98,5 @@ theorem re_in_trans (A : Set ℕ) (f h : ℕ →. ℕ) :
     assumption
   exact TuringReducible.trans tred fh
   exact hA
-
-theorem jump_reducible_iff (f g : ℕ →. ℕ) :
-  g ≤ᵀ f ↔ g⌜ ≤ᵀ f⌜ := by sorry
-
-theorem jump_equiv (f g : ℕ →. ℕ) :
-  g ≡ᵀ f ↔ g⌜ ≡ᵀ f⌜ := by sorry
 
 #check StateM
