@@ -1,5 +1,6 @@
 import Computability.SingleOracle.Jump
 
+open scoped Computability
 open Classical
 
 -- definitions
@@ -267,34 +268,55 @@ theorem SetK0_eq_SetK {O:Set ℕ} : SetTuringEquivalent (SetK0 O) (SetK O) := by
     exact χK0_eq_χK.le
 
 
-  -- rw [SetTuringReducible]
 
 
 
-  -- have h : χ (SetK0 O) = fun x ↦ if (evalo (fun x ↦ if x ∈ O then 1 else 0) (decodeCodeo (Nat.unpair x).1) (Nat.unpair x).2).Dom then 1 else 0 := by
-  --   simp [SetK0]
-  -- simp [jump]
-  -- simp [ite_not]
-  -- sorry
+-- W O e := domain of e^th oracle program
+abbrev W (O : Set ℕ) (e : ℕ) := (evaloSet O e).Dom
+-- WR O e := range of e^th oracle program
+abbrev WR (O : Set ℕ) (e : ℕ) := (evaloSet O e).ran
 
--- theorem SetK0_leq_K : SetTuringReducible (SetK0 O) (SetK O) := by
---   rw [SetK0, SetK, evaloSet]
---   simp [SetRecursiveIn]
+def dom_to_ran : (ℕ→ℕ) := fun x => x
+theorem dom_to_ran' : SetTuringEquivalent (W e O) (WR (dom_to_ran e) O) := by sorry
+theorem Nat.Primrec.dom_to_ran' : Nat.Primrec dom_to_ran := by sorry
 
-  -- let χ_K0 := fun x ↦
-  --   if (evalo (fun x ↦ if x ∈ O then 1 else 0) (decodeCodeo (Nat.unpair x).1) (Nat.unpair x).2).Dom then 1 else 0
-  -- have h : (χ_K0) = (Nat.flatten) ∘ (jump (fun x ↦ if x ∈ O then 1 else 0)) := by
-  --   simp only [χ_K0]
-  --   funext xs
-  --   simp only [Function.comp_apply, Nat.flatten, jump, Nat.succ_eq_add_one, dite_eq_right_iff, Nat.add_eq_zero, one_ne_zero, and_false, imp_false, ite_not]
+def dovetail {h:RecursiveIn O f} : ℕ→ℕ := fun x => 0
+/--
+Given a code "e", dovetail_code e gives the code to the function which, on input n:
+
+runs [e](0) for 1 step (i.e. evalnO e 0 1)
+
+runs [e](0) for 2 steps
+runs [e](1) for 1 step
+
+runs [e](0) for 3 steps
+runs [e](1) for 2 steps
+runs [e](2) for 1 step
+
+...
+
+until it finds the n^th input to [e] that halts.
+-/
+def dovetail_code (e:ℕ) : ℕ := 0
+theorem dovetail_code_total : (evalo O (dovetail_code e)).Dom = ℕ := by sorry
+theorem dovetail_eq : evalo O (dovetail_code e) ≡ᵀ evalo O e := by sorry
+
+def PFun.nat_graph (f : ℕ →. ℕ) : Set ℕ := { xy | xy.unpair.2 ∈ f xy.unpair.1 }
+def total_graph (f : ℕ → ℕ) : Set ℕ := { xy | xy.unpair.2 = f xy.unpair.1 }
+theorem partfun_eq_χgraph {f:ℕ→ℕ} : f ≡ᵀ χ (total_graph f) := by sorry
 
 
 
-    -- simp only [jump]
+-- CE O A means that A is c.e. in O.
+def CE (O:Set ℕ) (A:Set ℕ) : Prop := ∃ c:ℕ, A = W O c
+theorem CE_range : CE O A ↔ ∃ c:ℕ, A = WR O c := by sorry
 
+-- immune O A := A is immune in O
+def immune (O:Set ℕ) (A:Set ℕ) : Prop := (A.Infinite) ∧ (∀c:ℕ, (W O c).Infinite → ¬(W O c ⊆ A))
+-- simple O A := A is simple in O
+def simple (O:Set ℕ) (A:Set ℕ) : Prop := (CE O A) ∧ immune O Aᶜ
 
+theorem exists_simple_set : ∃ A:Set ℕ, simple O A := by
+  sorry
 
--- theorem SetK0eqK : SetTuringEquivalent (SetK0 O) (SetK O) := by
---   rw [SetK0, SetK]
---   constructor
---   exact?
+-- def low (n:ℕ) (A:Set ℕ) : Prop := (CE O A) ∧ immune O Aᶜ

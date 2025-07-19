@@ -16,71 +16,19 @@ if f : ℕ →. ℕ, then dom(f) : ℕ → Prop := λ n => n ∈ f.Dom. These ar
 state the jump theorems:
 -/
 
-/-
-A set A is recursively enumerable in a set of partial recursive functions `O` if its characteristic
-function is recursive in `O`.
--/
--- def recursively_enumerable_in (O : Set (ℕ →. ℕ)) (A : Set ℕ) :=
---   ∃ f, (RecursiveIn O f) ∧ A = f.Dom
-
-/-
-A set A is recursively enumerable in a family of partial recursive functions `X` if its characteristic
-function is recursive in `X`.
--/
--- def recursively_enumerable_in₁ (X : α → ℕ →. ℕ) (A : Set ℕ) :=
---   ∃ f, (RecursiveIn (Set.range X) f) ∧ A = f.Dom
-
-/-
-A set A is re in a single partial recursive function g if its characteristic function is recursive in g.
--/
--- def recursively_enumerable_in₂ (g : ℕ →. ℕ) (A : ℕ → Prop) :=
---  ∃ f, (RecursiveIn {g} f) ∧ A = f.Dom
-
-/-
-A set A is recursively enumerable if its characteristic function is recursive in the empty set.
--/
--- def recursively_enumerable (A : Set ℕ) :=
---   ∃ f, (RecursiveIn {} f) ∧ A = f.Dom
 
 
-/-
-The jump of f is the diagonal of the universal machine relative to f:
-  f⌜ n = evalo (λ _ => f) (decodeCodeo n) n.
-Its domain is the set of n where the n-th oracle program halts on input n with oracle f, ie. the halting
-problem relative to f.
--/
 @[simp] noncomputable def jump (f : ℕ →. ℕ) : ℕ → ℕ := λ n =>
   let part := evalo f (decodeCodeo (Nat.unpair n).1) (Nat.unpair n).2
   dite part.Dom (λ proof => Nat.succ $ part.get proof) (λ _ => 0)
 noncomputable abbrev K0 (O : ℕ →. ℕ) := jump O
 
-/-
-The oracle corresponding to a decidable set A ⊆ ℕ, returning 0 on elements of A and undefined elsewhere.
--/
--- def setOracle (A : ℕ → Prop) [DecidablePred A] : ℕ →. ℕ :=
---   λ n => if A n then Part.some 0 else Part.none
-
--- /-
--- The jump of a decidable set A ⊆ ℕ: the set of n such that the n-th oracle program halts on input n with oracle A.
--- -/
--- def jumpSet (A : ℕ → Prop) [DecidablePred A] : ℕ → Prop :=
---   λ n => (evalo (λ (_ : Unit) => setOracle A) (decodeCodeo n) n).Dom
-
-/-
-Wₑᶠ is the domain of the eth partial function recursive in the oracle family {fₐ}.
--/
-abbrev W (e : ℕ) (f : ℕ →. ℕ) := (evalo f (decodeCodeo e)).Dom
-
--- Theorems to prove (2.3 Jump Theorem in Soare Recursively Enumerable Sets and Degrees)
--- 1. f⌜ is recursive in f
--- 2. ¬(f⌜ ≤ f)
--- 3. g is re in f iff g ≤₁ f⌜
--- 4. if g is re in f and f ≤ᵀ h then g is re in h
--- 5. g ≤ᵀ f ↔ g⌜ ≤₁ f⌜
--- 6. If g ≡ᵀ f then g⌜ ≡₁ f⌜
--- 7. ...
-
 notation:100 f"⌜" => jump f
+
+
+
+
+
 
 
 
