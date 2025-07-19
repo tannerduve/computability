@@ -96,6 +96,17 @@ theorem RecursiveIn.ifz1 {O:ℕ→.ℕ} {c:ℕ→ℕ} (hc : RecursiveIn O c): Re
 
 def evalo' (O:ℕ→.ℕ) : (ℕ→.ℕ) := fun y => (evalo O y.unpair.1 y.unpair.2)
 
+variable {α : Type*} {β : Type*} {σ : Type*}
+variable [Primcodable α] [Primcodable β] [Primcodable σ]
+theorem Primrec.projection {f : α → β → σ} {a:α} (h:Primrec₂ f) : Primrec (f a) := by
+  refine Primrec₂.comp h ?_ ?_
+  · exact const a
+  · exact Primrec.id
+lemma Nat.Primrec.pair_proj : Nat.Primrec (Nat.pair x) := by
+  refine Primrec.nat_iff.mp ?_
+  apply Primrec.projection
+  exact Primrec₂.natPair
+
 theorem RecursiveIn.evaloRecInO' {f O:ℕ→.ℕ} (h:RecursiveIn O f) : RecursiveIn O (fun x => (f x) >>= (evalo' O)) := by
   simp
   refine comp ?_ h

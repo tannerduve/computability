@@ -82,12 +82,7 @@ abbrev W (e : ℕ) (f : ℕ →. ℕ) := (evalo f (decodeCodeo e)).Dom
 
 notation:100 f"⌜" => jump f
 
-variable {α : Type*} {β : Type*} {σ : Type*}
-variable [Primcodable α] [Primcodable β] [Primcodable σ]
-theorem Primrec.projection {f : α → β → σ} {a:α} (h:Primrec₂ f) : Primrec (f a) := by
-  refine Primrec₂.comp h ?_ ?_
-  · exact const a
-  · exact Primrec.id
+
 
 
 
@@ -146,10 +141,7 @@ theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
   have compute_recIn_fJump : compute ≤ᵀ (f⌜) := by
     apply RecursiveIn.totalComp
     · exact RecursiveIn.oracle
-    · apply RecursiveIn.of_primrec
-      refine Primrec.nat_iff.mp ?_
-      apply Primrec.projection
-      exact Primrec₂.natPair
+    · apply RecursiveIn.of_primrec Nat.Primrec.pair_proj
 
   have f'_recIn_fJump : f' ≤ᵀ (f⌜) := by
     simp only [f',TuringReducible]
