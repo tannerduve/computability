@@ -66,12 +66,23 @@ def encodeCodeo : codeo → ℕ
 | codeo.left        => 2
 | codeo.right       => 3
 | codeo.oracle      => 4
-| codeo.pair cf cg  => 8 * Nat.pair (encodeCodeo cf) (encodeCodeo cg) + 5
-| codeo.comp cf cg  => 8 * Nat.pair (encodeCodeo cf) (encodeCodeo cg) + 6
-| codeo.prec cf cg  => 8 * Nat.pair (encodeCodeo cf) (encodeCodeo cg) + 7
-| codeo.rfind' cf   => 8 * encodeCodeo cf + 8  -- tag 0 mod 8 but ≥ 8
+| codeo.pair cf cg  => 2*(2*(Nat.pair (encodeCodeo cf) (encodeCodeo cg))  )   + 5
+| codeo.comp cf cg  => 2*(2*(Nat.pair (encodeCodeo cf) (encodeCodeo cg))  )+1 + 5
+| codeo.prec cf cg  => 2*(2*(Nat.pair (encodeCodeo cf) (encodeCodeo cg))+1)   + 5
+| codeo.rfind' cf   => 2*(2*(encodeCodeo cf                            )+1)+1 + 5
 
 
+/--
+Procedure for decoding:
+
+If n≤4. trivial.
+
+Otherwise if n≥5, check n%4. The 4 possible values correspond to
+pair
+comp
+prec
+rfind'
+-/
 def decodeCodeo : ℕ → codeo
   | 0 => codeo.zero
   | 1 => codeo.succ
@@ -79,50 +90,52 @@ def decodeCodeo : ℕ → codeo
   | 3 => codeo.right
   | 4 => codeo.oracle
   | n + 5 =>
-    let m := (n + 5) / 8
+    let m := n.div2.div2
     have hm : m < n + 5 := by
-      apply Nat.div_lt_self
-      · linarith       -- n + 5 > 0
-      · decide         -- 8 > 1
+      simp only [m, Nat.div2_val]
+      exact
+        lt_of_le_of_lt (le_trans (Nat.div_le_self _ _) (Nat.div_le_self _ _))
+          (Nat.succ_le_succ (Nat.le_add_right _ _))
     have _m1 : m.unpair.1 < n + 5 := lt_of_le_of_lt m.unpair_left_le hm
     have _m2 : m.unpair.2 < n + 5 := lt_of_le_of_lt m.unpair_right_le hm
-    match (n + 5) % 8 with
-    | 0 => codeo.rfind' (decodeCodeo m)
-    | 4 => codeo.oracle
-    | 5 => codeo.pair (decodeCodeo m.unpair.1) (decodeCodeo m.unpair.2)
-    | 6 => codeo.comp (decodeCodeo m.unpair.1) (decodeCodeo m.unpair.2)
-    | 7 => codeo.prec (decodeCodeo m.unpair.1) (decodeCodeo m.unpair.2)
-    | _ => codeo.zero  -- dummy value?
+    match n.bodd, n.div2.bodd with
+    | false, false => codeo.pair (decodeCodeo m.unpair.1) (decodeCodeo m.unpair.2) -- n%4=0
+    | true , false => codeo.comp (decodeCodeo m.unpair.1) (decodeCodeo m.unpair.2) -- n%4=1
+    | false, true  => codeo.prec (decodeCodeo m.unpair.1) (decodeCodeo m.unpair.2) -- n%4=2
+    | true , true  => codeo.rfind' (decodeCodeo m)                                 -- n%4=3
 
 instance : OfNat (codeo) m where ofNat := decodeCodeo m
-instance : Coe (ℕ) (codeo) := ⟨decodeCodeo⟩
-
+instance : Coe ℕ codeo := ⟨decodeCodeo⟩
+instance : Coe codeo ℕ := ⟨encodeCodeo⟩
 /-- Converts an `codeo` into a `ℕ`. -/
-@[coe]
-def ofcodeo : codeo → ℕ := encodeCodeo
+@[coe] def ofcodeo : codeo → ℕ := encodeCodeo
 
-@[simp] theorem decodeCodeo_encodeCodeo : ∀ c, decodeCodeo (encodeCodeo c) = c := by sorry
+
+@[simp] theorem decodeCodeo_encodeCodeo : ∀ c, decodeCodeo (encodeCodeo c) = c := fun c => by
+  induction c <;> (simp [encodeCodeo, decodeCodeo, Nat.div2_val, *])
 
 @[simp] theorem encodeCodeo_decodeCodeo : ∀ c, encodeCodeo (decodeCodeo c) = c :=
 λ c => match c with
-  | 0 => by simp [decodeCodeo, encodeCodeo]
-  | 1 => by simp [decodeCodeo, encodeCodeo]
-  | 2 => by simp [decodeCodeo, encodeCodeo]
-  | 3 => by simp [decodeCodeo, encodeCodeo]
-  | 4 => by simp [decodeCodeo, encodeCodeo]
-  | n + 5 => by {
-    let m := (n + 5) / 8
+  | 0 => by simp only [decodeCodeo, encodeCodeo]
+  | 1 => by simp only [decodeCodeo, encodeCodeo]
+  | 2 => by simp only [decodeCodeo, encodeCodeo]
+  | 3 => by simp only [decodeCodeo, encodeCodeo]
+  | 4 => by simp only [decodeCodeo, encodeCodeo]
+  | n + 5 => by
+    let m := n.div2.div2
     have hm : m < n + 5 := by
-      apply Nat.div_lt_self
-      · linarith       -- n + 5 > 0
-      · decide         -- 8 > 1
+      simp only [m, Nat.div2_val]
+      exact lt_of_le_of_lt (le_trans (Nat.div_le_self _ _) (Nat.div_le_self _ _)) (Nat.succ_le_succ (Nat.le_add_right _ _))
     have _m1 : m.unpair.1 < n + 5 := lt_of_le_of_lt m.unpair_left_le hm
     have _m2 : m.unpair.2 < n + 5 := lt_of_le_of_lt m.unpair_right_le hm
     have IH := encodeCodeo_decodeCodeo m
-    have IH₁ := encodeCodeo_decodeCodeo m.unpair.1
-    have IH₂ := encodeCodeo_decodeCodeo m.unpair.2
-    sorry
-  }
+    have IH1 := encodeCodeo_decodeCodeo m.unpair.1
+    have IH2 := encodeCodeo_decodeCodeo m.unpair.2
+    conv_rhs => rw [← Nat.bit_decomp n, ← Nat.bit_decomp n.div2]
+    simp only [decodeCodeo.eq_6]
+    cases n.bodd <;> cases n.div2.bodd <;> simp [m, encodeCodeo, IH, IH1, IH2, Nat.bit_val]
+
+instance instDenumerable : Denumerable codeo := mk' ⟨encodeCodeo, decodeCodeo, decodeCodeo_encodeCodeo, encodeCodeo_decodeCodeo⟩
 
 /-- Returns a code for the constant function outputting a particular natural. -/
 def codeo_const : ℕ → codeo
