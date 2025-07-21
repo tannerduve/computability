@@ -1,118 +1,55 @@
-/-
-Copyright (c) 2025 Tanner Duve. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Tanner Duve, Elan Roth
--/
-import Computability.SingleOracle.Oracle
+import Computability.SingleOracle.Oracle2
 
-/-!
-# Turing Reducibility and Turing Degrees
+@[simp] abbrev TuringReducible (f g : ℕ → ℕ) : Prop := Nat.RecursiveIn g f
+@[simp] abbrev TuringReducibleStrict (f g : ℕ → ℕ) : Prop := Nat.RecursiveIn g f ∧ ¬ Nat.RecursiveIn f g
+@[simp] abbrev TuringEquivalent (f g : ℕ → ℕ) : Prop := AntisymmRel TuringReducible f g
 
-This file defines Turing reducibility and Turing equivalence in terms of oracle computability,
-as well as the notion of Turing degrees as equivalence classes under mutual reducibility.
-
-## Main Definitions
-
-* `TuringReducible f g`:
-  The function `f` is Turing reducible to `g` if `f` is recursive in the singleton set `{g}`.
-* `TuringEquivalent f g`:
-  Functions `f` and `g` are Turing equivalent if they are mutually Turing reducible.
-* `TuringDegree`:
-  The type of Turing degrees, given by the quotient of `ℕ →. ℕ` under `TuringEquivalent`.
-
-## Notation
-
-* `f ≤ᵀᶠ g`: `f` is Turing reducible to `g`.
-* `f ≡ᵀᶠ g`: `f` is Turing equivalent to `g`.
-
-## Implementation Notes
-
-We define `TuringDegree` as the `Antisymmetrization` of the preorder of partial functions under
-Turing reducibility. This gives a concrete representation of degrees as equivalence classes.
-
-## References
-
-* [Odifreddi1989] Odifreddi, Piergiorgio.
-  *Classical Recursion Theory: The Theory of Functions and Sets of Natural Numbers*, Vol. I.
-
-## Tags
-
-Computability, Turing Degrees, Reducibility, Equivalence Relation
--/
-
-
-/--
-`f` is Turing reducible to `g` if `f` is partial recursive given access to the oracle `g`
--/
-abbrev TuringReducible (f g : ℕ →. ℕ) : Prop :=
-  RecursiveIn g f
-
-abbrev TuringReducibleStrict (f g : ℕ →. ℕ) : Prop :=
-  RecursiveIn g f ∧ ¬ RecursiveIn f g
-
-/--
-`f` is Turing equivalent to `g` if `f` is reducible to `g` and `g` is reducible to `f`.
--/
-abbrev TuringEquivalent (f g : ℕ →. ℕ) : Prop :=
-  AntisymmRel TuringReducible f g
-
-@[inherit_doc] scoped[Computability] infix:50 " ≤ᵀᶠ " => TuringReducible
-@[inherit_doc] scoped[Computability] infix:50 " ≡ᵀᶠ " => TuringEquivalent
-@[inherit_doc] scoped[Computability] infix:50 " <ᵀᶠ " => TuringReducibleStrict
+@[reducible,simp,inherit_doc] scoped[Computability] infix:50 " ≤ᵀᶠ " => TuringReducible
+@[reducible,simp,inherit_doc] scoped[Computability] infix:50 " ≡ᵀᶠ " => TuringEquivalent
+@[reducible,simp,inherit_doc] scoped[Computability] infix:50 " <ᵀᶠ " => TuringReducibleStrict
 
 open scoped Computability
 
-protected theorem TuringReducible.refl (f : ℕ →. ℕ) : f ≤ᵀᶠ f := by exact RecursiveIn.oracle
+protected theorem TuringReducible.refl (f : ℕ → ℕ) : f ≤ᵀᶠ f := by exact Nat.RecursiveIn.oracle
 protected theorem TuringReducible.rfl : f ≤ᵀᶠ f := .refl _
 
-instance : IsRefl (ℕ →. ℕ) TuringReducible where refl _ := .rfl
+instance : IsRefl (ℕ → ℕ) TuringReducible where refl _ := .rfl
 
 theorem TuringReducible.trans (hg : f ≤ᵀᶠ g) (hh : g ≤ᵀᶠ h) : f ≤ᵀᶠ h := by
-  induction hg
-  · exact RecursiveIn.zero
-  · exact RecursiveIn.succ
-  · exact RecursiveIn.left
-  · exact RecursiveIn.right
-  · exact hh
-  · (expose_names; exact RecursiveIn.pair hf_ih hh_ih)
-  · (expose_names; exact RecursiveIn.comp hf_ih hh_ih)
-  · (expose_names; exact RecursiveIn.prec hf_ih hh_ih)
-  · (expose_names; exact RecursiveIn.rfind hf_ih)
+  generalize z : (↑f:ℕ→.ℕ)=x at hg
+  simp only [TuringReducible,z] at *
+  induction hg with
+  | zero => exact Nat.RecursiveIn.zero
+  | succ => exact Nat.RecursiveIn.succ
+  | left => exact Nat.RecursiveIn.left
+  | right => exact Nat.RecursiveIn.right
+  | oracle => exact hh
+  | pair hf hh hf_ih hh_ih => (expose_names; exact Nat.RecursiveIn.pair hf_ih hh_ih)
+  | comp hf hh hf_ih hh_ih => (expose_names; exact Nat.RecursiveIn.comp hf_ih hh_ih)
+  | prec hf hh hf_ih hh_ih => (expose_names; exact Nat.RecursiveIn.prec hf_ih hh_ih)
+  | rfind hf ih => (expose_names; exact Nat.RecursiveIn.rfind ih)
 
-instance : IsTrans (ℕ →. ℕ) TuringReducible :=
-  ⟨@TuringReducible.trans⟩
-
-instance : IsPreorder (ℕ →. ℕ) TuringReducible where
-  refl := .refl
-
-theorem TuringEquivalent.equivalence : Equivalence TuringEquivalent :=
-  (AntisymmRel.setoid _ _).iseqv
-
-@[refl]
-protected theorem TuringEquivalent.refl (f : ℕ →. ℕ) : f ≡ᵀᶠ f :=
-  Equivalence.refl equivalence f
-
-@[symm]
-theorem TuringEquivalent.symm {f g : ℕ →. ℕ} (h : f ≡ᵀᶠ g) : g ≡ᵀᶠ f :=
-  Equivalence.symm equivalence h
-
-@[trans]
-theorem TuringEquivalent.trans (f g h : ℕ →. ℕ) (h₁ : f ≡ᵀᶠ g) (h₂ : g ≡ᵀᶠ h) : f ≡ᵀᶠ h :=
-  Equivalence.trans equivalence h₁ h₂
+instance : IsTrans (ℕ→ℕ) TuringReducible := ⟨@TuringReducible.trans⟩
+instance : IsPreorder (ℕ→ℕ) TuringReducible where refl := .refl
+theorem TuringEquivalent.equivalence : Equivalence TuringEquivalent := (AntisymmRel.setoid _ _).iseqv
+@[refl] protected theorem TuringEquivalent.refl (f : ℕ→ℕ) : f ≡ᵀᶠ f := Equivalence.refl equivalence f
+@[symm] theorem TuringEquivalent.symm {f g : ℕ→ℕ} (h : f ≡ᵀᶠ g) : g ≡ᵀᶠ f := Equivalence.symm equivalence h
+@[trans] theorem TuringEquivalent.trans (f g h : ℕ→ℕ) (h₁ : f ≡ᵀᶠ g) (h₂ : g ≡ᵀᶠ h) : f ≡ᵀᶠ h := Equivalence.trans equivalence h₁ h₂
 
 /--
-Instance declaring that `RecursiveIn` is a preorder.
+Instance declaring that `Nat.RecursiveIn` is a preorder.
 -/
-instance : IsPreorder (ℕ →. ℕ) TuringReducible where
+instance : IsPreorder (ℕ→ℕ) TuringReducible where
   refl := TuringReducible.refl
   trans := @TuringReducible.trans
 
 abbrev FuncTuringDegree :=
   Antisymmetrization _ TuringReducible
-private instance : Preorder (ℕ →. ℕ) where
+private instance : Preorder (ℕ→ℕ) where
   le := TuringReducible
   le_refl := .refl
   le_trans _ _ _ := TuringReducible.trans
+  lt := TuringReducibleStrict
 
 open scoped Computability
 open Encodable

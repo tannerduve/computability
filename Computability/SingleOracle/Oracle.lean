@@ -66,16 +66,21 @@ inductive RecursiveIn (O : ℕ →. ℕ) : (ℕ →. ℕ) → Prop
       RecursiveIn O fun a =>
         Nat.rfind fun n => (fun m => m = 0) <$> f (Nat.pair a n)
 
-def liftPrim {α σ} [Primcodable α] [Primcodable σ] (f : α →. σ) : ℕ →. ℕ :=
+
+@[simp, reducible] def liftPrim {α σ} [Primcodable α] [Primcodable σ] (f : α →. σ) : ℕ →. ℕ :=
   fun n => Part.bind (decode (α := α) n) fun a => (f a).map encode
 
 def RecursiveIn' {α σ} [Primcodable α] [Primcodable σ] (g : ℕ →. ℕ) (f : α →. σ) : Prop :=
   RecursiveIn g (liftPrim f)
+namespace RecursiveIn'
+
+end RecursiveIn'
 
 /-- A binary partial function is recursive in `O` if the curried form is. -/
 def RecursiveIn₂ {α β σ} [Primcodable α] [Primcodable β] [Primcodable σ]
     (g : ℕ →. ℕ) (f : α → β →. σ) : Prop :=
   RecursiveIn' g (fun p : α × β => f p.1 p.2)
+
 
 /-- A total function is computable in `O` if its constant lift is recursive in `O`. -/
 def ComputableIn {α σ} [Primcodable α] [Primcodable σ] (g : ℕ →. ℕ) (f : α → σ) : Prop :=
@@ -121,13 +126,13 @@ theorem RecursiveIn.of_primrec {f : ℕ → ℕ} (hf : Nat.Primrec f) :
 RecursiveIn O (fun n => f n) := Nat.Partrec.recursiveIn (Nat.Partrec.of_primrec hf)
 
 theorem Primrec.to_computableIn {α σ} [Primcodable α] [Primcodable σ]
-    {f : α → σ} (hf : Primrec f) (O : ℕ →. ℕ) :
+    {f : α → σ} {O : ℕ →. ℕ} (hf : Primrec f) :
     ComputableIn O f := Computable.computableIn (Primrec.to_comp hf)
 
 nonrec theorem Primrec₂.to_computableIn₂ {α β σ} [Primcodable α] [Primcodable β] [Primcodable σ]
-    {f : α → β → σ} (hf : Primrec₂ f) (O : ℕ →. ℕ) :
+    {f : α → β → σ} {O : ℕ →. ℕ} (hf : Primrec₂ f) :
     ComputableIn₂ O f :=
-  Primrec.to_computableIn hf O
+  Primrec.to_computableIn hf
 
 protected theorem ComputableIn.recursiveIn' {α σ} [Primcodable α] [Primcodable σ]
     {f : α → σ} {O} (hf : ComputableIn O f) :
@@ -148,28 +153,28 @@ variable {α : Type*} {β : Type*} {γ : Type*} {σ : Type*}
 variable [Primcodable α] [Primcodable β] [Primcodable γ] [Primcodable σ]
 
 theorem const_in (O : ℕ →. ℕ) (s : σ) : ComputableIn O (fun _ : α => s) :=
-  Primrec.to_computableIn (Primrec.const s) O
+  Primrec.to_computableIn (Primrec.const s)
 
 theorem id_in (O : ℕ →. ℕ) : ComputableIn O (@id α) :=
-  Primrec.to_computableIn Primrec.id O
+  Primrec.to_computableIn Primrec.id
 
 theorem fst_in (O : ℕ →. ℕ) : ComputableIn O (@Prod.fst α β) :=
-  Primrec.to_computableIn Primrec.fst O
+  Primrec.to_computableIn Primrec.fst
 
 theorem snd_in (O : ℕ →. ℕ) : ComputableIn O (@Prod.snd α β) :=
-  Primrec.to_computableIn Primrec.snd O
+  Primrec.to_computableIn Primrec.snd
 
 theorem unpair_in (O : ℕ →. ℕ) : ComputableIn O Nat.unpair :=
-  Primrec.to_computableIn Primrec.unpair O
+  Primrec.to_computableIn Primrec.unpair
 
 theorem succ_in (O : ℕ →. ℕ) : ComputableIn O Nat.succ :=
-  Primrec.to_computableIn Primrec.succ O
+  Primrec.to_computableIn Primrec.succ
 
 theorem sumInl_in (O : ℕ →. ℕ) : ComputableIn O (@Sum.inl α β) :=
-  Primrec.to_computableIn Primrec.sumInl O
+  Primrec.to_computableIn Primrec.sumInl
 
 theorem sumInr_in (O : ℕ →. ℕ) : ComputableIn O (@Sum.inr α β) :=
-  Primrec.to_computableIn Primrec.sumInr O
+  Primrec.to_computableIn Primrec.sumInr
 
 /--
 If a function is recursive in the constant zero function,
