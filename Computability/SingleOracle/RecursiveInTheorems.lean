@@ -124,11 +124,11 @@ def Nat.RecursiveIn.Code.eval' (O:ℕ→ℕ) : (ℕ→.ℕ) := fun y => (eval O)
 theorem RecursiveIn.eval_rec {O} : RecursiveIn O (eval' O) := by exact eval_part
 theorem Nat.RecursiveIn.eval_rec {O} : Nat.RecursiveIn O (eval' O) := by exact RecursiveIn.nat_iff.mp _root_.RecursiveIn.eval_rec
 
-theorem Nat.RecursiveIn.evaloRecInO' {O} {f:ℕ→.ℕ} (h:Nat.RecursiveIn O f) : Nat.RecursiveIn O (fun x => (f x) >>= (eval' O)) := by
+theorem Nat.RecursiveIn.evalRecInO' {O} {f:ℕ→.ℕ} (h:Nat.RecursiveIn O f) : Nat.RecursiveIn O (fun x => (f x) >>= (eval' O)) := by
   simp only [Part.bind_eq_bind]
   refine comp ?_ h
   apply Nat.RecursiveIn.eval_rec
-theorem Nat.RecursiveIn.evalo_K_computable : Nat.RecursiveIn O (fun x ↦ eval O x x) := by
+theorem Nat.RecursiveIn.eval_K_computable : Nat.RecursiveIn O (fun x ↦ eval O x x) := by
   have h : (fun (x:ℕ) ↦ eval O x x) = (fun (x:ℕ) => eval O x.unpair.1 x.unpair.2) ∘ (fun x=>Nat.pair x x) := by
     funext xs
     simp only [Function.comp_apply, Nat.unpair_pair]
@@ -180,7 +180,7 @@ theorem Nat.RecursiveIn.ite {O:ℕ→ℕ} {f g : ℕ→.ℕ} {c:ℕ→ℕ} (hc :
     rw [main2]
 
 
-    apply Nat.RecursiveIn.evaloRecInO'
+    apply Nat.RecursiveIn.evalRecInO'
     apply Nat.RecursiveIn.someTotal
 
     rw [Nat.RecursiveIn.pair']

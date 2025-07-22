@@ -29,6 +29,20 @@ theorem TuringReducible.trans (hg : f ≤ᵀᶠ g) (hh : g ≤ᵀᶠ h) : f ≤�
   | prec hf hh hf_ih hh_ih => (expose_names; exact Nat.RecursiveIn.prec hf_ih hh_ih)
   | rfind hf ih => (expose_names; exact Nat.RecursiveIn.rfind ih)
 
+theorem TuringReducible.trans' (hg : Nat.RecursiveIn g f) (hh : g ≤ᵀᶠ h) : Nat.RecursiveIn h f := by
+  generalize z : (↑f:ℕ→.ℕ)=x at hg
+  simp only [TuringReducible,z] at *
+  induction hg with
+  | zero => exact Nat.RecursiveIn.zero
+  | succ => exact Nat.RecursiveIn.succ
+  | left => exact Nat.RecursiveIn.left
+  | right => exact Nat.RecursiveIn.right
+  | oracle => exact hh
+  | pair hf hh hf_ih hh_ih => (expose_names; exact Nat.RecursiveIn.pair hf_ih hh_ih)
+  | comp hf hh hf_ih hh_ih => (expose_names; exact Nat.RecursiveIn.comp hf_ih hh_ih)
+  | prec hf hh hf_ih hh_ih => (expose_names; exact Nat.RecursiveIn.prec hf_ih hh_ih)
+  | rfind hf ih => (expose_names; exact Nat.RecursiveIn.rfind ih)
+
 instance : IsTrans (ℕ→ℕ) TuringReducible := ⟨@TuringReducible.trans⟩
 instance : IsPreorder (ℕ→ℕ) TuringReducible where refl := .refl
 theorem TuringEquivalent.equivalence : Equivalence TuringEquivalent := (AntisymmRel.setoid _ _).iseqv

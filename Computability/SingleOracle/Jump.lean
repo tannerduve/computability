@@ -7,8 +7,8 @@ import Mathlib.Data.PFun
 
 open Computability
 open Classical
-
 open Nat.RecursiveIn.Code
+
 @[simp] noncomputable def jump (O : ℕ → ℕ) : ℕ → ℕ := λ n =>
   let part := eval O (decodeCode (Nat.unpair n).1) (Nat.unpair n).2
   dite part.Dom (λ proof => Nat.succ $ part.get proof) (λ _ => 0)
@@ -87,7 +87,6 @@ theorem jump_recIn (f:ℕ→ℕ) : f ≤ᵀᶠ (f⌜) := by
   let part := eval O (decodeCode n) n
   dite part.Dom (λ proof => Nat.succ $ part.get proof) (λ _ => 0)
 
-open Nat.RecursiveIn.Code
 theorem OracleNat.RecursiveInK (O:ℕ→ℕ) : Nat.RecursiveIn (K O) O := by
   let compute := (K O) ∘ calculate_specific ∘ Nat.pair (encodeCode oracle)
   let h:ℕ→.ℕ := (fun x => if compute x=0 then Part.none else (Nat.pred ∘ compute) x)
