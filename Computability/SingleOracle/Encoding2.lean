@@ -1063,3 +1063,48 @@ instance : Countable {f : ℕ → ℕ // ComputableIn O f} :=
     (fun _ _ h => Subtype.val_inj.1 (PFun.lift_injective (by simpa using h)))
 
 end Nat.RecursiveIn.Code
+
+
+
+instance Code : Primcodable (Nat.RecursiveIn.Code) := by exact Primcodable.ofDenumerable Nat.RecursiveIn.Code
+namespace Nat.RecursiveIn.Code
+-- /--
+-- codeo_calculate takes as input a pair (e,x), and returns an index to a program which
+-- calculates ψᴼₑ(x) regardless of its input.
+-- -/
+def calculate_specific (ex:ℕ) : ℕ  := comp ex.unpair.1 (Code.const ex.unpair.2)
+@[simp] theorem eval_calculate_specific : eval O (calculate_specific (Nat.pair e x)) _z = eval O e x := by
+  unfold calculate_specific
+  simp? [eval] says simp only [unpair_pair, decodeCode_encodeCode, eval, eval_const, Part.bind_eq_bind, Part.bind_some]
+
+theorem prim_comp₁ : Nat.PrimrecIn O (fun ex => comp ex.unpair.1 ex.unpair.2) := by
+  have h (O:ℕ→ℕ): PrimrecIn₂ O comp := by exact comp_prim
+  exact PrimrecIn.nat_iff.mp (h O)
+  -- unfold PrimrecIn₂ at h
+
+
+-- hm, the proof shouldnt be this long?
+@[simp] theorem prim_calculate_specific : Nat.PrimrecIn O (fun ex => calculate_specific ex) := by
+  have rwmain : calculate_specific = (fun ex:ℕ => (comp ex.unpair.1 ex.unpair.2:ℕ)) ∘ (fun ex:ℕ => Nat.pair ex.unpair.1 (Code.const ex.unpair.2)) := by
+    funext xs
+    simp only [Function.comp_apply, unpair_pair, decodeCode_encodeCode]
+    exact rfl
+  rw [rwmain]
+  have main2 : Nat.PrimrecIn O fun ex:ℕ => Nat.pair ex.unpair.1 (Code.const ex.unpair.2) := by
+    refine PrimrecIn.pair ?_ ?_
+    · exact PrimrecIn.left
+    · have main3 : (fun ex ↦ ((Code.const (unpair ex).2):ℕ)) = (fun ex => (Code.const ex :ℕ)) ∘ fun exa => (unpair exa).2 := by
+        funext xs
+        simp only [Function.comp_apply]
+      have main4 : Nat.PrimrecIn O fun ex => (Code.const ex:ℕ) := by
+        refine PrimrecIn.nat_iff.mp ?_
+        apply const_prim
+      have main5 : Nat.PrimrecIn O fun exa => (unpair exa).2 := by
+        exact PrimrecIn.right
+      rw [main3]
+      apply Nat.PrimrecIn.comp main4 main5
+
+  apply Nat.PrimrecIn.comp prim_comp₁ main2
+
+
+end Nat.RecursiveIn.Code
