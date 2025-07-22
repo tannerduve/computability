@@ -1066,7 +1066,7 @@ end Nat.RecursiveIn.Code
 
 
 
-instance Code : Primcodable (Nat.RecursiveIn.Code) := by exact Primcodable.ofDenumerable Nat.RecursiveIn.Code
+-- instance Code : Primcodable (Nat.RecursiveIn.Code) := by exact Primcodable.ofDenumerable Nat.RecursiveIn.Code
 namespace Nat.RecursiveIn.Code
 -- /--
 -- codeo_calculate takes as input a pair (e,x), and returns an index to a program which

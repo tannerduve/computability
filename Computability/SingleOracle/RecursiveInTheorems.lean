@@ -171,13 +171,6 @@ lemma Nat.Primrec.pair_proj : Nat.Primrec (Nat.pair x) := by
 
 
 
--- theorem smn_calc : ∃ f : ℕ → ℕ, ComputableIn O f ∧ ∀ c n random:ℕ, eval O (f ex) random = eval O ex.unpair.1 ex.unpair.2 :=
---   by
---     simp
-  -- ⟨sorry, PrimrecIn₂.to_compIn curry_prim, eval_curry⟩
-
-
-  -- ⟨curry, PrimrecIn₂.to_compIn curry_prim, eval_curry⟩
 
 theorem Nat.RecursiveIn.ite {O:ℕ→ℕ} {f g : ℕ→.ℕ} {c:ℕ→ℕ} (hc : Nat.RecursiveIn O c) (hf : Nat.RecursiveIn O f) (hg : Nat.RecursiveIn O g) : Nat.RecursiveIn O fun a => if (c a=0) then (f a) else (g a) := by
     have exists_index_for_f : ∃ c : ℕ, eval O c = f := by exact (exists_code_nat O f).mp hf

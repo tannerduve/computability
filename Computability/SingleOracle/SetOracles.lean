@@ -4,15 +4,17 @@ import Mathlib.Order.Basic
 open scoped Computability
 open Classical
 open Nat.RecursiveIn.Code
+namespace Computability
 
 -- definitions
 noncomputable def χ (O:Set ℕ) : ℕ→ℕ := fun x ↦ if x ∈ O then 1 else 0
 theorem χsimp {O} : χ O = fun x ↦ if x ∈ O then 1 else 0 := by exact rfl
-@[simp] abbrev SetRecursiveIn (O A:Set ℕ): Prop := Nat.RecursiveIn (χ O) (χ A)
-@[simp] abbrev SetTuringReducible (A O:Set ℕ) : Prop := SetRecursiveIn O A
-@[simp] abbrev SetTuringReducibleStrict (A O:Set ℕ) : Prop := SetRecursiveIn O A ∧ ¬ SetRecursiveIn A O
+@[simp] abbrev SetRecursiveIn (O:Set ℕ) (f:ℕ→.ℕ): Prop := Nat.RecursiveIn (χ O) f
+@[simp] abbrev SetTuringReducible (A O:Set ℕ) : Prop := Nat.RecursiveIn (χ O) (χ A)
+@[simp] abbrev SetTuringReducibleStrict (A O:Set ℕ) : Prop := Nat.RecursiveIn (χ O) (χ A) ∧ ¬ Nat.RecursiveIn (χ A) (χ O)
 @[simp] abbrev SetTuringEquivalent (O A:Set ℕ) : Prop := AntisymmRel SetTuringReducible O A
-noncomputable def evalSet (O : Set ℕ) : Nat.RecursiveIn.Code → ℕ →. ℕ := eval (fun x => if x∈O then 1 else 0:ℕ→ℕ)
+noncomputable def evalSet (O:Set ℕ) : Nat.RecursiveIn.Code → ℕ→.ℕ := eval (χ O)
+noncomputable def evalSet₁ (O:Set ℕ) : ℕ→.ℕ := eval₁ (χ O)
 def SetK0 (A:Set ℕ) := {ex:ℕ | (evalSet A ex.unpair.1 ex.unpair.2).Dom}
 def SetK (A:Set ℕ) := {x:ℕ | (evalSet A x x).Dom}
 abbrev SetJump := SetK
@@ -50,22 +52,26 @@ notation:100 A"⌜" => SetJump A
 @[reducible,simp] scoped[Computability] infix:50 " <ᵀ " => SetTuringDegreeLT
 @[reducible,simp] scoped[Computability] infix:50 " ≡ᵀ " => SetTuringDegreeEQ
 
+section evalSettheorems
+theorem exists_code_for_evalSet_nat (O:Set ℕ) (f:ℕ→.ℕ) : SetRecursiveIn O f ↔ ∃ c:ℕ, evalSet O c = f := by exact exists_code_nat (χ O) f
+private theorem exists_code_for_evalSet₁ : ∃ c:ℕ, evalSet O c = evalSet₁ O := by
+  apply ((exists_code_for_evalSet_nat O (evalSet₁ O)).mp)
+  exact rec_eval₁
+noncomputable def evalSet₁_code (O:Set ℕ) : ℕ := choose (@exists_code_for_evalSet₁ O)
+end evalSettheorems
 
 -- lemmas
-
 lemma χ_eq_0or1 : (χ O x = 0) ∨ (χ O x = 1) := by
   rw [χsimp]
   cases Classical.em (x ∈ O) with
   | inl h => simp only [h, ↓reduceIte, one_ne_zero, or_true]
   | inr h => simp only [h, ↓reduceIte, zero_ne_one, or_false]
-
 lemma some_comp_simp (a:Part ℕ) {f:ℕ→ℕ} {h:a.Dom}:  (Part.some (f (a.get h)) = a >>= (f:ℕ→.ℕ)) := by
   simp only [bind]
   rw [Part.bind]
   exact Eq.symm (Part.assert_pos h)
 
--- theorems
-
+section SetJumpTheorems
 theorem χ_leq_χK0 {O:Set ℕ} : Nat.RecursiveIn (χ (SetK0 O)) (χ O) := by
   let χK0 : ℕ→ℕ := fun ex ↦ if (eval (χ O) (decodeCode (Nat.unpair ex).1) (Nat.unpair ex).2).Dom then 1 else 0
   have h0 : χ (SetK0 O) = χK0 := by exact rfl
@@ -106,7 +112,6 @@ theorem χ_leq_χK0 {O:Set ℕ} : Nat.RecursiveIn (χ (SetK0 O)) (χ O) := by
   rw [h0]
   rw [f_eq_f']
   exact f'_recIn_χK0
-
 theorem χK0_leq_K0χ {O:Set ℕ} : Nat.RecursiveIn (K0 (χ O)) (χ (SetK0 O)) := by
   let χK0 : ℕ→ℕ := fun ex ↦ if (eval (χ O) (decodeCode (Nat.unpair ex).1) (Nat.unpair ex).2).Dom then 1 else 0
   have h0 : χ (SetK0 O) = χK0 := by exact rfl
@@ -123,7 +128,6 @@ theorem χK0_leq_K0χ {O:Set ℕ} : Nat.RecursiveIn (K0 (χ O)) (χ (SetK0 O)) :
   rw [h0]
   rw [construction_eq_goal]
   exact construction_constructible
-
 theorem K0χ_leq_χK0 {O:Set ℕ} : Nat.RecursiveIn (χ (SetK0 O)) (K0 (χ O)) := by
   let χK0 : ℕ→ℕ := fun ex ↦ if (eval (χ O) (decodeCode (Nat.unpair ex).1) (Nat.unpair ex).2).Dom then 1 else 0
   have h0 : χ (SetK0 O) = χK0 := by exact rfl
@@ -167,11 +171,8 @@ theorem K0χ_leq_χK0 {O:Set ℕ} : Nat.RecursiveIn (χ (SetK0 O)) (K0 (χ O)) :
   · apply Nat.RecursiveIn.comp
     · exact Nat.RecursiveIn.succ
     · apply TuringReducible.trans' h5 χ_leq_χK0
-
 theorem K0χ_eq_χK0 {O:Set ℕ} : (K0 (χ O)) ≡ᵀᶠ (χ (SetK0 O)) := ⟨K0χ_leq_χK0, χK0_leq_K0χ⟩
 theorem χK0_eq_K0χ {O:Set ℕ} : (χ (SetK0 O)) ≡ᵀᶠ (K0 (χ O)) := K0χ_eq_χK0.symm
-
-
 -- the next two theorems are more or less equivalent to some of the above, with minor tweaks.
 theorem χ_leq_χK {O:Set ℕ} : Nat.RecursiveIn (χ (SetK O)) (χ O) := by
   let χK : ℕ→ℕ := fun x ↦ if (eval (χ O) (decodeCode x) x).Dom then 1 else 0
@@ -216,7 +217,6 @@ theorem χ_leq_χK {O:Set ℕ} : Nat.RecursiveIn (χ (SetK O)) (χ O) := by
   rw [h0]
   rw [f_eq_f']
   exact f'_recIn_χK
-
 theorem Kχ_leq_χK {O:Set ℕ} : Nat.RecursiveIn (χ (SetK O)) (K (χ O)) := by
   let χK : ℕ→ℕ := fun x ↦ if (eval (χ O) (decodeCode x) x).Dom then 1 else 0
   have h0 : χ (SetK O) = χK := by exact rfl
@@ -256,14 +256,12 @@ theorem Kχ_leq_χK {O:Set ℕ} : Nat.RecursiveIn (χ (SetK O)) (K (χ O)) := by
   · apply Nat.RecursiveIn.comp
     · exact Nat.RecursiveIn.succ
     · apply TuringReducible.trans' h5 χ_leq_χK
-
 theorem χK_leq_χK0 {O:Set ℕ} : Nat.RecursiveIn (χ (SetK0 O)) (χ (SetK O)) := by
   have main : (χ (SetK O)) = (χ (SetK0 O)) ∘ fun x=> Nat.pair x x := by
     funext xs
     simp only [χ, SetK, Set.mem_setOf_eq, SetK0, Function.comp_apply, Nat.unpair_pair]
   rw [main]
   exact Nat.RecursiveIn.totalComp Nat.RecursiveIn.oracle (Nat.RecursiveIn.of_primrec (Nat.Primrec.pair Nat.Primrec.id Nat.Primrec.id))
-
 theorem Kχ_eq_χK {O:Set ℕ} : (χ (SetK O)) ≡ᵀᶠ (K (χ O)) := by
   constructor
   · apply TuringReducible.trans (χK_leq_χK0)
@@ -272,11 +270,8 @@ theorem Kχ_eq_χK {O:Set ℕ} : (χ (SetK O)) ≡ᵀᶠ (K (χ O)) := by
     exact Nat.RecursiveIn.oracle
   · exact Kχ_leq_χK
 
-
 -- why does the below fail?
 -- #check K0_eq_K.le
-
-
 
 theorem χK0_eq_χK {O:Set ℕ} : (χ (SetK0 O)) ≡ᵀᶠ (χ (SetK O)) := by
   apply TuringEquivalent.trans
@@ -284,12 +279,10 @@ theorem χK0_eq_χK {O:Set ℕ} : (χ (SetK0 O)) ≡ᵀᶠ (χ (SetK O)) := by
   · apply TuringEquivalent.trans
     · exact K0_eq_K.symm
     · exact Kχ_eq_χK.symm
-
 theorem SetK0_eq_SetK {O:Set ℕ} : (SetK0 O) ≡ᵀ (SetK O) := by
   constructor
   · exact χK0_eq_χK.le
   · exact χK0_eq_χK.ge
-
 theorem Set_leq_SetK {O:Set ℕ} : O ≤ᵀ (SetK O) := χ_leq_χK
 
 theorem SetJump_not_leq_Set {O:Set ℕ} : ¬O⌜≤ᵀO := by
@@ -302,17 +295,14 @@ theorem Set_lt_SetJump {O:Set ℕ} : O<ᵀO⌜ := by
   constructor
   · exact Set_leq_SetK
   · exact SetJump_not_leq_Set
-
+end SetJumpTheorems
 
 
 /-- `W O e` := domain of e^th oracle program -/
-abbrev W (O : Set ℕ) (e : ℕ) := (evalSet O e).Dom
+abbrev W (O:Set ℕ) (e : ℕ) := (evalSet O e).Dom
 /-- `WR O e` := range of e^th oracle program -/
-abbrev WR (O : Set ℕ) (e : ℕ) := (evalSet O e).ran
+abbrev WR (O:Set ℕ) (e : ℕ) := (evalSet O e).ran
 
-
-
-noncomputable def eval_code {O:ℕ→ℕ} : ℕ := choose (@exists_code_for_eval₁ O)
 
 
 -- private def dom_to_ran_helper : (ℕ→ℕ) :=
@@ -345,7 +335,7 @@ def dovetail_code (e:ℕ) : ℕ := 0
 theorem dovetail_code_total : (eval O (dovetail_code e)).Dom = ℕ := by sorry
 -- theorem dovetail_eq : eval O (dovetail_code e) ≡ᵀᶠ eval O e := by sorry
 
-def PFun.nat_graph (f : ℕ →. ℕ) : Set ℕ := { xy | xy.unpair.2 ∈ f xy.unpair.1 }
+def PFun.nat_graph (f : ℕ→.ℕ) : Set ℕ := { xy | xy.unpair.2 ∈ f xy.unpair.1 }
 def total_graph (f : ℕ → ℕ) : Set ℕ := { xy | xy.unpair.2 = f xy.unpair.1 }
 theorem partfun_eq_χgraph {f:ℕ→ℕ} : f ≡ᵀᶠ χ (total_graph f) := by sorry
 
