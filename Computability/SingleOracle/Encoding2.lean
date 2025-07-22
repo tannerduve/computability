@@ -856,15 +856,15 @@ private theorem hG {O} : PrimrecIn O (G O) := by
         (β := Code × Code × Option ℕ × Option ℕ))
     refine PrimrecIn.option_bind (hlup.comp <| L.pair <| (k.pair cf).pair n) ?_
     unfold PrimrecIn₂
-    sorry
-    -- conv =>
-    --   congr
-    --   · ext p
-    --     dsimp only []
-    --     erw [Option.bind_eq_bind, ← Option.map_eq_bind]
-    -- refine PrimrecIn.option_map ((hlup.comp <| L.pair <| (k.pair cg).pair n).comp PrimrecIn.fst) ?_
-    -- unfold PrimrecIn₂
-    -- exact PrimrecIn₂.natPair.comp (PrimrecIn.snd.comp PrimrecIn.fst) PrimrecIn.snd
+    conv =>
+      congr
+      · simp
+      · ext p
+        dsimp only []
+        erw [Option.bind_eq_bind, ← Option.map_eq_bind]
+    refine PrimrecIn.option_map ((hlup.comp <| L.pair <| (k.pair cg).pair n).comp PrimrecIn.fst) ?_
+    unfold PrimrecIn₂
+    exact PrimrecIn₂.natPair.comp (PrimrecIn.snd.comp PrimrecIn.fst) PrimrecIn.snd
   · have L := ((@PrimrecIn.fst O).comp PrimrecIn.fst).comp
       (PrimrecIn.fst (α := (List (List (Option ℕ)) × ℕ) × ℕ)
         (β := Code × Code × Option ℕ × Option ℕ))

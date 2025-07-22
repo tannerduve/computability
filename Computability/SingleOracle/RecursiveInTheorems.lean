@@ -4,23 +4,24 @@ import Mathlib.Data.PFun
 open Computability
 open Classical
 
-@[simp] lemma RecursiveIn.partCompTotal {O f:ℕ→.ℕ} {g:ℕ→ℕ} (h1: RecursiveIn O f) (h2: RecursiveIn O g) : (RecursiveIn O ↑(f∘g)) := by
+
+@[simp] lemma Nat.RecursiveIn.partCompTotal {O:ℕ→ℕ} {f:ℕ→.ℕ} {g:ℕ→ℕ} (h1: Nat.RecursiveIn O f) (h2: Nat.RecursiveIn O g) : (Nat.RecursiveIn O ↑(f∘g)) := by
   have h3 : (↑(f∘g):ℕ→.ℕ) = fun x => g x >>= (↑f:ℕ→.ℕ) := by
     funext xs
     simp only [Function.comp_apply, Part.coe_some, Part.bind_eq_bind, Part.bind_some]
   rw [h3]
   exact comp h1 h2
-@[simp] lemma RecursiveIn.totalComp {O:ℕ→.ℕ} {f g:ℕ→ℕ} (h1: RecursiveIn O f) (h2: RecursiveIn O g) : (RecursiveIn O ↑(f∘g)) := by
+@[simp] lemma Nat.RecursiveIn.totalComp {O:ℕ→ℕ} {f g:ℕ→ℕ} (h1: Nat.RecursiveIn O f) (h2: Nat.RecursiveIn O g) : (Nat.RecursiveIn O ↑(f∘g)) := by
   have h3 : (↑(f∘g):ℕ→.ℕ) = fun x => g x >>= (↑f:ℕ→.ℕ) := by
     funext xs
     simp only [PFun.coe_val, Function.comp_apply, Part.coe_some, Part.bind_eq_bind, Part.bind_some]
   rw [h3]
   exact comp h1 h2
-@[simp] lemma RecursiveIn.id {O:ℕ→.ℕ} : RecursiveIn O fun x => x := by apply of_primrec Nat.Primrec.id
-@[simp] lemma RecursiveIn.someTotal (O:ℕ→.ℕ) (f:ℕ→ℕ) (h1: RecursiveIn O f): RecursiveIn O fun x => Part.some (f x) := by
-  apply RecursiveIn.totalComp
+@[simp] lemma Nat.RecursiveIn.id {O:ℕ→ℕ} : Nat.RecursiveIn O fun x => x := by apply of_primrec Nat.Primrec.id
+@[simp] lemma Nat.RecursiveIn.someTotal (O:ℕ→ℕ) (f:ℕ→ℕ) (h1: Nat.RecursiveIn O f): Nat.RecursiveIn O fun x => Part.some (f x) := by
+  apply Nat.RecursiveIn.totalComp
   · exact h1
-  · apply RecursiveIn.id
+  · apply Nat.RecursiveIn.id
 
 
 @[simp] def Nat.flatten := fun x => if x=0 then 0 else 1
@@ -47,40 +48,40 @@ theorem Nat.Primrec.flattenInv : Nat.Primrec Nat.flattenInv := by
     | zero => exact rfl
     | succ n _ => simp only [Nat.add_eq_zero, one_ne_zero, and_false, ↓reduceIte]
 
-@[simp] lemma RecursiveIn.pair' (f g : ℕ→ℕ) : ((↑fun x ↦ Nat.pair (f x) (g x)):ℕ→.ℕ)= fun (x:ℕ) => (Nat.pair <$> (f x) <*> (g x)) := by
+@[simp] lemma Nat.RecursiveIn.pair' (f g : ℕ→ℕ) : ((↑fun x ↦ Nat.pair (f x) (g x)):ℕ→.ℕ)= fun (x:ℕ) => (Nat.pair <$> (f x) <*> (g x)) := by
   simp [Seq.seq]
   funext xs
   simp only [PFun.coe_val]
-@[simp] lemma RecursiveIn.totalComp' {O:ℕ→.ℕ} {f g:ℕ→ℕ} (hf: RecursiveIn O f) (hg: RecursiveIn O g): (RecursiveIn O (fun x => (f (g x)):ℕ→ℕ) ) := by apply RecursiveIn.totalComp (hf) (hg)
-@[simp] lemma RecursiveIn.totalComp₂ {O:ℕ→.ℕ} {f:ℕ→ℕ→ℕ} {g h:ℕ→ℕ} (hf: RecursiveIn O fun x => f x.unpair.1 x.unpair.2) (hg: RecursiveIn O g) (hh: RecursiveIn O h): (RecursiveIn O (fun x => (f (g x) (h x)):ℕ→ℕ) ) := by
+@[simp] lemma Nat.RecursiveIn.totalComp' {O:ℕ→ℕ} {f g:ℕ→ℕ} (hf: Nat.RecursiveIn O f) (hg: Nat.RecursiveIn O g): (Nat.RecursiveIn O (fun x => (f (g x)):ℕ→ℕ) ) := by apply Nat.RecursiveIn.totalComp (hf) (hg)
+@[simp] lemma Nat.RecursiveIn.totalComp₂ {O:ℕ→ℕ} {f:ℕ→ℕ→ℕ} {g h:ℕ→ℕ} (hf: Nat.RecursiveIn O fun x => f x.unpair.1 x.unpair.2) (hg: Nat.RecursiveIn O g) (hh: Nat.RecursiveIn O h): (Nat.RecursiveIn O (fun x => (f (g x) (h x)):ℕ→ℕ) ) := by
   have main : (fun x => (f (g x) (h x)):ℕ→ℕ) = ((fun x => f x.unpair.1 x.unpair.2) ∘ (fun n ↦ Nat.pair (g n) (h n))) := by
     funext xs
     simp only [Function.comp_apply, Nat.unpair_pair]
   rw [main]
-  apply RecursiveIn.totalComp
+  apply Nat.RecursiveIn.totalComp
   · exact hf
-  · rw [RecursiveIn.pair']
-    apply RecursiveIn.pair hg hh
+  · rw [Nat.RecursiveIn.pair']
+    apply Nat.RecursiveIn.pair hg hh
 
-theorem RecursiveIn.ifz1 {O:ℕ→.ℕ} {c:ℕ→ℕ} (hc : RecursiveIn O c): RecursiveIn O (fun x => if (c x=0) then (a:ℕ) else (b:ℕ) : ℕ→ℕ) := by
+theorem Nat.RecursiveIn.ifz1 {O:ℕ→ℕ} {c:ℕ→ℕ} (hc : Nat.RecursiveIn O c): Nat.RecursiveIn O (fun x => if (c x=0) then (a:ℕ) else (b:ℕ) : ℕ→ℕ) := by
   let construction := fun x =>
     Nat.add
     (Nat.mul b (Nat.flatten (c x)))
     (Nat.mul a (Nat.flattenInv (c x)))
-  have consRecin : RecursiveIn O construction := by
+  have consRecin : Nat.RecursiveIn O construction := by
     simp only [construction]
-    apply RecursiveIn.totalComp₂
+    apply Nat.RecursiveIn.totalComp₂
     · apply of_primrec Nat.Primrec.add
-    · apply RecursiveIn.totalComp₂
+    · apply Nat.RecursiveIn.totalComp₂
       · apply of_primrec Nat.Primrec.mul
       · apply of_primrec (Nat.Primrec.const b)
-      · apply RecursiveIn.totalComp'
+      · apply Nat.RecursiveIn.totalComp'
         · exact of_primrec Nat.Primrec.flatten
         · exact hc
-    · apply RecursiveIn.totalComp₂
+    · apply Nat.RecursiveIn.totalComp₂
       · apply of_primrec Nat.Primrec.mul
       · apply of_primrec (Nat.Primrec.const a)
-      · apply RecursiveIn.totalComp'
+      · apply Nat.RecursiveIn.totalComp'
         · exact of_primrec Nat.Primrec.flattenInv
         · exact hc
   have consEq: (fun x => if (c x=0) then (a:ℕ) else (b:ℕ) : ℕ→ℕ) = construction := by
@@ -94,7 +95,7 @@ theorem RecursiveIn.ifz1 {O:ℕ→.ℕ} {c:ℕ→ℕ} (hc : RecursiveIn O c): Re
   exact consRecin
 
 
-def evalo' (O:ℕ→.ℕ) : (ℕ→.ℕ) := fun y => (evalo O y.unpair.1 y.unpair.2)
+def Nat.RecursiveIn.Code.evalo' (O:ℕ→ℕ) : (ℕ→.ℕ) := fun y => (Nat.RecursiveIn.Code.eval O y.unpair.1 y.unpair.2)
 
 variable {α : Type*} {β : Type*} {σ : Type*}
 variable [Primcodable α] [Primcodable β] [Primcodable σ]
@@ -107,20 +108,20 @@ lemma Nat.Primrec.pair_proj : Nat.Primrec (Nat.pair x) := by
   apply Primrec.projection
   exact Primrec₂.natPair
 
-theorem RecursiveIn.evaloRecInO' {f O:ℕ→.ℕ} (h:RecursiveIn O f) : RecursiveIn O (fun x => (f x) >>= (evalo' O)) := by
+theorem Nat.RecursiveIn.evaloRecInO' {O} {f:ℕ→.ℕ} (h:Nat.RecursiveIn O f) : Nat.RecursiveIn O (fun x => (f x) >>= (Nat.RecursiveIn.Code.evalo' O)) := by
   simp only [Part.bind_eq_bind]
   refine comp ?_ h
-  apply RecursiveIn.evalo_computable
-theorem RecursiveIn.evalo_K_computable : RecursiveIn O (fun x ↦ evalo O x x) := by
+  apply Nat.RecursiveIn.evalo_computable
+theorem Nat.RecursiveIn.evalo_K_computable : Nat.RecursiveIn O (fun x ↦ evalo O x x) := by
   have h : (fun (x:ℕ) ↦ evalo O x x) = (fun (x:ℕ) => evalo O x.unpair.1 x.unpair.2) ∘ (fun x=>Nat.pair x x) := by
     funext xs
     simp only [Function.comp_apply, Nat.unpair_pair]
   rw [h]
-  refine RecursiveIn.partCompTotal ?_ ?_
-  exact RecursiveIn.evalo_computable
-  exact RecursiveIn.of_primrec (Nat.Primrec.pair Nat.Primrec.id Nat.Primrec.id)
+  refine Nat.RecursiveIn.partCompTotal ?_ ?_
+  exact Nat.RecursiveIn.evalo_computable
+  exact Nat.RecursiveIn.of_primrec (Nat.Primrec.pair Nat.Primrec.id Nat.Primrec.id)
 
-theorem RecursiveIn.ite {O:ℕ→.ℕ} {f g : ℕ→.ℕ} {c:ℕ→ℕ} (hc : RecursiveIn O c) (hf : RecursiveIn O f) (hg : RecursiveIn O g) : RecursiveIn O fun a => if (c a=0) then (f a) else (g a) := by
+theorem Nat.RecursiveIn.ite {O:ℕ→.ℕ} {f g : ℕ→.ℕ} {c:ℕ→ℕ} (hc : Nat.RecursiveIn O c) (hf : Nat.RecursiveIn O f) (hg : Nat.RecursiveIn O g) : Nat.RecursiveIn O fun a => if (c a=0) then (f a) else (g a) := by
     have exists_index_for_f : ∃ c : ℕ, evalo O c = f := by exact (exists_codeN_rel O f).mp hf
     have exists_index_for_g : ∃ c : ℕ, evalo O c = g := by exact (exists_codeN_rel O g).mp hg
     rcases exists_index_for_f with ⟨index_f,index_f_is_f⟩
@@ -138,13 +139,13 @@ theorem RecursiveIn.ite {O:ℕ→.ℕ} {f g : ℕ→.ℕ} {c:ℕ→ℕ} (hc : Re
     rw [main2]
 
 
-    apply RecursiveIn.evaloRecInO'
-    apply RecursiveIn.someTotal
+    apply Nat.RecursiveIn.evaloRecInO'
+    apply Nat.RecursiveIn.someTotal
 
-    rw [RecursiveIn.pair']
+    rw [Nat.RecursiveIn.pair']
 
-    apply RecursiveIn.pair
+    apply Nat.RecursiveIn.pair
     · simp only [Part.coe_some]
-      apply RecursiveIn.ifz1
+      apply Nat.RecursiveIn.ifz1
       exact hc
     exact id
