@@ -53,6 +53,14 @@ theorem Nat.Primrec.flattenInv : Nat.Primrec Nat.flattenInv := by
   funext xs
   simp only [PFun.coe_val]
 @[simp] lemma Nat.RecursiveIn.totalComp' {O:ℕ→ℕ} {f g:ℕ→ℕ} (hf: Nat.RecursiveIn O f) (hg: Nat.RecursiveIn O g): (Nat.RecursiveIn O (fun x => (f (g x)):ℕ→ℕ) ) := by apply Nat.RecursiveIn.totalComp (hf) (hg)
+@[simp] lemma Nat.RecursiveIn.comp₂ {O:ℕ→ℕ} {f:ℕ→ℕ→.ℕ} {g h:ℕ→ℕ} (hf: Nat.RecursiveIn O fun x => f x.unpair.1 x.unpair.2) (hg: Nat.RecursiveIn O g) (hh: Nat.RecursiveIn O h): (Nat.RecursiveIn O (fun x => (f (g x) (h x))) ) := by
+  have main : (fun x => (f (g x) (h x))) = ((fun x => f x.unpair.1 x.unpair.2) ∘ (fun n ↦ Nat.pair (g n) (h n))) := by
+    funext xs
+    simp only [Function.comp_apply, unpair_pair]
+  rw [main]
+  refine partCompTotal hf ?_
+  · rw [Nat.RecursiveIn.pair']
+    apply Nat.RecursiveIn.pair hg hh
 @[simp] lemma Nat.RecursiveIn.totalComp₂ {O:ℕ→ℕ} {f:ℕ→ℕ→ℕ} {g h:ℕ→ℕ} (hf: Nat.RecursiveIn O fun x => f x.unpair.1 x.unpair.2) (hg: Nat.RecursiveIn O g) (hh: Nat.RecursiveIn O h): (Nat.RecursiveIn O (fun x => (f (g x) (h x)):ℕ→ℕ) ) := by
   have main : (fun x => (f (g x) (h x)):ℕ→ℕ) = ((fun x => f x.unpair.1 x.unpair.2) ∘ (fun n ↦ Nat.pair (g n) (h n))) := by
     funext xs
@@ -95,7 +103,7 @@ theorem Nat.RecursiveIn.ifz1 {O:ℕ→ℕ} {c:ℕ→ℕ} (hc : Nat.RecursiveIn O
   exact consRecin
 
 
-def Nat.RecursiveIn.Code.evalo' (O:ℕ→ℕ) : (ℕ→.ℕ) := fun y => (Nat.RecursiveIn.Code.eval O y.unpair.1 y.unpair.2)
+
 
 variable {α : Type*} {β : Type*} {σ : Type*}
 variable [Primcodable α] [Primcodable β] [Primcodable σ]
@@ -108,33 +116,54 @@ lemma Nat.Primrec.pair_proj : Nat.Primrec (Nat.pair x) := by
   apply Primrec.projection
   exact Primrec₂.natPair
 
-theorem Nat.RecursiveIn.evaloRecInO' {O} {f:ℕ→.ℕ} (h:Nat.RecursiveIn O f) : Nat.RecursiveIn O (fun x => (f x) >>= (Nat.RecursiveIn.Code.evalo' O)) := by
+
+def Nat.RecursiveIn.Code.eval' (O:ℕ→ℕ) : (ℕ→.ℕ) := fun y => (Nat.RecursiveIn.Code.eval O) (y.unpair.1) (y.unpair.2)
+-- def Nat.ComputableIn (O f : ℕ->ℕ) := Nat.RecursiveIn O f
+theorem RecursiveIn.eval' {O} : RecursiveIn O (Nat.RecursiveIn.Code.eval' O) := by exact Nat.RecursiveIn.Code.eval_part
+theorem Nat.RecursiveIn.eval' {O} : Nat.RecursiveIn O (Nat.RecursiveIn.Code.eval' O) := by exact RecursiveIn.nat_iff.mp _root_.RecursiveIn.eval'
+
+theorem Nat.RecursiveIn.evaloRecInO' {O} {f:ℕ→.ℕ} (h:Nat.RecursiveIn O f) : Nat.RecursiveIn O (fun x => (f x) >>= (Nat.RecursiveIn.Code.eval' O)) := by
   simp only [Part.bind_eq_bind]
   refine comp ?_ h
-  apply Nat.RecursiveIn.evalo_computable
-theorem Nat.RecursiveIn.evalo_K_computable : Nat.RecursiveIn O (fun x ↦ evalo O x x) := by
-  have h : (fun (x:ℕ) ↦ evalo O x x) = (fun (x:ℕ) => evalo O x.unpair.1 x.unpair.2) ∘ (fun x=>Nat.pair x x) := by
+  apply Nat.RecursiveIn.eval'
+theorem Nat.RecursiveIn.evalo_K_computable : Nat.RecursiveIn O (fun x ↦ Nat.RecursiveIn.Code.eval O x x) := by
+  have h : (fun (x:ℕ) ↦ Nat.RecursiveIn.Code.eval O x x) = (fun (x:ℕ) => Nat.RecursiveIn.Code.eval O x.unpair.1 x.unpair.2) ∘ (fun x=>Nat.pair x x) := by
     funext xs
     simp only [Function.comp_apply, Nat.unpair_pair]
   rw [h]
   refine Nat.RecursiveIn.partCompTotal ?_ ?_
-  exact Nat.RecursiveIn.evalo_computable
+  exact Nat.RecursiveIn.eval'
   exact Nat.RecursiveIn.of_primrec (Nat.Primrec.pair Nat.Primrec.id Nat.Primrec.id)
 
-theorem Nat.RecursiveIn.ite {O:ℕ→.ℕ} {f g : ℕ→.ℕ} {c:ℕ→ℕ} (hc : Nat.RecursiveIn O c) (hf : Nat.RecursiveIn O f) (hg : Nat.RecursiveIn O g) : Nat.RecursiveIn O fun a => if (c a=0) then (f a) else (g a) := by
-    have exists_index_for_f : ∃ c : ℕ, evalo O c = f := by exact (exists_codeN_rel O f).mp hf
-    have exists_index_for_g : ∃ c : ℕ, evalo O c = g := by exact (exists_codeN_rel O g).mp hg
+theorem exists_code_nat (O : ℕ → ℕ) (f : ℕ →. ℕ) : Nat.RecursiveIn O f ↔ ∃ c : ℕ , Nat.RecursiveIn.Code.eval O c = f := by
+  have h {f : ℕ →. ℕ} : Nat.RecursiveIn O f ↔ ∃ c : Nat.RecursiveIn.Code, Nat.RecursiveIn.Code.eval O c = f := by exact
+    Nat.RecursiveIn.Code.exists_code
+  constructor
+  · intro h2
+    obtain ⟨c, h3⟩ := h.mp h2
+    use c.encodeCode
+    simp only [Nat.RecursiveIn.Code.decodeCode_encodeCode]
+    exact h3
+  · intro h2
+    obtain ⟨c, h3⟩ := h2
+    have h5: (∃ c:Nat.RecursiveIn.Code, Nat.RecursiveIn.Code.eval O c = f) := by
+      use Nat.RecursiveIn.Code.decodeCode c
+    exact Nat.RecursiveIn.Code.exists_code.mpr h5
+
+theorem Nat.RecursiveIn.ite {O:ℕ→ℕ} {f g : ℕ→.ℕ} {c:ℕ→ℕ} (hc : Nat.RecursiveIn O c) (hf : Nat.RecursiveIn O f) (hg : Nat.RecursiveIn O g) : Nat.RecursiveIn O fun a => if (c a=0) then (f a) else (g a) := by
+    have exists_index_for_f : ∃ c : ℕ, Nat.RecursiveIn.Code.eval O c = f := by exact (exists_code_nat O f).mp hf
+    have exists_index_for_g : ∃ c : ℕ, Nat.RecursiveIn.Code.eval O c = g := by exact (exists_code_nat O g).mp hg
     rcases exists_index_for_f with ⟨index_f,index_f_is_f⟩
     rcases exists_index_for_g with ⟨index_g,index_g_is_g⟩
 
-    have main2 : (fun a => if (c a=0) then (f a) else (g a)) = fun a => Nat.pair (if c a=0 then (index_f) else (index_g)) a >>= evalo' O := by
+    have main2 : (fun a => if (c a=0) then (f a) else (g a)) = fun a => Nat.pair (if c a=0 then (index_f) else (index_g)) a >>= Nat.RecursiveIn.Code.eval' O := by
       funext xs
       cases Classical.em (c xs = 0) with
       | inl h =>
-        simp only [h, ↓reduceIte, Part.coe_some, Part.bind_eq_bind, Part.bind_some, evalo', Nat.unpair_pair]
+        simp only [h, ↓reduceIte, Part.coe_some, Part.bind_eq_bind, Part.bind_some, Nat.RecursiveIn.Code.eval', Nat.unpair_pair]
         exact congrFun (_root_.id (Eq.symm index_f_is_f)) xs
       | inr h =>
-        simp only [h, ↓reduceIte, Part.coe_some, Part.bind_eq_bind, Part.bind_some, evalo', Nat.unpair_pair]
+        simp only [h, ↓reduceIte, Part.coe_some, Part.bind_eq_bind, Part.bind_some, Nat.RecursiveIn.Code.eval', Nat.unpair_pair]
         exact congrFun (_root_.id (Eq.symm index_g_is_g)) xs
     rw [main2]
 

@@ -1014,7 +1014,7 @@ theorem eval_eq_rfindOpt (c n) : eval O c n = Nat.rfindOpt fun k => evaln O k c 
     refine evaln_complete.trans (Nat.rfindOpt_mono ?_).symm
     intro a m n hl; apply evaln_mono hl
 
-theorem eval_part : RecursiveIn₂ O (eval O) :=
+@[simp] theorem eval_part : RecursiveIn₂ O (eval O) :=
   (RecursiveIn.rfindOpt
     (evaln_prim.to_compIn.comp ((ComputableIn.snd.pair (fst.comp fst)).pair (snd.comp fst))).to₂).of_eq
     fun a => by simp [eval_eq_rfindOpt]

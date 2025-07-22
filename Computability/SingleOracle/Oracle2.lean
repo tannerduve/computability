@@ -228,21 +228,14 @@ end RecursiveIn
 end Nat
 
 /-- Partially recursive partial functions `α → σ` between `Primcodable` types -/
-def RecursiveIn O {α σ} [Primcodable α] [Primcodable σ] (f : α →. σ) :=
-  Nat.RecursiveIn O fun n => Part.bind (decode (α := α) n) fun a => (f a).map encode
-
+def RecursiveIn O {α σ} [Primcodable α] [Primcodable σ] (f : α →. σ) := Nat.RecursiveIn O fun n => Part.bind (decode (α := α) n) fun a => (f a).map encode
 /-- Partially recursive partial functions `α → β → σ` between `Primcodable` types -/
-def RecursiveIn₂ O {α β σ} [Primcodable α] [Primcodable β] [Primcodable σ] (f : α → β →. σ) :=
-  RecursiveIn O fun p : α × β => f p.1 p.2
-
+def RecursiveIn₂ O {α β σ} [Primcodable α] [Primcodable β] [Primcodable σ] (f : α → β →. σ) := RecursiveIn O fun p : α × β => f p.1 p.2
 /-- ComputableIn O functions `α → σ` between `Primcodable` types:
   a function is computableIn O if and only if it is partially recursive (as a partial function) -/
-def ComputableIn O {α σ} [Primcodable α] [Primcodable σ] (f : α → σ) :=
-  RecursiveIn O (f : α →. σ)
-
+def ComputableIn O {α σ} [Primcodable α] [Primcodable σ] (f : α → σ) := RecursiveIn O (f : α →. σ)
 /-- ComputableIn O functions `α → β → σ` between `Primcodable` types -/
-def ComputableIn₂ O {α β σ} [Primcodable α] [Primcodable β] [Primcodable σ] (f : α → β → σ) :=
-  ComputableIn O fun p : α × β => f p.1 p.2
+def ComputableIn₂ O {α β σ} [Primcodable α] [Primcodable β] [Primcodable σ] (f : α → β → σ) := ComputableIn O fun p : α × β => f p.1 p.2
 
 theorem Primrec.to_compIn {α σ} [Primcodable α] [Primcodable σ] {f : α → σ} (hf : Primrec f) :
     ComputableIn O f :=
