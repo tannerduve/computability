@@ -76,7 +76,7 @@ theorem jump_recIn (f:ℕ→ℕ) : f ≤ᵀᶠ (f⌜) := by
 
   -- have f'_recIn_fJump : f' ≤ᵀᶠ (f⌜) := by
   have f'_recIn_fJump : Nat.RecursiveIn (f⌜) f' := by
-    simp only [f',TuringReducible]
+    simp only [f']
     exact Nat.RecursiveIn.jumpDecodeIte compute_recIn_fJump
 
   exact Nat.RecursiveIn.of_eq f'_recIn_fJump (congrFun (id (Eq.symm f_eq_f')))
@@ -88,7 +88,7 @@ theorem jump_recIn (f:ℕ→ℕ) : f ≤ᵀᶠ (f⌜) := by
   dite part.Dom (λ proof => Nat.succ $ part.get proof) (λ _ => 0)
 
 open Nat.RecursiveIn.Code
-theorem OracleNat.RecursiveInK (O:ℕ→ℕ) : O ≤ᵀᶠ (K O) := by
+theorem OracleNat.RecursiveInK (O:ℕ→ℕ) : Nat.RecursiveIn (K O) O := by
   let compute := (K O) ∘ calculate_specific ∘ Nat.pair (encodeCode oracle)
   let h:ℕ→.ℕ := (fun x => if compute x=0 then Part.none else (Nat.pred ∘ compute) x)
 
@@ -103,16 +103,13 @@ theorem OracleNat.RecursiveInK (O:ℕ→ℕ) : O ≤ᵀᶠ (K O) := by
         exact Part.eq_none_iff'.mpr h
       | inr h =>
         simp only [compute]
-        simp only [Function.comp_apply, K, Nat.succ_eq_add_one, dite_eq_right_iff, Nat.add_eq_zero,
-          one_ne_zero, and_false, imp_false, Nat.pred_eq_sub_one, Part.coe_some, ite_not]
+        simp only [Function.comp_apply, K, Nat.succ_eq_add_one, dite_eq_right_iff, Nat.add_eq_zero, one_ne_zero, and_false, imp_false, Nat.pred_eq_sub_one, Part.coe_some, ite_not]
         simp only [compute] at h
-        simp only [Function.comp_apply, K, Nat.succ_eq_add_one, dite_eq_right_iff, Nat.add_eq_zero,
-          one_ne_zero, and_false, imp_false, Decidable.not_not] at h
+        simp only [Function.comp_apply, K, Nat.succ_eq_add_one, dite_eq_right_iff, Nat.add_eq_zero, one_ne_zero, and_false, imp_false, Decidable.not_not] at h
 
         simp only [h]
-        simp only [codeo_calculate']
-        simp only [↓reduceIte, ↓reduceDIte, decodeCode_encodeCode, add_tsub_cancel_right,
-          Part.some_get]
+        simp only [eval_calculate_specific]
+        simp? says simp only [↓reduceIte, ↓reduceDIte, decodeCode_encodeCode, add_tsub_cancel_right, Part.some_get]
         exact rfl
 
   have compute_recIn_KO : compute ≤ᵀᶠ (K O) := by
@@ -121,7 +118,7 @@ theorem OracleNat.RecursiveInK (O:ℕ→ℕ) : O ≤ᵀᶠ (K O) := by
     apply Nat.RecursiveIn.totalComp
     · exact Nat.RecursiveIn.oracle
     · apply Nat.RecursiveIn.totalComp
-      · exact Nat.RecursiveIn.of_primrec Primrec.codeo_calculate
+      · exact Nat.RecursiveIn.of_primrecIn prim_calculate_specific
       · rw [Nat.RecursiveIn.pair']
         apply Nat.RecursiveIn.pair
         · simp only [encodeCode]
@@ -132,7 +129,7 @@ theorem OracleNat.RecursiveInK (O:ℕ→ℕ) : O ≤ᵀᶠ (K O) := by
   simp only [h]
   exact Nat.RecursiveIn.jumpDecodeIte compute_recIn_KO
 
-theorem K_leq_K0 (O : ℕ →. ℕ) : (K O) ≤ᵀᶠ (K0 O) := by
+theorem K_leq_K0 (O:ℕ→ℕ) :  Nat.RecursiveIn (K0 O) (K O) := by
   let h:ℕ→ℕ := (fun x => Nat.pair x x)
 
   have construction_eq_goal : K O = O⌜ ∘ h := by
@@ -143,14 +140,13 @@ theorem K_leq_K0 (O : ℕ →. ℕ) : (K O) ≤ᵀᶠ (K0 O) := by
 
   rw [construction_eq_goal]
   simp only [h]
-  rw [TuringReducible]
   refine Nat.RecursiveIn.totalComp ?_ ?_
   · exact Nat.RecursiveIn.oracle
   · exact Nat.RecursiveIn.of_primrec (Nat.Primrec.pair Nat.Primrec.id Nat.Primrec.id)
 
 
-theorem K0_leq_K (O : ℕ →. ℕ) : (K0 O) ≤ᵀᶠ (K O) := by
-  let compute := (K O) ∘ codeo_calculate
+theorem K0_leq_K (O:ℕ→ℕ) : Nat.RecursiveIn (K O) (K0 O) := by
+  let compute := (K O) ∘ calculate_specific
   let h:ℕ→.ℕ := (compute)
 
   have main : O⌜ = h := by
@@ -164,7 +160,7 @@ theorem K0_leq_K (O : ℕ →. ℕ) : (K0 O) ≤ᵀᶠ (K O) := by
         simp only [compute] at h
         simp only [Function.comp_apply, K, Nat.succ_eq_add_one, dite_eq_right_iff, Nat.add_eq_zero, one_ne_zero, and_false, imp_false] at h
         rw [show xs = Nat.pair (xs.unpair.1) (xs.unpair.2) from Eq.symm (Nat.pair_unpair xs)] at h
-        simp only [codeo_calculate'] at h
+        simp only [eval_calculate_specific] at h
         exact h
     | inr h =>
       simp only [PFun.coe_val, jump, Nat.succ_eq_add_one, Part.some_inj]
@@ -174,18 +170,18 @@ theorem K0_leq_K (O : ℕ →. ℕ) : (K0 O) ≤ᵀᶠ (K O) := by
       simp only [Function.comp_apply, K, Nat.succ_eq_add_one]
       simp only [h]
       rw [show xs = Nat.pair (xs.unpair.1) (xs.unpair.2) from Eq.symm (Nat.pair_unpair xs)] at h
-      simp only [codeo_calculate'] at h
+      simp only [eval_calculate_specific] at h
       simp only [h]
-      have temp : codeo_calculate xs = codeo_calculate (Nat.pair (xs.unpair.1) (xs.unpair.2)) := by exact rfl
+      have temp : calculate_specific xs = calculate_specific (Nat.pair (xs.unpair.1) (xs.unpair.2)) := by simp only [Nat.pair_unpair]
       simp only [temp]
-      simp only [codeo_calculate']
+      simp only [eval_calculate_specific]
 
   have compute_recIn_KO : compute ≤ᵀᶠ (K O) := by
     simp only [compute, TuringReducible]
 
     apply Nat.RecursiveIn.totalComp
     · exact Nat.RecursiveIn.oracle
-    · exact Nat.RecursiveIn.of_primrec Primrec.codeo_calculate
+    · exact Nat.RecursiveIn.of_primrecIn prim_calculate_specific
 
   rw [main]
   simp only [h]
@@ -194,7 +190,7 @@ theorem K0_leq_K (O : ℕ →. ℕ) : (K0 O) ≤ᵀᶠ (K O) := by
 theorem K0_eq_K {O} : (K O) ≡ᵀᶠ (K0 O) := ⟨K_leq_K0 O,K0_leq_K O⟩
 
 
-theorem jump_not_leq_f (f:ℕ→.ℕ) : ¬(f⌜ ≤ᵀᶠ f) := by
+theorem jump_not_leq_f (f:ℕ→ℕ) : ¬(f⌜ ≤ᵀᶠ f) := by
   intro jump_reducible
   let g : (ℕ→.ℕ) := fun (x:ℕ) => if (f⌜) (Nat.pair x x) = 0 then 0 else Part.none
 
@@ -206,7 +202,7 @@ theorem jump_not_leq_f (f:ℕ→.ℕ) : ¬(f⌜ ≤ᵀᶠ f) := by
     · exact Nat.RecursiveIn.zero
     · exact Nat.RecursiveIn.none
 
-  have exists_index_for_g : ∃ c : ℕ, eval f c = g := by exact (exists_codeN_rel f g).mp g_recIn_f
+  have exists_index_for_g : ∃ c : ℕ, eval f c = g := by exact (exists_code_nat f g).mp g_recIn_f
   rcases exists_index_for_g with ⟨index_g,index_g_is_g⟩
 
   cases Classical.em (g index_g).Dom with
@@ -221,13 +217,13 @@ theorem jump_not_leq_f (f:ℕ→.ℕ) : ¬(f⌜ ≤ᵀᶠ f) := by
   | inr h =>
     have contra : g index_g = 0 := by
       simp only [g]
-      simp only [jump, Nat.unpair_pair, Nat.succ_eq_add_one, dite_eq_right_iff, Nat.add_eq_zero,one_ne_zero, and_false, imp_false, ite_not, ite_eq_left_iff]
+      simp only [jump, Nat.unpair_pair, Nat.succ_eq_add_one, dite_eq_right_iff, Nat.add_eq_zero,one_ne_zero, and_false, imp_false, ite_not]
       simp only [index_g_is_g]
       exact if_neg h
     rw [contra] at h
     exact h trivial
 
-theorem K_not_leq_f (f:ℕ→.ℕ) : ¬(K f ≤ᵀᶠ f) := by
+theorem K_not_leq_f (f:ℕ→ℕ) : ¬(K f ≤ᵀᶠ f) := by
   intro h
   have h2 : f⌜ ≤ᵀᶠ f := by
     apply TuringReducible.trans
@@ -236,7 +232,7 @@ theorem K_not_leq_f (f:ℕ→.ℕ) : ¬(K f ≤ᵀᶠ f) := by
   apply jump_not_leq_f
   exact h2
 
-theorem id_lt_K0 {O:ℕ→.ℕ} : O <ᵀᶠ (K0 O) := by
+theorem id_lt_K0 {O:ℕ→ℕ} : O <ᵀᶠ (K0 O) := by
   constructor
   exact jump_recIn O
   exact jump_not_leq_f O
