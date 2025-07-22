@@ -13,8 +13,8 @@ theorem χsimp {O} : χ O = fun x ↦ if x ∈ O then 1 else 0 := by exact rfl
 @[simp] abbrev SetTuringReducible (A O:Set ℕ) : Prop := Nat.RecursiveIn (χ O) (χ A)
 @[simp] abbrev SetTuringReducibleStrict (A O:Set ℕ) : Prop := Nat.RecursiveIn (χ O) (χ A) ∧ ¬ Nat.RecursiveIn (χ A) (χ O)
 @[simp] abbrev SetTuringEquivalent (O A:Set ℕ) : Prop := AntisymmRel SetTuringReducible O A
-noncomputable def evalSet (O:Set ℕ) : Nat.RecursiveIn.Code → ℕ→.ℕ := eval (χ O)
-noncomputable def evalSet₁ (O:Set ℕ) : ℕ→.ℕ := eval₁ (χ O)
+@[simp] noncomputable def evalSet (O:Set ℕ) : Nat.RecursiveIn.Code → ℕ→.ℕ := eval (χ O)
+@[simp] noncomputable def evalSet₁ (O:Set ℕ) : ℕ→.ℕ := eval₁ (χ O)
 def SetK0 (A:Set ℕ) := {ex:ℕ | (evalSet A ex.unpair.1 ex.unpair.2).Dom}
 def SetK (A:Set ℕ) := {x:ℕ | (evalSet A x x).Dom}
 abbrev SetJump := SetK
@@ -54,10 +54,15 @@ notation:100 A"⌜" => SetJump A
 
 section evalSettheorems
 theorem exists_code_for_evalSet_nat (O:Set ℕ) (f:ℕ→.ℕ) : SetRecursiveIn O f ↔ ∃ c:ℕ, evalSet O c = f := by exact exists_code_nat (χ O) f
-private theorem exists_code_for_evalSet₁ : ∃ c:ℕ, evalSet O c = evalSet₁ O := by
-  apply ((exists_code_for_evalSet_nat O (evalSet₁ O)).mp)
-  exact rec_eval₁
+private theorem exists_code_for_evalSet₁ : ∃ c:ℕ, evalSet O c = evalSet₁ O := by apply ((exists_code_for_evalSet_nat O (evalSet₁ O)).mp) rec_eval₁
 noncomputable def evalSet₁_code (O:Set ℕ) : ℕ := choose (@exists_code_for_evalSet₁ O)
+@[simp] theorem evalSet₁_code_prop : evalSet O (evalSet₁_code O) = evalSet₁ O := by exact choose_spec exists_code_for_evalSet₁
+@[simp] theorem evalSet₁_code_prop2 : eval (χ O) (evalSet₁_code O) = evalSet₁ O := by exact choose_spec exists_code_for_evalSet₁
+
+private theorem exists_code_for_eval₁ : ∃ c:ℕ, eval O c = eval₁ O := by apply ((exists_code_nat O (eval₁ O)).mp) rec_eval₁
+noncomputable def eval₁_code (O:ℕ→ℕ) : ℕ := choose (@exists_code_for_eval₁ O)
+@[simp] theorem eval₁_code_prop : eval O (eval₁_code O) = eval₁ O := by exact choose_spec exists_code_for_eval₁
+-- @[simp] theorem eval₁_code_prop2 : eval (χ O) (eval₁_code O) = eval₁ O := by exact choose_spec exists_code_for_eval₁
 end evalSettheorems
 
 -- lemmas
@@ -304,14 +309,57 @@ abbrev W (O:Set ℕ) (e : ℕ) := (evalSet O e).Dom
 abbrev WR (O:Set ℕ) (e : ℕ) := (evalSet O e).ran
 
 
+def eval_for_scomb (O:ℕ→ℕ) : ℕ→ℕ→.ℕ := fun xy z => (eval O xy.unpair.1 z) >>= (fun index => ((eval O xy.unpair.1 z) >>= fun arg => (Nat.pair index arg)) ) >>= fun ex => (eval₁ O ex)
+-- theorem eval_for_scomb_prop : eval_for_scomb O c = fun (ab:ℕ) => (eval O c ab.unpair.1) >>= fun ca => Nat.pair ca ab.unpair.2 := by sorry
+-- theorem eval_for_scomb_prop : eval_for_scomb O xy ab = (eval O xy.unpair.1 ab.unpair.1) >>= (fun index => ((eval O xy.unpair.2 ab.unpair.2) >>= fun arg => (Nat.pair index arg)) ) >>= fun ex => (eval₁ O ex) := by sorry
+theorem eval_for_scomb_prop : eval_for_scomb O xy z = (eval O xy.unpair.1 z) >>= (fun index => ((eval O xy.unpair.1 z) >>= fun arg => (Nat.pair index arg)) ) >>= fun ex => (eval₁ O ex) := by exact rfl
+def Nat.duplicate (x:ℕ) := Nat.pair x x
+def mod_code_first (c:ℕ) : ℕ := 1
+theorem mod_code_first_prop : eval O (mod_code_first c) = fun ab => (eval O c ab.unpair.1) >>= fun ca => Nat.pair ca ab.unpair.2 := by sorry
+
+theorem guide : ((eval O x z) >>= (fun index => ((eval O y z) >>= fun arg => (Nat.pair index arg)) ) >>= fun ex => (eval₁ O ex)) = z >>= Nat.duplicate >>= (eval O x z) >>= (fun index => ((eval O y z) >>= fun arg => (Nat.pair index arg)) ) >>= fun ex => (eval₁ O ex) := by sorry
+
+-- returns a code which, on input (a,b), returns (a, y b)
+def S_helper_1 (y) :
+
+/-- Given codes `x` and `y`, returns the code of the function which on input `z`, evaluates `[[x](z)]([y](z))`. -/
+-- it cant be done naively, because [x](z) or [y](z) may fail, so we can't express those directly
+def S (O:ℕ→ℕ) (x y:ℕ):ℕ := comp (eval₁_code O) (pair (eval O x) y)
+@[simp] theorem S_eval (x y z) : eval O (S x y) z = (eval O x z) >>= (fun index => ((eval O y z) >>= fun arg => (Nat.pair index arg)) ) >>= fun ex => (eval₁ O ex) := by sorry
+theorem S_prim : PrimrecIn₂ O S := by sorry
 
 -- private def dom_to_ran_helper : (ℕ→ℕ) :=
 /-- Given a code `e`, returns a code whose range is the domain of `e`. -/
-def dom_to_ran : (ℕ→ℕ) := fun e => (comp) (Nat.RecursiveIn.Code.const e) (comp eval (pair e))
+-- def dom_to_ran {O:Set ℕ} : (ℕ→ℕ) := fun e => (comp) (Nat.RecursiveIn.Code.const e) (comp (decodeCode (evalSet₁_code O)) (curry Code.pair e))
+noncomputable def dom_to_ran {O:Set ℕ} : (ℕ→ℕ) := fun e => curry ((comp) (Nat.RecursiveIn.Code.const e) (decodeCode (evalSet₁_code O))) e
 -- dom_to_ran(e) is the function which takes on input `x`, runs `[e](x)`, then binds to `const x`.
--- `dom_to_ran(e)=comp (comp const id) (comp eval (pair e))`
+-- `dom_to_ran(e)=comp (const _) (comp eval (pair e _))`
+-- `[dom_to_ran(e)](x)=[(const x) ∘ eval ∘ (pair e x)]`
 
-theorem dom_to_ran_prop : SetTuringEquivalent (W O e) (WR O (dom_to_ran e)) := by sorry
+theorem dom_to_ran_prop : (W O e) = (WR O (@dom_to_ran O e)) := by
+  -- refine Set.ext xs
+  ext xs
+  constructor
+  · intro h
+    simp at h
+    rcases h with ⟨y,hy⟩
+    have h3: eval (χ O) (decodeCode e) xs = Part.some y := by exact Part.eq_some_iff.mpr hy
+
+    simp [WR]
+    have main : evalSet O (decodeCode (@dom_to_ran O e)) xs = xs := by
+      simp only [dom_to_ran]
+      simp only [evalSet]
+      simp
+      simp only [eval]
+
+      simp [evalSet₁_code_prop2]
+      rw [h3]
+      simp
+
+      -- simp [eval_const]
+
+
+  exact?
 theorem Nat.Primrec.dom_to_ran' : Nat.Primrec dom_to_ran := by sorry
 
 def dovetail {h:Nat.RecursiveIn O f} : ℕ→ℕ := fun x => 0

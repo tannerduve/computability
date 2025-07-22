@@ -570,8 +570,6 @@ theorem exists_code {f : ℕ →. ℕ} : Nat.RecursiveIn O f ↔ ∃ c : Code, e
 undecidability, `evaln` takes a parameter `k` and fails if it encounters a number ≥ k in the course
 of its execution. Other than this, the semantics are the same as in `Nat.RecursiveIn.Code.eval`.
 -/
-open Classical in
-noncomputable
 def evaln (O:ℕ→ℕ) : ℕ → Code → ℕ → Option ℕ
   | 0, _ => fun _ => Option.none
   | k + 1, zero => fun n => do
