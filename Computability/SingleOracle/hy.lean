@@ -1,5 +1,5 @@
--- import Computability.SingleOracle.Encoding2
-import Computability.SingleOracle.Encoding
+import Computability.SingleOracle.Encoding2
+-- import Computability.SingleOracle.Encoding
 -- import Computability.SingleOracle.Oracle2
 -- some theorems that'd be nice:
 -- 1. K_0 =_T K
@@ -10,8 +10,11 @@ import Computability.SingleOracle.Encoding
 
 -- THEOREM 10.3.5 of /mnt/Q/Mathematics/Textbooks/Computability/Computability Theory [Cooper] (2004).pdf
 
-open Nat.OracleComp.Code
+open Nat.RecursiveIn.Code
 open Classical
 
 noncomputable
-def jumpConst (O:ℕ→ℕ) : (ℕ→Option ℕ) := fun x => (evalo O x x).toOption
+def jumpConst (O:ℕ→ℕ) : (ℕ→Option ℕ) := fun x => (eval O x x).toOption
+theorem contra : @RecursiveIn O ℕ (Option ℕ) _ _ (jumpConst O) := by
+    apply?
+    exact?

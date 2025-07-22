@@ -308,11 +308,20 @@ abbrev W (O:Set ℕ) (e : ℕ) := (evalSet O e).Dom
 /-- `WR O e` := range of e^th oracle program -/
 abbrev WR (O:Set ℕ) (e : ℕ) := (evalSet O e).ran
 
+-- def eval_first (O:ℕ→ℕ) (x:ℕ) : ℕ→ℕ→.ℕ := fun ab => (eval O x ab.unpair.1) >>= (fun index => (Nat.pair index ab.unpair.2))  >>= fun ex => (eval₁ O ex)
 
-def eval_for_scomb (O:ℕ→ℕ) : ℕ→ℕ→.ℕ := fun xy z => (eval O xy.unpair.1 z) >>= (fun index => ((eval O xy.unpair.1 z) >>= fun arg => (Nat.pair index arg)) ) >>= fun ex => (eval₁ O ex)
--- theorem eval_for_scomb_prop : eval_for_scomb O c = fun (ab:ℕ) => (eval O c ab.unpair.1) >>= fun ca => Nat.pair ca ab.unpair.2 := by sorry
+-- def eval_for_scomb (O:ℕ→ℕ) (xy:ℕ) : ℕ→ℕ→.ℕ := fun z => (eval O xy.unpair.1 z) >>= (fun index => ((eval O xy.unpair.2 z) >>= fun arg => (Nat.pair index arg)) ) >>= fun ex => (eval₁ O ex)
+-- def eval_for_scomb (O:ℕ→ℕ) (x y:ℕ) : ℕ→.ℕ := fun z => (eval O x z) >>= (fun index => ((eval O y z) >>= fun arg => (Nat.pair index arg)) ) >>= fun ex => (eval₁ O ex)
+def apply_to_fst (O:ℕ→ℕ) : ℕ→.ℕ := fun (cab:ℕ) => (eval O cab.unpair.1 cab.unpair.2.unpair.1) >>= fun ca => Nat.pair ca cab.unpair.2.unpair.2
+-- theorem apply_to_fst_prop : eval_for_scomb O c = fun (ab:ℕ) => (eval O c ab.unpair.1) >>= fun ca => Nat.pair ca ab.unpair.2 := by sorry
+theorem apply_to_fst_rec : Nat.RecursiveIn O (apply_to_fst O) := by
+  unfold apply_to_fst
+  simp
+  apply Nat.RecursiveIn.comp
+  exact?
 -- theorem eval_for_scomb_prop : eval_for_scomb O xy ab = (eval O xy.unpair.1 ab.unpair.1) >>= (fun index => ((eval O xy.unpair.2 ab.unpair.2) >>= fun arg => (Nat.pair index arg)) ) >>= fun ex => (eval₁ O ex) := by sorry
-theorem eval_for_scomb_prop : eval_for_scomb O xy z = (eval O xy.unpair.1 z) >>= (fun index => ((eval O xy.unpair.1 z) >>= fun arg => (Nat.pair index arg)) ) >>= fun ex => (eval₁ O ex) := by exact rfl
+-- theorem eval_for_scomb_prop : eval_for_scomb O xy z = (eval O xy.unpair.1 z) >>= (fun index => ((eval O xy.unpair.1 z) >>= fun arg => (Nat.pair index arg)) ) >>= fun ex => (eval₁ O ex) := by exact rfl
+theorem eval_for_scomb_prop : eval_for_scomb O x y z = (eval O x z) >>= (fun index => ((eval O y z) >>= fun arg => (Nat.pair index arg)) ) >>= fun ex => (eval₁ O ex) := by exact rfl
 def Nat.duplicate (x:ℕ) := Nat.pair x x
 def mod_code_first (c:ℕ) : ℕ := 1
 theorem mod_code_first_prop : eval O (mod_code_first c) = fun ab => (eval O c ab.unpair.1) >>= fun ca => Nat.pair ca ab.unpair.2 := by sorry
