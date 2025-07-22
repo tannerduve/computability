@@ -304,13 +304,24 @@ theorem Set_lt_SetJump {O:Set ℕ} : O<ᵀO⌜ := by
   · exact SetJump_not_leq_Set
 
 
--- W O e := domain of e^th oracle program
+
+/-- `W O e` := domain of e^th oracle program -/
 abbrev W (O : Set ℕ) (e : ℕ) := (evalSet O e).Dom
--- WR O e := range of e^th oracle program
+/-- `WR O e` := range of e^th oracle program -/
 abbrev WR (O : Set ℕ) (e : ℕ) := (evalSet O e).ran
 
-def dom_to_ran : (ℕ→ℕ) := fun x => x
-theorem dom_to_ran' : SetTuringEquivalent (W O e) (WR O (dom_to_ran e)) := by sorry
+
+
+noncomputable def eval_code {O:ℕ→ℕ} : ℕ := choose (@exists_code_for_eval₁ O)
+
+
+-- private def dom_to_ran_helper : (ℕ→ℕ) :=
+/-- Given a code `e`, returns a code whose range is the domain of `e`. -/
+def dom_to_ran : (ℕ→ℕ) := fun e => (comp) (Nat.RecursiveIn.Code.const e) (comp eval (pair e))
+-- dom_to_ran(e) is the function which takes on input `x`, runs `[e](x)`, then binds to `const x`.
+-- `dom_to_ran(e)=comp (comp const id) (comp eval (pair e))`
+
+theorem dom_to_ran_prop : SetTuringEquivalent (W O e) (WR O (dom_to_ran e)) := by sorry
 theorem Nat.Primrec.dom_to_ran' : Nat.Primrec dom_to_ran := by sorry
 
 def dovetail {h:Nat.RecursiveIn O f} : ℕ→ℕ := fun x => 0
