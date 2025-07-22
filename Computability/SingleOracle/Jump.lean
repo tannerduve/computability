@@ -89,8 +89,6 @@ theorem Primrec.projection {f : α → β → σ} {a:α} (h:Primrec₂ f) : Prim
   · exact const a
   · exact Primrec.id
 
-
-
 /-
 There are lots of primrec theorems we would like to use like
 
@@ -156,8 +154,6 @@ theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
     exact RecursiveIn.jumpDecodeIte compute_recIn_fJump
 
   exact RecursiveIn.of_eq f'_recIn_fJump (congrFun (id (Eq.symm f_eq_f')))
-
-
 
 @[simp] noncomputable def K (O : ℕ →. ℕ) : ℕ → ℕ := λ n =>
   let part := evalo O (decodeCodeo n) n
@@ -271,10 +267,6 @@ theorem K0eqK {O} : (K O) ≡ᵀ (K0 O) := by
   constructor
   · exact K_leq_K0 O
   · exact K0_leq_K O
-
-
-
-
 
 theorem jump_not_reducible (f:ℕ→.ℕ) : ¬(f⌜ ≤ᵀ f) := by
   intro jump_reducible

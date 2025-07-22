@@ -2,22 +2,29 @@ import Computability.SingleOracle.Jump
 
 open Classical
 
-def SetRecursiveIn (O A:Set ℕ): Prop :=
-  RecursiveIn (fun x => if x∈O then 1 else 0) (fun x => if x∈A then 1 else 0)
+def SetRecursiveIn (O A : Set ℕ): Prop :=
+  RecursiveIn (fun x => if x∈O then 1 else 0) (fun x => if x ∈ A then 1 else 0)
 
-abbrev SetTuringReducible (O A:Set ℕ) : Prop :=
+abbrev SetTuringReducible (O A : Set ℕ) : Prop :=
   SetRecursiveIn O A
 
-abbrev SetTuringEquivalent (O A:Set ℕ) : Prop :=
+abbrev SetTuringEquivalent (O A : Set ℕ) : Prop :=
   AntisymmRel SetTuringReducible O A
 
 noncomputable def evaloSet (O : Set ℕ) : codeo → ℕ →. ℕ := evalo (fun x => if x∈O then 1 else 0)
 
-def SetK0 (A:Set ℕ) := {ex:ℕ | (evaloSet A ex.unpair.1 ex.unpair.2).Dom}
-def SetK (A:Set ℕ) := {x:ℕ | (evaloSet A x x).Dom}
+def SetK0 (A:Set ℕ) := {ex : ℕ | (evaloSet A ex.unpair.1 ex.unpair.2).Dom}
+def SetK (A:Set ℕ) := {x : ℕ | (evaloSet A x x).Dom}
 
-noncomputable def χ (O:Set ℕ) : ℕ→.ℕ := fun x ↦ if x ∈ O then 1 else 0
+/--
+The characteristic function of a set A evaluated at x is 1 if x ∈ A and 0 otherwise.
+-/
+noncomputable def χ (O : Set ℕ) : ℕ →. ℕ := fun x ↦ if x ∈ O then 1 else 0
 
+/--
+The jump of the characteristic function of a set A is the characteristic function of the set of
+programs that halt on input x with oracle A.
+-/
 theorem jumpχ_recIn_χK0 (O:Set ℕ) : RecursiveIn (χ (SetK0 O)) (jump (χ O)) := by
   let χK0 : ℕ→.ℕ := fun x ↦ if (evalo (fun x ↦ if x ∈ O then 1 else 0) (decodeCodeo (Nat.unpair x).1) (Nat.unpair x).2).Dom then 1 else 0
   have h0 : χ (SetK0 O) = χK0 := by
@@ -39,6 +46,7 @@ theorem jumpχ_recIn_χK0 (O:Set ℕ) : RecursiveIn (χ (SetK0 O)) (jump (χ O))
 theorem SetK0_leq_K : SetTuringReducible (SetK0 O) (SetK O) := by
   rw [SetK0, SetK, evaloSet]
   simp [SetRecursiveIn]
+  sorry
 
   -- let χ_K0 := fun x ↦
   --   if (evalo (fun x ↦ if x ∈ O then 1 else 0) (decodeCodeo (Nat.unpair x).1) (Nat.unpair x).2).Dom then 1 else 0
