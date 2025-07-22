@@ -1,4 +1,4 @@
-import Computability.SingleOracle.Encoding
+import Computability.SingleOracle.Encoding2
 import Mathlib.Data.PFun
 
 open Computability

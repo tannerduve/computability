@@ -1014,7 +1014,7 @@ theorem eval_eq_rfindOpt (c n) : eval O c n = Nat.rfindOpt fun k => evaln O k c 
     refine evaln_complete.trans (Nat.rfindOpt_mono ?_).symm
     intro a m n hl; apply evaln_mono hl
 
-theorem eval_part : RecursiveIn O₂ (eval O) :=
+theorem eval_part : RecursiveIn₂ O (eval O) :=
   (RecursiveIn.rfindOpt
     (evaln_prim.to_compIn.comp ((ComputableIn.snd.pair (fst.comp fst)).pair (snd.comp fst))).to₂).of_eq
     fun a => by simp [eval_eq_rfindOpt]
@@ -1025,7 +1025,7 @@ such that `c` and `f c` have the same evaluation.
 -/
 theorem fixed_point {f : Code → Code} (hf : ComputableIn O f) : ∃ c : Code, eval O (f c) = eval O c :=
   let g (x y : ℕ) : Part ℕ := eval O (ofNat Code x) x >>= fun b => eval O (ofNat Code b) y
-  have : RecursiveIn O₂ g :=
+  have : RecursiveIn₂ O g :=
     (eval_part.comp ((ComputableIn.ofNat _).comp fst) fst).bind
       (eval_part.comp ((ComputableIn.ofNat _).comp snd) (snd.comp fst)).to₂
   let ⟨cg, eg⟩ := exists_code.1 this
@@ -1040,13 +1040,16 @@ theorem fixed_point {f : Code → Code} (hf : ComputableIn O f) : ∃ c : Code, 
       show eval O (f (curry cg (encode cF))) n = eval O (curry cg (encode cF)) n by
         simp [F, g, eg', eF', Part.map_id']⟩
 
-/-- **Kleene's second recursion theorem** -/
-theorem fixed_point₂ {f : Code → ℕ →. ℕ} (hf : RecursiveIn O₂ f) : ∃ c : Code, eval O c = f c :=
-  let ⟨cf, ef⟩ := exists_code.1 hf
-  (fixed_point (curry_prim.comp (_root_.PrimrecIn.const cf) PrimrecIn.encode).to_compIn).imp fun c e =>
-    funext fun n => by simp [e.symm, ef, Part.map_id']
+-- /-- **Kleene's second recursion theorem** -/
+-- theorem fixed_point₂ {f : Code → ℕ →. ℕ} (hf : RecursiveIn₂ O f) : ∃ c : Code, eval O c = f c :=
+--   let ⟨cf, ef⟩ := exists_code.1 hf
+--   (fixed_point (curry_prim.comp (_root_.PrimrecIn.const cf) PrimrecIn.encode).to_compIn).imp fun c e =>
+--     funext fun n => by
+--       simp [e.symm, ef, Part.map_id']
+
 
 end
+
 
 /-- There are only countably many partial recursive partial functions `ℕ →. ℕ`. -/
 instance : Countable {f : ℕ →. ℕ // _root_.RecursiveIn O f} := by
