@@ -3,7 +3,7 @@ import Computability.SingleOracle.Jump
 open Classical
 
 def SetRecursiveIn (O A : Set ℕ): Prop :=
-  RecursiveIn (fun x => if x∈O then 1 else 0) (fun x => if x ∈ A then 1 else 0)
+  RecursiveIn (fun x => if x ∈ O then 1 else 0) (fun x => if x ∈ A then 1 else 0)
 
 abbrev SetTuringReducible (O A : Set ℕ) : Prop :=
   SetRecursiveIn O A
@@ -11,7 +11,7 @@ abbrev SetTuringReducible (O A : Set ℕ) : Prop :=
 abbrev SetTuringEquivalent (O A : Set ℕ) : Prop :=
   AntisymmRel SetTuringReducible O A
 
-noncomputable def evaloSet (O : Set ℕ) : codeo → ℕ →. ℕ := evalo (fun x => if x∈O then 1 else 0)
+noncomputable def evaloSet (O : Set ℕ) : codeo → ℕ →. ℕ := evalo (fun x => if x ∈ O then 1 else 0)
 
 def SetK0 (A:Set ℕ) := {ex : ℕ | (evaloSet A ex.unpair.1 ex.unpair.2).Dom}
 def SetK (A:Set ℕ) := {x : ℕ | (evaloSet A x x).Dom}
