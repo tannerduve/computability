@@ -41,6 +41,7 @@ open Primrec Nat.Partrec Part Encodable
 open Classical
 
 
+
 /--
 The type of partial functions recursive in an `O` is the smallest type containing
 the constant zero, the successor, left and right projections, `O`,
@@ -78,13 +79,13 @@ def RecursiveIn₂ {α β σ} [Primcodable α] [Primcodable β] [Primcodable σ]
   RecursiveIn' g (fun p : α × β => f p.1 p.2)
 
 /-- A total function is computable in `O` if its constant lift is recursive in `O`. -/
-def ComputableIn {α σ} [Primcodable α] [Primcodable σ] (g : ℕ →. ℕ) (f : α → σ) : Prop :=
+def SingleOracle.ComputableIn {α σ} [Primcodable α] [Primcodable σ] (g : ℕ →. ℕ) (f : α → σ) : Prop :=
   RecursiveIn' g (fun a => Part.some (f a))
 
 /-- A binary total function is computable in `O`. -/
-def ComputableIn₂ {α β σ} [Primcodable α] [Primcodable β] [Primcodable σ]
+def SingleOracle.ComputableIn₂ {α β σ} [Primcodable α] [Primcodable β] [Primcodable σ]
     (g : ℕ →. ℕ) (f : α → β → σ) : Prop :=
-  ComputableIn g (fun p : α × β => f p.1 p.2)
+  SingleOracle.ComputableIn g (fun p : α × β => f p.1 p.2)
 
 theorem RecursiveIn.of_eq {f g : ℕ →. ℕ} (hf : RecursiveIn O f) (H : ∀ n, f n = g n) :
     RecursiveIn O g :=
@@ -114,7 +115,7 @@ If a function is computable, then it is computable in every oracle.
 -/
 theorem Computable.computableIn {f : α → β} [Primcodable α]
 [Primcodable β]
-(hf : Computable f) : ComputableIn O f :=
+(hf : Computable f) : SingleOracle.ComputableIn O f :=
   Nat.Partrec.recursiveIn (by simpa [Computable] using hf)
 
 theorem RecursiveIn.of_primrec {f : ℕ → ℕ} (hf : Nat.Primrec f) :
@@ -122,19 +123,19 @@ RecursiveIn O (fun n => f n) := Nat.Partrec.recursiveIn (Nat.Partrec.of_primrec 
 
 theorem Primrec.to_computableIn {α σ} [Primcodable α] [Primcodable σ]
     {f : α → σ} (hf : Primrec f) (O : ℕ →. ℕ) :
-    ComputableIn O f := Computable.computableIn (Primrec.to_comp hf)
+    SingleOracle.ComputableIn O f := Computable.computableIn (Primrec.to_comp hf)
 
 nonrec theorem Primrec₂.to_computableIn₂ {α β σ} [Primcodable α] [Primcodable β] [Primcodable σ]
     {f : α → β → σ} (hf : Primrec₂ f) (O : ℕ →. ℕ) :
-    ComputableIn₂ O f :=
+    SingleOracle.ComputableIn₂ O f :=
   Primrec.to_computableIn hf O
 
 protected theorem ComputableIn.recursiveIn' {α σ} [Primcodable α] [Primcodable σ]
-    {f : α → σ} {O} (hf : ComputableIn O f) :
+    {f : α → σ} {O} (hf : SingleOracle.ComputableIn O f) :
     RecursiveIn' O (fun a => Part.some (f a)) := hf
 
 protected theorem ComputableIn₂.recursiveIn₂ {α β σ} [Primcodable α] [Primcodable β] [Primcodable σ]
-    {f : α → β → σ} {O} (hf : ComputableIn₂ O f) :
+    {f : α → β → σ} {O} (hf : SingleOracle.ComputableIn₂ O f) :
     RecursiveIn₂ O fun a => (f a : β →. σ) := hf
 
 protected theorem RecursiveIn.some : RecursiveIn O some :=
@@ -147,28 +148,28 @@ theorem RecursiveIn.none : RecursiveIn O (fun _ => none) :=
 variable {α : Type*} {β : Type*} {γ : Type*} {σ : Type*}
 variable [Primcodable α] [Primcodable β] [Primcodable γ] [Primcodable σ]
 
-theorem const_in (O : ℕ →. ℕ) (s : σ) : ComputableIn O (fun _ : α => s) :=
+theorem const_in (O : ℕ →. ℕ) (s : σ) : SingleOracle.ComputableIn O (fun _ : α => s) :=
   Primrec.to_computableIn (Primrec.const s) O
 
-theorem id_in (O : ℕ →. ℕ) : ComputableIn O (@id α) :=
+theorem id_in (O : ℕ →. ℕ) : SingleOracle.ComputableIn O (@id α) :=
   Primrec.to_computableIn Primrec.id O
 
-theorem fst_in (O : ℕ →. ℕ) : ComputableIn O (@Prod.fst α β) :=
+theorem fst_in (O : ℕ →. ℕ) : SingleOracle.ComputableIn O (@Prod.fst α β) :=
   Primrec.to_computableIn Primrec.fst O
 
-theorem snd_in (O : ℕ →. ℕ) : ComputableIn O (@Prod.snd α β) :=
+theorem snd_in (O : ℕ →. ℕ) : SingleOracle.ComputableIn O (@Prod.snd α β) :=
   Primrec.to_computableIn Primrec.snd O
 
-theorem unpair_in (O : ℕ →. ℕ) : ComputableIn O Nat.unpair :=
+theorem unpair_in (O : ℕ →. ℕ) : SingleOracle.ComputableIn O Nat.unpair :=
   Primrec.to_computableIn Primrec.unpair O
 
-theorem succ_in (O : ℕ →. ℕ) : ComputableIn O Nat.succ :=
+theorem succ_in (O : ℕ →. ℕ) : SingleOracle.ComputableIn O Nat.succ :=
   Primrec.to_computableIn Primrec.succ O
 
-theorem sumInl_in (O : ℕ →. ℕ) : ComputableIn O (@Sum.inl α β) :=
+theorem sumInl_in (O : ℕ →. ℕ) : SingleOracle.ComputableIn O (@Sum.inl α β) :=
   Primrec.to_computableIn Primrec.sumInl O
 
-theorem sumInr_in (O : ℕ →. ℕ) : ComputableIn O (@Sum.inr α β) :=
+theorem sumInr_in (O : ℕ →. ℕ) : SingleOracle.ComputableIn O (@Sum.inr α β) :=
   Primrec.to_computableIn Primrec.sumInr O
 
 /--

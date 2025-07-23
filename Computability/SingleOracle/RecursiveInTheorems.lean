@@ -10,20 +10,29 @@ open Classical
     simp
   rw [h3]
   exact comp h1 h2
-@[simp] lemma RecursiveIn.totalComp {O:ℕ→.ℕ} {f g:ℕ→ℕ} (h1: RecursiveIn O f) (h2: RecursiveIn O g) : (RecursiveIn O ↑(f∘g)) := by
-  have h3 : (↑(f∘g):ℕ→.ℕ) = fun x => g x >>= (↑f:ℕ→.ℕ) := by
+@[simp] lemma RecursiveIn.totalComp {O:ℕ→.ℕ} {f g : ℕ→ℕ} (h1: RecursiveIn O f) (h2: RecursiveIn O g) : (RecursiveIn O ↑(f∘g)) := by
+  have h3 : (↑(f∘g):ℕ→.ℕ) = fun x => g x >>= (↑f : ℕ→.ℕ) := by
     funext xs
     simp
   rw [h3]
   exact comp h1 h2
-@[simp] lemma RecursiveIn.id {O:ℕ→.ℕ} : RecursiveIn O fun x => x := by apply of_primrec Nat.Primrec.id
+@[simp] lemma RecursiveIn.id {O:ℕ→.ℕ} : RecursiveIn O (fun x => Part.some x) := by apply of_primrec Nat.Primrec.id
 @[simp] lemma RecursiveIn.someTotal (O:ℕ→.ℕ) (f:ℕ→ℕ) (h1: RecursiveIn O f): RecursiveIn O fun x => Part.some (f x) := by
   apply RecursiveIn.totalComp
   · exact h1
   · apply RecursiveIn.id
 
 
+/--
+Maps non-zero natural numbers to 1 and zero to 0.
+This is used for boolean-like computations in primitive recursive functions.
+-/
 @[simp] def Nat.flatten := fun x => if x=0 then 0 else 1
+
+/--
+Maps zero to 1 and non-zero natural numbers to 0.
+This is the inverse of `Nat.flatten` for boolean-like computations.
+-/
 @[simp] def Nat.flattenInv := fun x => if x=0 then 1 else 0
 
 open Nat.Primrec in
@@ -51,8 +60,8 @@ theorem Nat.Primrec.flattenInv : Nat.Primrec Nat.flattenInv := by
   simp [Seq.seq]
   funext xs
   simp
-@[simp] lemma RecursiveIn.totalComp' {O:ℕ→.ℕ} {f g:ℕ→ℕ} (hf: RecursiveIn O f) (hg: RecursiveIn O g): (RecursiveIn O (fun x => (f (g x)):ℕ→ℕ) ) := by apply RecursiveIn.totalComp (hf) (hg)
-@[simp] lemma RecursiveIn.totalComp₂ {O:ℕ→.ℕ} {f:ℕ→ℕ→ℕ} {g h:ℕ→ℕ} (hf: RecursiveIn O fun x => f x.unpair.1 x.unpair.2) (hg: RecursiveIn O g) (hh: RecursiveIn O h): (RecursiveIn O (fun x => (f (g x) (h x)):ℕ→ℕ) ) := by
+@[simp] lemma RecursiveIn.totalComp' {O : ℕ→.ℕ} {f g:ℕ→ℕ} (hf : RecursiveIn O f) (hg: RecursiveIn O g) : (RecursiveIn O (fun x => (f (g x)):ℕ→ℕ) ) := by apply RecursiveIn.totalComp (hf) (hg)
+@[simp] lemma RecursiveIn.totalComp₂ {O : ℕ→.ℕ} {f:ℕ→ℕ→ℕ} {g h : ℕ→ℕ} (hf : RecursiveIn O (fun x => Part.some (f x.unpair.1 x.unpair.2))) (hg: RecursiveIn O g) (hh: RecursiveIn O h): (RecursiveIn O (fun x => (f (g x) (h x)):ℕ→ℕ) ) := by
   have main : (fun x => (f (g x) (h x)):ℕ→ℕ) = ((fun x => f x.unpair.1 x.unpair.2) ∘ (fun n ↦ Nat.pair (g n) (h n))) := by
     funext xs
     simp
@@ -62,7 +71,7 @@ theorem Nat.Primrec.flattenInv : Nat.Primrec Nat.flattenInv := by
   · rw [RecursiveIn.pair']
     apply RecursiveIn.pair hg hh
 
-theorem RecursiveIn.ifz1 {O:ℕ→.ℕ} {c:ℕ→ℕ} (hc : RecursiveIn O c): RecursiveIn O (fun x => if (c x=0) then (a:ℕ) else (b:ℕ) : ℕ→ℕ) := by
+theorem RecursiveIn.ifz1 {O : ℕ→.ℕ} {c : ℕ→ℕ} (hc : RecursiveIn O c): RecursiveIn O (fun x => if (c x=0) then (a:ℕ) else (b:ℕ) : ℕ→ℕ) := by
   let construction := fun x =>
     Nat.add
     (Nat.mul b (Nat.flatten (c x)))
@@ -94,6 +103,11 @@ theorem RecursiveIn.ifz1 {O:ℕ→.ℕ} {c:ℕ→ℕ} (hc : RecursiveIn O c): Re
   exact consRecin
 
 
+/--
+Helper function that unpairs its input and applies the oracle evaluation function.
+Takes a paired natural number, unpairs it, and evaluates the first component as a program
+with the second component as input using oracle O.
+-/
 def evalo' (O:ℕ→.ℕ) : (ℕ→.ℕ) := fun y => (evalo O y.unpair.1 y.unpair.2)
 
 theorem RecursiveIn.evaloRecInO' {f O:ℕ→.ℕ} (h:RecursiveIn O f) : RecursiveIn O (fun x => (f x) >>= (evalo' O)) := by
@@ -138,3 +152,5 @@ theorem RecursiveIn.ite {O:ℕ→.ℕ} {f g : ℕ→.ℕ} {c:ℕ→ℕ} (hc : Re
 --   RecursiveIn O fun a => if h:(c a=0) then (f a h a) else (g a h a) := by
 --     have construction : (fun a => if h:(c a=0) then (f a h a) else (g a h a)) = (fun a => if h:(c a=0) then (f a h a) else (g a h a)) := by sorry
   -- RecursiveIn O fun a => dite (c a=0) (fun h => f (cast (by (expose_names; exact False.elim h_1)) h) a) (g h a) := by sorry
+
+#lint

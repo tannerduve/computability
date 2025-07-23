@@ -1,48 +1,50 @@
--- import Computability.SingleOracle.Jump
+import Computability.SingleOracle.Jump
 
--- def Delta0_0 (A : Set ℕ) [DecidablePred A] : Prop := True
--- def Sigma0_0 := Delta0_0
--- def Pi0_0 := Delta0_0
+noncomputable section
 
--- /-
--- Iterated jump operator
--- -/
--- noncomputable def TuringJump (n : ℕ) (f : ℕ →. ℕ) : ℕ →. ℕ :=
---   match n with
---   | 0 => f
---   | n + 1 => (TuringJump n f)⌜
+def Delta0_0 (A : Set ℕ) [DecidablePred A] : Prop := True
+def Sigma0_0 := Delta0_0
+def Pi0_0 := Delta0_0
 
--- /-- The `n`-fold jump of the empty oracle (totally undefined). Used as an oracle function. -/
--- noncomputable def arithJumpBase : ℕ → ℕ →. ℕ
--- | 0     => λ _ => Part.none
--- | n + 1 => jump (arithJumpBase n)
+/-
+Iterated jump operator
+-/
+def TuringJump (n : ℕ) (f : ℕ →. ℕ) : ℕ →. ℕ :=
+  match n with
+  | 0 => f
+  | n + 1 => (TuringJump n f)⌜
 
--- /-- The classical `∅⁽ⁿ⁾` set: the domain of the `n`-fold jump of the empty oracle. -/
--- noncomputable def arithJumpSet (n : ℕ) : Set ℕ :=
---   (arithJumpBase n).Dom
+/-- The `n`-fold jump of the empty oracle (totally undefined). Used as an oracle function. -/
+def arithJumpBase : ℕ → ℕ →. ℕ
+| 0     => λ _ => Part.none
+| n + 1 => jump (arithJumpBase n)
 
--- noncomputable def decidableIn (O : Set (ℕ →. ℕ)) (A : Set ℕ) : Prop :=
---   ∃ f : ℕ → Bool, ComputableIn O f ∧ ∀ n, A n ↔ f n = true
+/-- The classical `∅⁽ⁿ⁾` set: the domain of the `n`-fold jump of the empty oracle. -/
+def arithJumpSet (n : ℕ) : Set ℕ :=
+  (arithJumpBase n).Dom
 
--- /-
--- The arithmetical hierarchy:
---   Σ⁰₀ = ∆⁰₀ = Π⁰₀ = ∅
---   Σ⁰₁ = {n | ∃ m, ∀ k, (m + k) ∈ A}
---   Σ⁰ₙ = {n | ∃ m, ∀ k, (m + k) ∈ Σ⁰ₙ₋₁}
---   Π⁰ₙ = Σ⁰ₙᶜ
---   ∆⁰ₙ = Σ⁰ₙ ∩ Π⁰ₙ
--- -/
--- def Sigma0 (n : ℕ) (A : Set ℕ) : Prop :=
---   match n with
---   | 0 => decidableIn {} A
---   | k + 1 => recursively_enumerable_in {arithJumpBase k} A
+noncomputable def decidableIn (O : ℕ →. ℕ) (A : Set ℕ) : Prop :=
+  ∃ f : ℕ → Bool, SingleOracle.ComputableIn O f ∧ ∀ n, A n ↔ f n = true
 
--- def Pi0 (n : ℕ) (A : Set ℕ) : Prop :=
---   Sigma0 n Aᶜ
+/-
+The arithmetical hierarchy:
+  Σ⁰₀ = ∆⁰₀ = Π⁰₀ = ∅
+  Σ⁰₁ = {n | ∃ m, ∀ k, (m + k) ∈ A}
+  Σ⁰ₙ = {n | ∃ m, ∀ k, (m + k) ∈ Σ⁰ₙ₋₁}
+  Π⁰ₙ = Σ⁰ₙᶜ
+  ∆⁰ₙ = Σ⁰ₙ ∩ Π⁰ₙ
+-/
+def Sigma0 (n : ℕ) (A : Set ℕ) : Prop :=
+  match n with
+  | 0 => decidableIn (fun _ => Part.none) A
+  | k + 1 => recursively_enumerable_in₂ (arithJumpBase k) A
 
--- def Delta0 (n : ℕ) (A : Set ℕ) : Prop :=
---   Sigma0 n A ∧ Pi0 n A
+def Pi0 (n : ℕ) (A : Set ℕ) : Prop :=
+  Sigma0 n Aᶜ
 
--- notation "Σ⁰_" => Sigma0
--- notation "Π⁰_" => Pi0
--- notation "Δ⁰_" => Delta0
+def Delta0 (n : ℕ) (A : Set ℕ) : Prop :=
+  Sigma0 n A ∧ Pi0 n A
+
+notation "Σ⁰_" => Sigma0
+notation "Π⁰_" => Pi0
+notation "Δ⁰_" => Delta0
