@@ -20,27 +20,20 @@ state the jump theorems:
 A set A is recursively enumerable in a set of partial recursive functions `O` if its characteristic
 function is recursive in `O`.
 -/
--- def recursively_enumerable_in (O : Set (ℕ →. ℕ)) (A : Set ℕ) :=
---   ∃ f, (RecursiveIn O f) ∧ A = f.Dom
-
-/-
-A set A is recursively enumerable in a family of partial recursive functions `X` if its characteristic
-function is recursive in `X`.
--/
--- def recursively_enumerable_in₁ (X : α → ℕ →. ℕ) (A : Set ℕ) :=
---   ∃ f, (RecursiveIn (Set.range X) f) ∧ A = f.Dom
+def recursively_enumerable_in (O : ℕ →. ℕ) (A : Set ℕ) :=
+  ∃ f, (RecursiveIn O f) ∧ A = f.Dom
 
 /-
 A set A is re in a single partial recursive function g if its characteristic function is recursive in g.
 -/
--- def recursively_enumerable_in₂ (g : ℕ →. ℕ) (A : ℕ → Prop) :=
---  ∃ f, (RecursiveIn {g} f) ∧ A = f.Dom
+def recursively_enumerable_in₂ (g : ℕ →. ℕ) (A : ℕ → Prop) :=
+ ∃ f, (RecursiveIn g f) ∧ A = f.Dom
 
 /-
 A set A is recursively enumerable if its characteristic function is recursive in the empty set.
 -/
--- def recursively_enumerable (A : Set ℕ) :=
---   ∃ f, (RecursiveIn {} f) ∧ A = f.Dom
+def recursively_enumerable (A : Set ℕ) :=
+  ∃ f, (RecursiveIn (fun _ => Part.none) f) ∧ A = f.Dom
 
 
 /-
