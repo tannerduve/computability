@@ -7,9 +7,6 @@ Define the automorphism group of the Turing degrees.
 -/
 -- State and prove skeleton of countability argument
 
-/-
-Add order automorphism + group instance to Mathlib. Maybe generalize over any relation (RelIso). (Doesnt seem to be in mathlib but not sure)
--/
 abbrev OrderAut (α : Type*) [LE α] := OrderIso α α
 
 instance OrderAutGroup (α : Type) [LE α] : Group (OrderAut α) where
