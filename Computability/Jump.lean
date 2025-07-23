@@ -1,6 +1,7 @@
 import Computability.Encoding
 import Mathlib.Computability.Reduce
 import Mathlib.Computability.Halting
+import Computability.Oracle
 
 open Computability
 
@@ -66,7 +67,8 @@ abbrev W [Primcodable α] (e : ℕ) (f : α → ℕ →. ℕ) := (evalo f (decod
 
 -- Theorems to prove (2.3 Jump Theorem in Soare Recursively Enumerable Sets and Degrees)
 -- 1. f⌜ is recursive in f
--- 2. ¬(f⌜ ≤ f)
+-- 2. ¬(f⌜ ≤ᵀ f)
+--2.5 ¬(f⌜ ≡ᵀ f)
 -- 3. g is re in f iff g ≤₁ f⌜
 -- 4. if g is re in f and f ≤ᵀ h then g is re in h
 -- 5. g ≤ᵀ f ↔ g⌜ ≤₁ f⌜
@@ -75,12 +77,47 @@ abbrev W [Primcodable α] (e : ℕ) (f : α → ℕ →. ℕ) := (evalo f (decod
 
 notation:100 f"⌜" => jump f
 
-theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by sorry
+theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
+  unfold TuringReducible
+  unfold jump
+  sorry
 
 theorem jump_not_reducible (f : ℕ →. ℕ) : ¬(f⌜ ≤ᵀ f) := by sorry
 
+theorem jump_not_equiv (f : ℕ →. ℕ) : ¬(f⌜ ≡ᵀ f) :=
+  fun H => jump_not_reducible f H.left
+
+#check OneOneReducible
+
 theorem re_iff_one_one_jump  (A : Set ℕ) (f : ℕ →. ℕ) :
-recursively_enumerable_in₂ f A ↔ OneOneReducible A (f⌜).Dom := by sorry
+recursively_enumerable_in₂ f A ↔ OneOneReducible A (f⌜).Dom := by
+  constructor
+  case mp =>
+    intro H
+    unfold recursively_enumerable_in₂ at H
+    obtain ⟨g, ⟨rec_in, domm⟩⟩ := H
+    unfold OneOneReducible
+    sorry
+  case mpr =>
+    intro H
+    unfold recursively_enumerable_in₂
+    obtain ⟨f₁, ⟨comp, ⟨inj, H⟩⟩⟩ := H
+    use f₁
+    constructor
+    case left =>
+      have compin := Computable.computableIn (O := {f}) comp
+      unfold ComputableIn at compin
+      unfold RecursiveIn' at compin
+      sorry
+    case right =>
+      apply funext
+      intro x
+      rw [H x]
+      simp
+      constructor
+      case mp => sorry
+      case mpr => sorry
+
 
 theorem re_in_trans (A : Set ℕ) (f h : ℕ →. ℕ) :
   recursively_enumerable_in₂ f A →
@@ -101,6 +138,6 @@ theorem jump_reducible_iff (f g : ℕ →. ℕ) :
   g ≤ᵀ f ↔ g⌜ ≤ᵀ f⌜ := by sorry
 
 theorem jump_equiv (f g : ℕ →. ℕ) :
-  g ≡ᵀ f ↔ g⌜ ≡ᵀ f⌜ := by sorry
-
-#check StateM
+  g ≡ᵀ f ↔ g⌜ ≡ᵀ f⌜ :=
+  ⟨fun ⟨gf, fg⟩ => ⟨(jump_reducible_iff _ _).mp gf, (jump_reducible_iff _ _).mp fg⟩,
+  fun ⟨gf, fg⟩ => ⟨(jump_reducible_iff _ _).mpr gf, (jump_reducible_iff _ _).mpr fg⟩⟩
