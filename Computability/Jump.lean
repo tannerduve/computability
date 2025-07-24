@@ -5,7 +5,6 @@ import Computability.Oracle
 
 open Computability
 open Classical
-open Classical
 
 /-
 In this file we define the jump operator (⌜) for partial recursive functions and prove its main properties.
@@ -47,6 +46,7 @@ The jump of f is the diagonal of the universal machine relative to f:
 Its domain is the set of n where the n-th oracle program halts on input n with oracle f, ie. the halting
 problem relative to f.
 -/
+
 noncomputable def jump (f : ℕ →. ℕ) : ℕ →. ℕ := λ n =>
   let part := evalo (λ _ : Unit => f) (decodeCodeo (Nat.unpair n).1) (Nat.unpair n).2
   dite part.Dom (λ proof => Nat.succ $ part.get proof) (λ _ => 0)
@@ -120,7 +120,6 @@ recursively_enumerable_in₂ f A ↔ OneOneReducible A (f⌜).Dom := by
       constructor
       case mp => sorry
       case mpr => sorry
-
 
 theorem re_in_trans (A : Set ℕ) (f h : ℕ →. ℕ) :
   recursively_enumerable_in₂ f A →
