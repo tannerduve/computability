@@ -168,13 +168,7 @@ theorem exists_code_rel (O : ℕ →. ℕ) (f : ℕ →. ℕ) :
     · exact ⟨codeo.succ, rfl⟩
     · exact ⟨codeo.left, rfl⟩
     · exact ⟨codeo.right, rfl⟩
-    · sorry
-    -- · case mp.oracle hf =>
-    --   rcases hf with ⟨cf, rfl⟩
-    --   exact ⟨codeo.oracle (encode cf), by
-    --     funext n
-    --     simp only [evalo, codeo.oracle]
-    --     rw [encodek]⟩
+    · exact ⟨codeo.oracle, rfl⟩
     · case mp.pair hf hg =>
       rcases hf with ⟨cf, rfl⟩; rcases hg with ⟨cg, rfl⟩
       exact ⟨codeo.pair cf cg, rfl⟩
