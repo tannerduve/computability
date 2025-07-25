@@ -66,21 +66,12 @@ Defines the classical arithmetical hierarchy:
 - Notations `Σ⁰_`, `Π⁰_`, `Δ⁰_`
 - Defines `K := arithJumpSet 1` as the halting set
 
-### `Reduce.lean`
-
-Implements many-one and one-one reducibility:
-
-- `ManyOneReducible` (`≤₀`): many-one reducibility with computable functions
-- `OneOneReducible` (`≤₁`): one-one reducibility with injective computable functions  
-- Degree structures and semilattice properties
-
 ## Implementation Status
 
 **Completed**: 
 - Basic definitions and type structures
 - Some fundamental lemmas about oracle computability
 - Partial order structure on Turing degrees
-- Many-one and one-one reducibility theory
 
 **In Progress**:
 - Universal oracle machine correctness proofs
