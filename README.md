@@ -66,27 +66,6 @@ Defines the classical arithmetical hierarchy:
 - Notations `Σ⁰_`, `Π⁰_`, `Δ⁰_`
 - Defines `K := arithJumpSet 1` as the halting set
 
-## Implementation Status
-
-**Completed**: 
-- Basic definitions and type structures
-- Some fundamental lemmas about oracle computability
-- Partial order structure on Turing degrees
-
-**In Progress**:
-- Universal oracle machine correctness proofs
-- Jump operator theorems
-- Join operations for Turing degrees
-- Encoding/decoding correctness
-
-**Defined but Unproven**:
-- Most major theorems about jump operators
-- Turing degree join properties  
-- Automorphism group countability
-- Complete characterization of arithmetical hierarchy
-
----
-
 ## References
 
 1. Mario Carneiro. [*Formalizing Computability Theory via Partial Recursive Functions*](https://arxiv.org/pdf/1810.08380), arXiv:1810.08380, 2018.  
