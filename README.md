@@ -1,6 +1,13 @@
 # Oracle Computability and Turing Degrees in Lean
 
-This project formalizes **oracle-relative computability** and the **theory of Turing degrees** in Lean. We define a model of relative computability via partial recursive functions, and build a framework for expressing and proving properties of Turing reducibility, Turing equivalence, jump operators, and recursively enumerable sets.
+This project formalizes **oracle-relative computability** and the **theory of Turing degrees** in Lean. We define a model of relative computability via partial recursive functions, building a framework for expressing and proving properties of Turing reducibility, Turing equivalence, jump operators, and recursively enumerable sets.
+
+## Project Structure
+
+The project contains two parallel approaches to oracle computability:
+
+- **`Computability/`**: Oracle computability with sets of oracles (`Set (ℕ →. ℕ)`)
+- **`Computability/SingleOracle/`**: Oracle computability with single oracles (`ℕ →. ℕ`)
 
 ## Key Modules
 
@@ -10,78 +17,82 @@ Defines our model of relative computability:
 
 - `RecursiveIn O f`: the function `f` is computable relative to oracles in the set `O`.
 - Generalizations: `RecursiveIn'`, `RecursiveIn₂`, `ComputableIn`, `ComputableIn₂` for functions between `Primcodable` types.
-- Lifting functions using `Primcodable` encoding.
-- Universal oracle machine `evalo` and its correctness.
+- Basic lemmas showing that partial recursive functions are recursive in any oracle.
+- Universal oracle machine `evalo` and related functions.
 
 ### `Encoding.lean`
 
-- Gödels numbering for partial recursive functions with oracle sets indexed by a `Primcodable` type.
-- Implements `encodeCodeo`, `decodeCodeo` for universal simulation.
-- Proves: `RecursiveIn (range g) f ↔ ∃ c, evalo g c = f`.
+Provides Gödel numbering for partial recursive functions:
+
+- Defines `codeo` type for representing oracle programs
+- Implements `encodeCodeo`, `decodeCodeo` for universal simulation
+- Defines `evalo` function for evaluating encoded programs with oracles
 
 ### `TuringDegree.lean`
 
-Builds Turing reducibility and degree structure:
+Builds basic Turing reducibility and degree structure:
 
-- `f ≤ᵀ g`: `f` is Turing reducible to `g`.
-- `f ≡ᵀ g`: Turing equivalence.
-- `TuringDegree`: equivalence classes of `ℕ →. ℕ` under `≡ᵀ`.
-- Defines `turingJoin` (`f ⊕ g`) as the least upper bound.
-- Join lemmas:
-  - `left_le_join`: `f ≤ᵀ f ⊕ g`
-  - `right_le_join`: `g ≤ᵀ f ⊕ g`
-  - `join_le`: `f ⊕ g ≤ᵀ h` if `f ≤ᵀ h` and `g ≤ᵀ h`
-- Partial order instance for `TuringDegree`.
+- `f ≤ᵀ g`: `f` is Turing reducible to `g`
+- `f ≡ᵀ g`: Turing equivalence  
+- `TuringDegree`: equivalence classes of `ℕ →. ℕ` under `≡ᵀ`
+- Partial order instance for `TuringDegree`
+- Join operations (`turingJoin`, `f ⊕ g`) for combining degrees
 
 ### `Jump.lean`
 
-Defines the jump operator:
+Defines the jump operator and related concepts:
 
-- `f⌜ := λ n => evalo (λ _ => f) (decodeCodeo n) n`
-- `jumpSet A`: Halting problem relative to a decidable set `A`.
-- Theorems (in progress):
-  1. `f ≤ᵀ f⌜`
-  2. `¬(f⌜ ≤ᵀ f)`
-  3. `A ∈ re(f) ↔ A ≤₁ f⌜`
-  4. If `A ∈ re(f)` and `f ≤ᵀ h` then `A ∈ re(h)`
-  5. `g ≤ᵀ f ↔ g⌜ ≤ᵀ f⌜`
-  6. `g ≡ᵀ f ↔ g⌜ ≡ᵀ f⌜`
+- `jump f` (`f⌜`): the jump of function `f`
+- `jumpSet A`: Halting problem relative to a decidable set `A`
+- Various definitions of recursively enumerable sets
+- Core jump theorems including non-reducibility and characterizations
 
 ### `AutGrp.lean`
 
-Defines the automorphism group of the Turing degrees:
+Basic structure for the automorphism group of Turing degrees:
 
 - `TuringDegree.automorphismGroup := OrderAut TuringDegree`
-- Group structure via `OrderIso`.
-- `Countable` instance is stated (`sorry`).
+- Group structure via `OrderIso`
+- Countability properties
 
 ### `ArithHierarchy.lean`
 
-Defines the classical arithmetical hierarchy using oracle-relative computability.
+Defines the classical arithmetical hierarchy:
 
 - `arithJumpBase n`: the `n`-fold jump of the empty oracle
-- `arithJumpSet n`: the set `∅⁽ⁿ⁾`, i.e., the domain of `arithJumpBase n`
+- `arithJumpSet n`: the set `∅⁽ⁿ⁾`
 - `decidableIn O A`: `A` is decidable relative to oracle set `O`
-- `Sigma0 n A`: `A` is `Σ⁰ₙ` — r.e. in `arithJumpBase (n - 1)` (decidable if `n = 0`)
-- `Pi0 n A`, `Delta0 n A`: complements and intersections of `Σ⁰ₙ`
+- `Sigma0 n A`, `Pi0 n A`, `Delta0 n A`: hierarchy levels
+- Notations `Σ⁰_`, `Π⁰_`, `Δ⁰_`
+- Defines `K := arithJumpSet 1` as the halting set
 
-Includes notations `Σ⁰_`, `Π⁰_`, `Δ⁰_`. Defines `K := arithJumpSet 1` as the halting set.
+### `Reduce.lean`
 
-## In Progress
+Implements many-one and one-one reducibility:
 
-- Prove the jump theorems (see `Jump.lean`).
-- Complete `compileAux_sound` and `compileAux_complete` proofs.
-- Prove `encodeCodeo ∘ decodeCodeo = id`.
-- Show that the Turing degrees form an upper semilattice.
+- `ManyOneReducible` (`≤₀`): many-one reducibility with computable functions
+- `OneOneReducible` (`≤₁`): one-one reducibility with injective computable functions  
+- Degree structures and semilattice properties
 
----
+## Implementation Status
 
-## Project Directions
+**Completed**: 
+- Basic definitions and type structures
+- Some fundamental lemmas about oracle computability
+- Partial order structure on Turing degrees
+- Many-one and one-one reducibility theory
 
-- Prove countability of `TuringDegree.automorphismGroup`.
-- Explore structure theore of the automorphism group
-- Formalize a finite injury priority argument (e.g. Kleene–Post theorem).
-- Complexity theory
+**In Progress**:
+- Universal oracle machine correctness proofs
+- Jump operator theorems
+- Join operations for Turing degrees
+- Encoding/decoding correctness
+
+**Defined but Unproven**:
+- Most major theorems about jump operators
+- Turing degree join properties  
+- Automorphism group countability
+- Complete characterization of arithmetical hierarchy
 
 ---
 
