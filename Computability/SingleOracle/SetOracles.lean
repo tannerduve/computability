@@ -308,67 +308,115 @@ abbrev W (O:Set ℕ) (e : ℕ) := (evalSet O e).Dom
 /-- `WR O e` := range of e^th oracle program -/
 abbrev WR (O:Set ℕ) (e : ℕ) := (evalSet O e).ran
 
+-- noncomputable def eval_ef (O:Set ℕ): ℕ→.ℕ := fun ex => Nat.pair <$> ex <*> evalSet₁ O ex
 -- def eval_first (O:ℕ→ℕ) (x:ℕ) : ℕ→ℕ→.ℕ := fun ab => (eval O x ab.unpair.1) >>= (fun index => (Nat.pair index ab.unpair.2))  >>= fun ex => (eval₁ O ex)
+-- def code_id:ℕ:= (Nat.RecursiveIn.Code.id)
+-- #eval code_id
+def code_to_code_ef:ℕ→ℕ:=fun c=>(pair Nat.RecursiveIn.Code.id c)
+theorem code_ef_left (h:(eval O c x).Dom) : eval O (left.comp $ code_to_code_ef c) x = x := by
+  have h0 : (eval O c x).get h ∈ (eval O c x) := by exact Part.get_mem h
+  have h1 : eval O c x = Part.some ((eval O c x).get h) := by exact Part.get_eq_iff_eq_some.mp rfl
 
--- def eval_for_scomb (O:ℕ→ℕ) (xy:ℕ) : ℕ→ℕ→.ℕ := fun z => (eval O xy.unpair.1 z) >>= (fun index => ((eval O xy.unpair.2 z) >>= fun arg => (Nat.pair index arg)) ) >>= fun ex => (eval₁ O ex)
--- def eval_for_scomb (O:ℕ→ℕ) (x y:ℕ) : ℕ→.ℕ := fun z => (eval O x z) >>= (fun index => ((eval O y z) >>= fun arg => (Nat.pair index arg)) ) >>= fun ex => (eval₁ O ex)
-def apply_to_fst (O:ℕ→ℕ) : ℕ→.ℕ := fun (cab:ℕ) => (eval O cab.unpair.1 cab.unpair.2.unpair.1) >>= fun ca => Nat.pair ca cab.unpair.2.unpair.2
--- theorem apply_to_fst_prop : eval_for_scomb O c = fun (ab:ℕ) => (eval O c ab.unpair.1) >>= fun ca => Nat.pair ca ab.unpair.2 := by sorry
-theorem apply_to_fst_rec : Nat.RecursiveIn O (apply_to_fst O) := by
-  unfold apply_to_fst
-  simp
-  apply Nat.RecursiveIn.comp
-  exact?
--- theorem eval_for_scomb_prop : eval_for_scomb O xy ab = (eval O xy.unpair.1 ab.unpair.1) >>= (fun index => ((eval O xy.unpair.2 ab.unpair.2) >>= fun arg => (Nat.pair index arg)) ) >>= fun ex => (eval₁ O ex) := by sorry
--- theorem eval_for_scomb_prop : eval_for_scomb O xy z = (eval O xy.unpair.1 z) >>= (fun index => ((eval O xy.unpair.1 z) >>= fun arg => (Nat.pair index arg)) ) >>= fun ex => (eval₁ O ex) := by exact rfl
-theorem eval_for_scomb_prop : eval_for_scomb O x y z = (eval O x z) >>= (fun index => ((eval O y z) >>= fun arg => (Nat.pair index arg)) ) >>= fun ex => (eval₁ O ex) := by exact rfl
-def Nat.duplicate (x:ℕ) := Nat.pair x x
-def mod_code_first (c:ℕ) : ℕ := 1
-theorem mod_code_first_prop : eval O (mod_code_first c) = fun ab => (eval O c ab.unpair.1) >>= fun ca => Nat.pair ca ab.unpair.2 := by sorry
+  simp [code_to_code_ef, eval]
+  rw [h1]
+  -- should maybe define some theorem that simplfies the Nat.pair <*> business
+  simp [Seq.seq]
+  exact Part.Dom.bind h fun y ↦ Part.some x
+theorem eval_code_ef : eval O (code_to_code_ef c) x = Nat.pair <$> x <*> (eval O c x) := by
+  simp [code_to_code_ef,eval]
+theorem code_ef_dom_iff_code_dom : (eval O (code_to_code_ef c) x).Dom ↔ (eval O c x).Dom := by
+  constructor
+  · contrapose
+    simp [code_to_code_ef]
+    intro h
+    simp [eval]
+    simp [Seq.seq]
+    exact h
+  · simp [code_to_code_ef]
+    intro h
+    simp [eval]
+    simp [Seq.seq]
+    exact h
 
-theorem guide : ((eval O x z) >>= (fun index => ((eval O y z) >>= fun arg => (Nat.pair index arg)) ) >>= fun ex => (eval₁ O ex)) = z >>= Nat.duplicate >>= (eval O x z) >>= (fun index => ((eval O y z) >>= fun arg => (Nat.pair index arg)) ) >>= fun ex => (eval₁ O ex) := by sorry
 
--- returns a code which, on input (a,b), returns (a, y b)
-def S_helper_1 (y) :
-
-/-- Given codes `x` and `y`, returns the code of the function which on input `z`, evaluates `[[x](z)]([y](z))`. -/
--- it cant be done naively, because [x](z) or [y](z) may fail, so we can't express those directly
-def S (O:ℕ→ℕ) (x y:ℕ):ℕ := comp (eval₁_code O) (pair (eval O x) y)
-@[simp] theorem S_eval (x y z) : eval O (S x y) z = (eval O x z) >>= (fun index => ((eval O y z) >>= fun arg => (Nat.pair index arg)) ) >>= fun ex => (eval₁ O ex) := by sorry
-theorem S_prim : PrimrecIn₂ O S := by sorry
 
 -- private def dom_to_ran_helper : (ℕ→ℕ) :=
 /-- Given a code `e`, returns a code whose range is the domain of `e`. -/
--- def dom_to_ran {O:Set ℕ} : (ℕ→ℕ) := fun e => (comp) (Nat.RecursiveIn.Code.const e) (comp (decodeCode (evalSet₁_code O)) (curry Code.pair e))
-noncomputable def dom_to_ran {O:Set ℕ} : (ℕ→ℕ) := fun e => curry ((comp) (Nat.RecursiveIn.Code.const e) (decodeCode (evalSet₁_code O))) e
+noncomputable def dom_to_ran {O:Set ℕ} : (ℕ→ℕ) := fun e => curry ((comp) (right.comp left) (code_to_code_ef (evalSet₁_code O))) e
 -- dom_to_ran(e) is the function which takes on input `x`, runs `[e](x)`, then binds to `const x`.
--- `dom_to_ran(e)=comp (const _) (comp eval (pair e _))`
 -- `[dom_to_ran(e)](x)=[(const x) ∘ eval ∘ (pair e x)]`
 
 theorem dom_to_ran_prop : (W O e) = (WR O (@dom_to_ran O e)) := by
-  -- refine Set.ext xs
   ext xs
   constructor
   · intro h
     simp at h
     rcases h with ⟨y,hy⟩
-    have h3: eval (χ O) (decodeCode e) xs = Part.some y := by exact Part.eq_some_iff.mpr hy
-
     simp [WR]
-    have main : evalSet O (decodeCode (@dom_to_ran O e)) xs = xs := by
-      simp only [dom_to_ran]
-      simp only [evalSet]
-      simp
-      simp only [eval]
-
-      simp [evalSet₁_code_prop2]
-      rw [h3]
-      simp
-
-      -- simp [eval_const]
+    simp only [dom_to_ran]
+    simp only [decodeCode_encodeCode]
+    have h0 : (eval (χ O) e xs).Dom := by
+      apply Part.dom_iff_mem.mpr
+      exact Exists.intro y hy
+    have h5234 : (eval (χ O) (decodeCode (evalSet₁_code O)) (Nat.pair e xs)).Dom := by
+      rw [evalSet₁_code_prop2]
+      simp [evalSet₁]
+      exact h0
 
 
-  exact?
+    rw [PFun.ran]
+    simp only [eval_curry, Set.mem_setOf_eq]
+    use xs
+    simp only [eval, Part.coe_some, Part.bind_eq_bind]
+    rw [eval_code_ef]
+
+    apply Part.dom_iff_mem.mp at h5234
+    rcases h5234 with ⟨y',hy'⟩
+    apply Part.eq_some_iff.mpr at hy'
+    rw [hy']
+
+    simp [Seq.seq]
+
+  · contrapose
+    intro h
+    simp at h
+    -- rcases h with ⟨y,hy⟩
+    simp [WR]
+    simp only [dom_to_ran]
+    simp only [decodeCode_encodeCode]
+    have h0 : ¬(eval (χ O) e xs).Dom := by
+      refine Part.eq_none_iff'.mp ?_
+      exact Part.eq_none_iff.mpr h
+    have h5234 : ¬(eval (χ O) (decodeCode (evalSet₁_code O)) (Nat.pair e xs)).Dom := by
+      rw [evalSet₁_code_prop2]
+      simp [evalSet₁]
+      exact h0
+
+    rw [PFun.ran]
+    simp only [eval_curry, Set.mem_setOf_eq]
+    simp
+    intro x
+    simp only [eval, Part.coe_some, Part.bind_eq_bind]
+    rw [eval_code_ef]
+
+    cases Classical.em ((eval (χ O) (decodeCode (evalSet₁_code O)) (Nat.pair e x)).Dom) with
+    | inl h' =>
+      have h123: ¬ x=xs  := by
+        intro hxx
+        rw [hxx] at h'
+        contradiction
+      apply Part.dom_iff_mem.mp at h'
+      rcases h' with ⟨y',hy'⟩
+      apply Part.eq_some_iff.mpr at hy'
+      rw [hy']
+      simp [Seq.seq]
+      exact fun a ↦ h123 (id (Eq.symm a))
+    | inr h' =>
+      apply Part.eq_none_iff'.mpr at h'
+      rw [h']
+      simp [Seq.seq]
+
+
 theorem Nat.Primrec.dom_to_ran' : Nat.Primrec dom_to_ran := by sorry
 
 def dovetail {h:Nat.RecursiveIn O f} : ℕ→ℕ := fun x => 0
