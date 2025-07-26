@@ -140,17 +140,33 @@ infix :50 " ⊕ " => turingJoin
 
 open Sum
 
-def projL : ℕ →. ℕ :=
-λ n =>
-  match decode (α := ℕ ⊕ ℕ) n with
-  | some (Sum.inl x) => Part.some x
-  | _                => Part.none
+def isL (n : ℕ) : ℕ := if decode (α := ℕ ⊕ ℕ) n matches some (inl _) then 0 else 1
 
-def projR : ℕ →. ℕ :=
-  fun n =>
-    match decode (α := ℕ ⊕ ℕ) n with
-    | some (Sum.inr x) => Part.some x
-    | _                => Part.none
+def getL (n : ℕ) : ℕ := match decode (α := ℕ ⊕ ℕ) n with
+                        | some (inl x) => x
+                        | _ => 0
+
+def projL' : ℕ →. ℕ :=
+  fun n => if isL n = 0 then Part.some (getL n) else Part.none
+
+def isR (n : ℕ) : ℕ := if decode (α := ℕ ⊕ ℕ) n matches some (inr _) then 0 else 1
+
+def getR (n : ℕ) : ℕ := match decode (α := ℕ ⊕ ℕ) n with
+                        | some (inr x) => x
+                        | _ => 0
+
+def projR' : ℕ →. ℕ :=
+  fun n => if isR n = 0 then Part.some (getR n) else Part.none
+
+lemma Nat.Primrec.isL : Nat.Primrec isL := by sorry
+
+lemma Nat.Primrec.getL : Nat.Primrec getL := by sorry
+
+lemma RecursiveIn.projL' (f : ℕ →. ℕ) : RecursiveIn f (projL') := by
+  sorry
+
+lemma RecursiveIn.projR' (f : ℕ →. ℕ) : RecursiveIn f (projR') := by
+  sorry
 
 lemma left_le_join (f g : ℕ →. ℕ) : f ≤ᵀ (f ⊕ g) := by
   sorry

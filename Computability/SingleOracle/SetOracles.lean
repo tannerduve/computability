@@ -30,7 +30,6 @@ theorem jumpχ_recIn_χK0 (O:Set ℕ) : RecursiveIn (χ (SetK0 O)) (jump (χ O))
   have h0 : χ (SetK0 O) = χK0 := by
     simp only [χK0]
     exact rfl
-
   rw [h0]
 
   have h1 (ex:ℕ) : (¬χK0 ex = 0) = (evalo (χ O) (decodeCodeo (Nat.unpair ex).1) (Nat.unpair ex).2).Dom := by sorry

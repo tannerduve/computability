@@ -288,7 +288,7 @@ theorem jump_not_reducible (f:ℕ→.ℕ) : ¬(f⌜ ≤ᵀ f) := by
   | inr h =>
     have contra : g index_g = 0 := by
       simp only [g]
-      simp only [jump, Nat.unpair_pair, Nat.succ_eq_add_one, dite_eq_right_iff, Nat.add_eq_zero,one_ne_zero, and_false, imp_false, ite_not, ite_eq_left_iff]
+      simp only [jump, Nat.unpair_pair, Nat.succ_eq_add_one, dite_eq_right_iff, Nat.add_eq_zero,one_ne_zero, and_false, imp_false, ite_not]
       simp only [index_g_is_g]
       exact if_neg h
     rw [contra] at h

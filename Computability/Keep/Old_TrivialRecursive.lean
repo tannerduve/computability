@@ -40,6 +40,7 @@ def inr_join (f : ℕ →. ℕ) : ℕ →. ℕ :=
 
 lemma inl_join_left_inverse : ∀ h, (λ n => ((f n).map (λ x => 2 * x))) ⊔ ((inr_join h) ∘ (λ n => n / 2)) = f := by
   intro h
+  sorry
 
 
 
@@ -65,6 +66,7 @@ lemma reduce_join {f g : ℕ →. ℕ} :
   f ≤ᵀ (f ⊔ g) ∧ g ≤ᵀ (f ⊔ g) := by
   constructor
   unfold TuringReducible
+  sorry
   sorry
 
 
