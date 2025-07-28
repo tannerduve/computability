@@ -352,13 +352,13 @@ theorem code_ef_dom_iff_code_dom : (eval O (code_to_code_ef c) x).Dom ↔ (eval 
     simp [Seq.seq]
     exact h
 /-- Given a code `e`, returns a code whose range is the domain of `e`. -/
-noncomputable def dom_to_ran {O:Set ℕ} : (ℕ→ℕ) := fun e => curry ((comp) (right.comp left) (code_to_code_ef (evalSet₁_code O))) e
+noncomputable def dom_to_ran (O:Set ℕ) : (ℕ→ℕ) := fun e => curry ((comp) (right.comp left) (code_to_code_ef (evalSet₁_code O))) e
 -- the internal expression, (comp) (right.comp left) (code_to_code_ef (evalSet₁_code O)), takes a pair ex as input.
 -- code_to_code_ef (evalSet₁_code O) ex = (ex, [e](x)).
 -- piping it into right.comp left returns x.
 -- we curry bc we want eval (dom_to_ran e) x = ~
 
-theorem dom_to_ran_prop : (W O e) = (WR O (@dom_to_ran O e)) := by
+theorem dom_to_ran_prop : (W O e) = (WR O (dom_to_ran O e)) := by
   ext xs
   constructor
   · intro h
@@ -435,7 +435,7 @@ private lemma prim_dom_to_ran_aux : Primrec ((right.comp left).comp (decodeCode 
   refine Primrec.projection ?_
   apply PrimrecIn.PrimrecIn₂_iff_Primrec₂.mp
   exact fun O ↦ curry_prim
-theorem Nat.Primrec.prim_dom_to_ran : Nat.Primrec (@dom_to_ran O) := by
+theorem Nat.Primrec.prim_dom_to_ran : Nat.Primrec (dom_to_ran O) := by
   unfold dom_to_ran
   refine Primrec.nat_iff.mp ?_
   apply prim_dom_to_ran_aux
@@ -481,7 +481,7 @@ ran_to_dom c = code_for
   fun y =>
   rfind_config (evaln c config=y)
 -/
-noncomputable def ran_to_dom {O:Set ℕ} : (ℕ→ℕ) := fun c => curry (code_rfind (code_if_eq (evalnSet₁_code O))) c
+noncomputable def ran_to_dom (O:Set ℕ) : (ℕ→ℕ) := fun c => curry (code_rfind (code_if_eq (evalnSet₁_code O))) c
 theorem code_rfind_imp_ex : (∃ y, y ∈ eval O (code_rfind c) x) → (∃ y, eval O c (Nat.pair x y)=0) := by
   intro h
   rcases h with ⟨y,hy⟩
@@ -516,7 +516,7 @@ theorem helper2 : (a ∈ (if (xs = evaln₁ (χ O) (Nat.pair e y)) then 0 else 1
     exact h
 theorem helper3 : x=y ↔ Option.some x = Option.some y := by simp
 
-theorem ran_to_dom_prop : (WR O e) = (W O (@ran_to_dom O e)) := by
+theorem ran_to_dom_prop : (WR O e) = (W O (ran_to_dom O e)) := by
   ext xs
   constructor
 /-
@@ -578,19 +578,12 @@ We know that [e'](xs)↓, because the search procedure will stop at or before di
     apply evaln_sound at h3
     exact Exists.intro (Nat.unpair y).1 h3
 
-theorem Nat.Primrec.prim_ran_to_dom : Nat.Primrec (@ran_to_dom O) := by
+theorem Nat.Primrec.prim_ran_to_dom : Nat.Primrec (ran_to_dom O) := by
   sorry
 
 end ran_to_dom
 
 
--- evalnSet₁_code
--- helper:
--- rfind c' where c' is a code which gives 1 if evaln_aux O c input.2 = input.1 else 0
--- code_evaln_aux : takes c as input, returns code which takes config as input, outputs evaln O config.unpair.2 c config.unpair.1
--- def evaln_aux (O:ℕ→ℕ) : ℕ→ℕ→Option ℕ := fun code config => evaln O config.unpair.2 code config.unpair.1
-def dovetail {O:Set ℕ} : ℕ→ℕ := code_rfind (code_if_eq (evalnSet₁_code O))
--- = μ config : evaln_aux O c config = y
 -- i want to write:
 /-
 ran_to_dom c = code_for
@@ -644,7 +637,19 @@ theorem partfun_eq_χgraph {f:ℕ→ℕ} : f ≡ᵀᶠ χ (total_graph f) := by 
 
 -- CE O A means that A is c.e. in O.
 def CE (O:Set ℕ) (A:Set ℕ) : Prop := ∃ c:ℕ, A = W O c
-theorem CE_range : CE O A ↔ ∃ c:ℕ, A = WR O c := by sorry
+theorem CE_range : CE O A ↔ ∃ c:ℕ, A = WR O c := by
+  simp only [CE]
+  constructor
+  · intro h
+    rcases h with ⟨c,hc⟩
+    use dom_to_ran O c
+    rw [←dom_to_ran_prop]
+    exact hc
+  · intro h
+    rcases h with ⟨c,hc⟩
+    use ran_to_dom O c
+    rw [←ran_to_dom_prop]
+    exact hc
 
 theorem Computable_iff_CE_compCE : A≤ᵀB ↔ (CE B A ∧ CE B Aᶜ) := by sorry
 
