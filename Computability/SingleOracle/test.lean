@@ -1,13 +1,5 @@
-import Computability.SingleOracle.RecursiveInTheorems
--- import Computability.SingleOracle.Encoding
-import Mathlib.Computability.Reduce
-import Mathlib.Computability.Halting
+import Computability.SingleOracle.Jump
 
-import Mathlib.Data.PFun
-
-open Computability
-open Classical
-
-def evalo_index : (ℕ→ℕ→ℕ) := fun e x =>
-
-theorem evalo_index : evalo O evalo_index $ (Nat.pair e x) = evalo e x := by sorry
+#eval Encodable.encode (Option.none:Option ℕ)
+#eval Encodable.encode (Option.some 1:Option ℕ)
+#eval Encodable.encode (Option.some 2:Option ℕ)
