@@ -49,12 +49,14 @@ notation:100 A"⌜" => SetJump A
 @[reducible,simp] def SetTuringDegreeLE (A B : Set ℕ) : Prop := TuringDegree.PO.le ⟦A⟧ ⟦B⟧
 @[reducible,simp] def SetTuringDegreeLT (A B : Set ℕ) : Prop := TuringDegree.PO.lt ⟦A⟧ ⟦B⟧
 @[reducible,simp] def SetTuringDegreeEQ (A B : Set ℕ) : Prop := AntisymmRel TuringDegree.PO.le ⟦A⟧ ⟦B⟧
-@[reducible,simp] scoped[Computability] infix:50 " ≤ᵀ " => SetTuringDegreeLE
-@[reducible,simp] scoped[Computability] infix:50 " <ᵀ " => SetTuringDegreeLT
-@[reducible,simp] scoped[Computability] infix:50 " ≡ᵀ " => SetTuringDegreeEQ
+@[reducible,simp] def SetTuringDegreeIN (A B : Set ℕ) : Prop := (¬TuringDegree.PO.le ⟦A⟧ ⟦B⟧)∧(¬TuringDegree.PO.le ⟦B⟧ ⟦A⟧)
+@[reducible,simp] scoped[Computability] infix:50 "≤ᵀ" => SetTuringDegreeLE
+@[reducible,simp] scoped[Computability] infix:50 "<ᵀ" => SetTuringDegreeLT
+@[reducible,simp] scoped[Computability] infix:50 "≡ᵀ" => SetTuringDegreeEQ
+@[reducible,simp] scoped[Computability] infix:50 "|ᵀ" => SetTuringDegreeIN
 
 section evalSettheorems
-theorem exists_code_for_evalSet_nat (O:Set ℕ) (f:ℕ→.ℕ) : SetRecursiveIn O f ↔ ∃ c:ℕ, evalSet O c = f := by exact exists_code_nat (χ O) f
+theorem exists_code_for_evalSet_nat (O:Set ℕ) (f:ℕ→.ℕ) : SetRecursiveIn O f ↔ ∃ c:ℕ, evalSet O c = f := by exact exists_code_nat
 private theorem exists_code_for_evalSet₁ : ∃ c:ℕ, evalSet O c = evalSet₁ O := by apply ((exists_code_for_evalSet_nat O (evalSet₁ O)).mp) rec_eval₁
 noncomputable def evalSet₁_code (O:Set ℕ) : ℕ := choose (@exists_code_for_evalSet₁ O)
 @[simp] theorem evalSet₁_code_prop : evalSet O (evalSet₁_code O) = evalSet₁ O := by exact choose_spec exists_code_for_evalSet₁
@@ -65,7 +67,7 @@ noncomputable def evalnSet₁_code (O:Set ℕ) : ℕ := choose (@exists_code_for
 @[simp] theorem evalnSet₁_code_prop : evalSet O (evalnSet₁_code O) = evalnSet₁ O := by exact choose_spec exists_code_for_evalnSet₁
 @[simp] theorem evalnSet₁_code_prop2 : eval (χ O) (evalnSet₁_code O) = evalnSet₁ O := by exact choose_spec exists_code_for_evalnSet₁
 
-private theorem exists_code_for_eval₁ : ∃ c:ℕ, eval O c = eval₁ O := by apply ((exists_code_nat O (eval₁ O)).mp) rec_eval₁
+private theorem exists_code_for_eval₁ : ∃ c:ℕ, eval O c = eval₁ O := by apply (exists_code_nat.mp) rec_eval₁
 noncomputable def eval₁_code (O:ℕ→ℕ) : ℕ := choose (@exists_code_for_eval₁ O)
 @[simp] theorem eval₁_code_prop : eval O (eval₁_code O) = eval₁ O := by exact choose_spec exists_code_for_eval₁
 -- @[simp] theorem eval₁_code_prop2 : eval (χ O) (eval₁_code O) = eval₁ O := by exact choose_spec exists_code_for_eval₁
@@ -91,7 +93,7 @@ theorem χ_leq_χK0 {O:Set ℕ} : Nat.RecursiveIn (χ (SetK0 O)) (χ O) := by
 
   have hg : Nat.RecursiveIn (χ O) g := by exact Nat.RecursiveIn.ite Nat.RecursiveIn.oracle Nat.RecursiveIn.none Nat.RecursiveIn.zero
 
-  have exists_index_for_g : ∃ c : ℕ, eval (χ O) c = g := by exact (exists_code_nat (χ O) g).mp hg
+  have exists_index_for_g : ∃ c : ℕ, eval (χ O) c = g := by exact exists_code_nat.mp hg
   rcases exists_index_for_g with ⟨index_g,index_g_is_g⟩
 
   let f':ℕ→.ℕ := fun x => χK0 (Nat.pair index_g x)
@@ -196,7 +198,7 @@ theorem χ_leq_χK {O:Set ℕ} : Nat.RecursiveIn (χ (SetK O)) (χ O) := by
 
   have hg : Nat.RecursiveIn (χ O) g := by exact Nat.RecursiveIn.ite Nat.RecursiveIn.oracle Nat.RecursiveIn.none Nat.RecursiveIn.zero
 
-  have exists_index_for_g : ∃ c : ℕ, eval (χ O) c = g := by exact (exists_code_nat (χ O) g).mp hg
+  have exists_index_for_g : ∃ c : ℕ, eval (χ O) c = g := by exact exists_code_nat.mp hg
   rcases exists_index_for_g with ⟨index_g,index_g_is_g⟩
 
   let f':ℕ→.ℕ := fun x => χK (calculate_specific $ Nat.pair index_g x)
@@ -584,6 +586,50 @@ theorem Nat.Primrec.prim_ran_to_dom : Nat.Primrec (ran_to_dom O) := by
 end ran_to_dom
 
 
+
+/-- `Dmem (a,x) = [x∈Dₐ]` (iversion brackets) -/
+def Dmem : ℕ→ℕ := fun ax => if ax.l=1 then 1 else 0 --notyetimplemented
+-- def D : ℕ→Finset ℕ := fun a => {x | (Dmem (Nat.pair a x))=1}
+-- def D : ℕ→Set ℕ := fun a => {x | (Dmem (Nat.pair a x))=1}
+-- use https://lean-lang.org/doc/reference/latest/Basic-Types/Bitvectors/?
+#check (BitVec.ofNat 3 3)
+namespace KP54
+
+#check Finset
+def KP54 : ℕ→ℕ := fun x=>0
+/-
+`KP54(s)=(a,b)` where `D a, D b` correspond to sets `A` and `B` at stage `s`.
+We note that:
+ · by stage 2n,   `χ_B(n)` is bound to be defined.
+ · by stage 2n+1, `χ_A(n)` is bound to be defined.
+-/
+
+private def A := {x | x ∈ D (KP54 (2*x+1)).l}
+private def B := {x | x ∈ D (KP54 (2*x)).r}
+private theorem R (i:ℕ) : evalSet A i ≠ χ B := by sorry
+private theorem S (i:ℕ) : evalSet B i ≠ χ A := by sorry
+theorem test : A=B := by exact rfl
+theorem ex_incomparable_sets : ∃ A B:Set ℕ, A|ᵀB := by
+  use A
+  use B
+  constructor
+  · change ¬SetTuringReducible A B
+    intro h
+    unfold SetTuringReducible at h
+    apply exists_code_nat.mp at h
+    rcases h with ⟨c,hc⟩
+    have contrad := S c
+    exact contrad hc
+  · change ¬SetTuringReducible B A
+    intro h
+    unfold SetTuringReducible at h
+    apply exists_code_nat.mp at h
+    rcases h with ⟨c,hc⟩
+    have contrad := S c
+    exact contrad hc
+
+end KP54
+#check Computability.KP54.A
 -- i want to write:
 /-
 ran_to_dom c = code_for

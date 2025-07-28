@@ -201,7 +201,7 @@ theorem jump_not_leq_f (f:ℕ→ℕ) : ¬(f⌜ ≤ᵀᶠ f) := by
     · exact Nat.RecursiveIn.zero
     · exact Nat.RecursiveIn.none
 
-  have exists_index_for_g : ∃ c : ℕ, eval f c = g := by exact (exists_code_nat f g).mp g_recIn_f
+  have exists_index_for_g : ∃ c : ℕ, eval f c = g := by exact exists_code_nat.mp g_recIn_f
   rcases exists_index_for_g with ⟨index_g,index_g_is_g⟩
 
   cases Classical.em (g index_g).Dom with

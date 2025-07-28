@@ -32,7 +32,7 @@ open Nat.RecursiveIn.Code
 @[simp] abbrev Nat.r (n:ℕ) := n.unpair.2
 
 namespace Nat.RecursiveIn.Code
-theorem exists_code_nat (O : ℕ → ℕ) (f : ℕ →. ℕ) : Nat.RecursiveIn O f ↔ ∃ c : ℕ , eval O c = f := by
+theorem exists_code_nat {O : ℕ → ℕ} {f : ℕ →. ℕ} : Nat.RecursiveIn O f ↔ ∃ c : ℕ , eval O c = f := by
   have h {f : ℕ →. ℕ} : Nat.RecursiveIn O f ↔ ∃ c : Nat.RecursiveIn.Code, eval O c = f := by exact
     exists_code
   constructor
@@ -66,7 +66,7 @@ theorem prim_evaln₁ : Nat.PrimrecIn O (evaln₁ O) := by
 
 
 theorem exists_code_for_eval₁ : ∃ c:ℕ, eval O c = eval₁ O := by
-  apply ((exists_code_nat O (eval₁ O)).mp)
+  apply (exists_code_nat.mp)
   exact rec_eval₁
 
 theorem Nat.RecursiveIn.evalRecInO' {O} {f:ℕ→.ℕ} (h:Nat.RecursiveIn O f) : Nat.RecursiveIn O (fun x => (f x) >>= (eval₁ O)) := by
@@ -189,8 +189,8 @@ lemma Nat.Primrec.pair_proj : Nat.Primrec (Nat.pair x) := by
 
 
 theorem Nat.RecursiveIn.ite {O:ℕ→ℕ} {f g : ℕ→.ℕ} {c:ℕ→ℕ} (hc : Nat.RecursiveIn O c) (hf : Nat.RecursiveIn O f) (hg : Nat.RecursiveIn O g) : Nat.RecursiveIn O fun a => if (c a=0) then (f a) else (g a) := by
-    have exists_index_for_f : ∃ c : ℕ, eval O c = f := by exact (exists_code_nat O f).mp hf
-    have exists_index_for_g : ∃ c : ℕ, eval O c = g := by exact (exists_code_nat O g).mp hg
+    have exists_index_for_f : ∃ c : ℕ, eval O c = f := by exact exists_code_nat.mp hf
+    have exists_index_for_g : ∃ c : ℕ, eval O c = g := by exact exists_code_nat.mp hg
     rcases exists_index_for_f with ⟨index_f,index_f_is_f⟩
     rcases exists_index_for_g with ⟨index_g,index_g_is_g⟩
 
