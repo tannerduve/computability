@@ -452,30 +452,16 @@ theorem rfind'_eqv_rfind : ((Nat.unpaired fun a m => (Nat.rfind fun n => (fun m 
   exact rfl
 
 
--- def code_rfind : ℕ→ℕ := fun c => rfind' (pair c zero)
 /--`[code_rfind c](x)=smallest n s.t. [c](x,n)=0.`-/
 def code_rfind : ℕ→ℕ := fun c => comp (rfind' c) (pair Nat.RecursiveIn.Code.id zero)
--- def code_rfind : ℕ→ℕ := rfind' (pair Nat.RecursiveIn.Code.id zero)
--- def code_rfind : ℕ→ℕ := comp (rfind' ) (pair Nat.RecursiveIn.Code.id zero)
--- theorem test : Nat.unpaired
---     (fun a m ↦
---       Part.map (fun x ↦ x + m)
---         (Nat.rfind fun n ↦
---           (fun x ↦ decide (x = 0)) <$>
---             (Nat.pair <$> Part.some (Nat.pair a (n + m))).bind fun y ↦ Part.map y (Part.some 0)))
---     xs = Nat.unpaired
---     (fun a m ↦
---       Part.map (fun x ↦ x + m)
---         (Nat.rfind fun n ↦ (fun m ↦ decide (m = 0)) <$> eval O (decodeCode c) (Nat.pair a (n + m))))
---     (Nat.pair xs 0) := by
+
 
 @[simp] abbrev rfind (O:ℕ→ℕ) : ℕ→ℕ→.ℕ := fun c => fun a=> Nat.rfind fun n => (fun m => m = 0) <$> eval O c (Nat.pair a n)
--- theorem code_rfind_prop : eval O (code_rfind c) a = Nat.rfind fun n => (fun m => m = 0) <$> eval O c (Nat.pair a n) := by
 theorem code_rfind_prop : eval O (code_rfind c) a = (rfind O c a) := by
   unfold code_rfind
   unfold rfind
   rw [←rfind'_eqv_rfind]
-  simp
+  simp? says simp only [decodeCode_encodeCode, Nat.unpaired, Nat.unpair_pair, add_zero, Part.map_eq_map]
   simp only [eval]
   simp only [eval_id]
   simp only [pure]
@@ -489,13 +475,12 @@ section ran_to_dom
 /--`[code_if_eq c](x)=0 if x.1.2=[c](x.1.1, x.2) else 0`-/
 def code_if_eq : ℕ→ℕ := fun x => 0
 theorem code_if_eq_prop : eval O (code_if_eq e) ab = if (Nat.succ ab.l.r=eval O e (Nat.pair ab.l.l ab.r)) then 0 else 1 := by sorry
--- theorem code_if_eq_prop : eval O (code_if_eq e) ab = ite (ab.l.r=eval O e (Nat.pair ab.l.l ab.r)) 0 1 := by sorry
+
 /-
 ran_to_dom c = code_for
   fun y =>
   rfind_config (evaln c config=y)
 -/
--- noncomputable def ran_to_dom {O:Set ℕ} : (ℕ→ℕ) := fun c => curry (left.comp $ right.comp $ code_rfind (code_if_eq (evalnSet₁_code O))) c
 noncomputable def ran_to_dom {O:Set ℕ} : (ℕ→ℕ) := fun c => curry (code_rfind (code_if_eq (evalnSet₁_code O))) c
 theorem code_rfind_imp_ex : (∃ y, y ∈ eval O (code_rfind c) x) → (∃ y, eval O c (Nat.pair x y)=0) := by
   intro h
@@ -505,12 +490,11 @@ theorem code_rfind_imp_ex : (∃ y, y ∈ eval O (code_rfind c) x) → (∃ y, e
   use y
   apply Part.eq_some_iff.mpr
   exact hy.left
-theorem helper (h:eval O c (Nat.pair a x)=0) : (∃ config, config ∈ rfind O c a) := by sorry
-theorem helper2 : (0 ∈ (if xs = evaln₁ (χ O) (Nat.pair e y) then 0 else 1 : Part ℕ)) ↔ (xs = evaln₁ (χ O) (Nat.pair e y)) := by
+
+theorem helper1 : (0 ∈ (if xs = evaln₁ (χ O) (Nat.pair e y) then 0 else 1 : Part ℕ)) ↔ (xs = evaln₁ (χ O) (Nat.pair e y)) := by
   have h0 : (if xs = evaln₁ (χ O) (Nat.pair e y) then 0 else 1 : Part ℕ)=(Part.some (if xs = evaln₁ (χ O) (Nat.pair e y) then 0 else 1)) := by exact Eq.symm (apply_ite Part.some (xs = evaln₁ (χ O) (Nat.pair e y)) 0 1)
   constructor
   · intro h
-    -- rw [have ((if xs = evaln₁ (χ O) (Nat.pair e y) then 0 else 1 : Part ℕ)=(Part.some (if xs = evaln₁ (χ O) (Nat.pair e y) then 0 else 1))) by exact?%]
     rw [h0] at h
     apply Part.mem_some_iff.mp at h
     simp at h
@@ -519,11 +503,7 @@ theorem helper2 : (0 ∈ (if xs = evaln₁ (χ O) (Nat.pair e y) then 0 else 1 :
     rw [h0]
     apply Part.mem_some_iff.mpr
     exact Eq.symm (if_pos h)
-theorem helper3 {x:ℕ} : (a ∈ (x : Part ℕ)) ↔ (a=x) := by
-  simp
--- theorem helper4 {a} : (a ∈ (if (pred) then 0 else 1 : Part ℕ)) ↔ (a = (if (pred) then 0 else 1)) := by
---   have h0 : (if (pred) then 0 else 1 : Part ℕ)=(Part.some (if (pred) then 0 else 1)) := by exact Eq.symm (apply_ite Part.some ((pred)) 0 1)
-theorem helper4 : (a ∈ (if (xs = evaln₁ (χ O) (Nat.pair e y)) then 0 else 1 : Part ℕ)) ↔ (a = (if (xs = evaln₁ (χ O) (Nat.pair e y)) then 0 else 1)) := by
+theorem helper2 : (a ∈ (if (xs = evaln₁ (χ O) (Nat.pair e y)) then 0 else 1 : Part ℕ)) ↔ (a = (if (xs = evaln₁ (χ O) (Nat.pair e y)) then 0 else 1)) := by
   have h0 : (if (xs = evaln₁ (χ O) (Nat.pair e y)) then 0 else 1 : Part ℕ)=(Part.some (if (xs = evaln₁ (χ O) (Nat.pair e y)) then 0 else 1)) := by exact Eq.symm (apply_ite Part.some ((xs = evaln₁ (χ O) (Nat.pair e y))) 0 1)
   constructor
   · intro h
@@ -534,8 +514,8 @@ theorem helper4 : (a ∈ (if (xs = evaln₁ (χ O) (Nat.pair e y)) then 0 else 1
     rw [h0]
     apply Part.mem_some_iff.mpr
     exact h
+theorem helper3 : x=y ↔ Option.some x = Option.some y := by simp
 
-theorem wtf : x=y ↔ Option.some x = Option.some y := by simp
 theorem ran_to_dom_prop : (WR O e) = (W O (@ran_to_dom O e)) := by
   ext xs
   constructor
@@ -552,8 +532,8 @@ We know that [e'](xs)↓, because the search procedure will stop at or before di
     simp only [decodeCode_encodeCode, eval_curry]
     rw [code_rfind_prop]
     simp [code_if_eq_prop]
+    simp [helper1]
     simp [helper2]
-    simp [helper4]
     simp [evalSet] at hy
     apply evaln_complete.mp at hy
     rcases hy with ⟨k,hyk⟩
@@ -568,27 +548,28 @@ We know that [e'](xs)↓, because the search procedure will stop at or before di
     constructor
     · exact Nat.find_spec hfind
     · exact Nat.find_min hfind
+
+-- We wish to show that if [e'](xs)↓, then [e] generates xs.
   · intro h
     simp at h
     rcases h with ⟨y,hy⟩
     simp [WR]
     rw [PFun.ran]
     simp
--- #check Denumerable
 
     rw [ran_to_dom] at hy
     simp only [decodeCode_encodeCode, eval_curry] at hy
     rw [code_rfind_prop] at hy
     simp [code_if_eq_prop] at hy
+    simp [helper1] at hy
     simp [helper2] at hy
-    simp [helper4] at hy
     have mainn1 {k:ℕ} : Option.some (Option.some k) = Encodable.decode (k + 1) := by
       simp [Encodable.decode]
 
 
     have main0 : Option.some xs = evaln (χ O) (Nat.unpair y).2 (decodeCode e) (Nat.unpair y).1 := by
       simp [evaln₁] at hy
-      suffices h:Option.some (Option.some xs) = Option.some (evaln (χ O) (Nat.unpair y).2 (decodeCode e) (Nat.unpair y).1) from wtf.mpr h
+      suffices h:Option.some (Option.some xs) = Option.some (evaln (χ O) (Nat.unpair y).2 (decodeCode e) (Nat.unpair y).1) from helper3.mpr h
       rw [show (Option.some (Option.some xs) = Encodable.decode (xs + 1)) from mainn1]
       rw [hy.left]
       exact Encodable.encodek (evaln (χ O) (Nat.unpair y).2 (decodeCode e) (Nat.unpair y).1)
@@ -597,7 +578,8 @@ We know that [e'](xs)↓, because the search procedure will stop at or before di
     apply evaln_sound at h3
     exact Exists.intro (Nat.unpair y).1 h3
 
-
+theorem Nat.Primrec.prim_ran_to_dom : Nat.Primrec (@ran_to_dom O) := by
+  sorry
 
 end ran_to_dom
 
