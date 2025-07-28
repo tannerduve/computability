@@ -1,4 +1,4 @@
-import Computability.SingleOracle.Encoding2
+import Computability.SingleOracle.Encoding
 import Mathlib.Data.PFun
 
 import Mathlib.Data.Nat.Dist

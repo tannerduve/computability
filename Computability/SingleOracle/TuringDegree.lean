@@ -1,4 +1,4 @@
-import Computability.SingleOracle.Oracle2
+import Computability.SingleOracle.Oracle
 
 @[simp] abbrev TuringReducible (f g : ℕ → ℕ) : Prop := Nat.RecursiveIn g f
 @[simp] abbrev TuringReducibleStrict (f g : ℕ → ℕ) : Prop := Nat.RecursiveIn g f ∧ ¬ Nat.RecursiveIn f g

@@ -635,10 +635,10 @@ theorem partfun_eq_χgraph {f:ℕ→ℕ} : f ≡ᵀᶠ χ (total_graph f) := by 
 
 
 
--- CE O A means that A is c.e. in O.
-def CE (O:Set ℕ) (A:Set ℕ) : Prop := ∃ c:ℕ, A = W O c
-theorem CE_range : CE O A ↔ ∃ c:ℕ, A = WR O c := by
-  simp only [CE]
+/-- `CEin O A` means that `A` is c.e. in `O`. -/
+def CEin (O:Set ℕ) (A:Set ℕ) : Prop := ∃ c:ℕ, A = W O c
+theorem CEin_range : CEin O A ↔ ∃ c:ℕ, A = WR O c := by
+  simp only [CEin]
   constructor
   · intro h
     rcases h with ⟨c,hc⟩
@@ -651,32 +651,35 @@ theorem CE_range : CE O A ↔ ∃ c:ℕ, A = WR O c := by
     rw [←ran_to_dom_prop]
     exact hc
 
-theorem Computable_iff_CE_compCE : A≤ᵀB ↔ (CE B A ∧ CE B Aᶜ) := by sorry
+theorem Cin_iff_CEin_CEin' : A≤ᵀB ↔ (CEin B A ∧ CEin B Aᶜ) := by sorry
 
--- immune O A := A is immune in O
-def immune (O:Set ℕ) (A:Set ℕ) : Prop := (A.Infinite) ∧ (∀c:ℕ, (W O c).Infinite → ¬(W O c ⊆ A))
--- simple O A := A is simple in O
-def simple (O:Set ℕ) (A:Set ℕ) : Prop := (CE O A) ∧ immune O Aᶜ
-theorem simple_above_empty (h:simple ∅ A): ∅<ᵀA := by sorry
+
+/-- immuneIn O A := A is immune in O -/
+def immuneIn (O:Set ℕ) (A:Set ℕ) : Prop := (A.Infinite) ∧ (∀c:ℕ, (W O c).Infinite → ¬(W O c ⊆ A))
+/-- simpleIn O A := A is simple in O -/
+def simpleIn (O:Set ℕ) (A:Set ℕ) : Prop := (CEin O A) ∧ immuneIn O Aᶜ
+abbrev simple := simpleIn ∅
+theorem simple_above_empty (h:simple A): ∅<ᵀA := by sorry
 
 def f_simple_ran (e:ℕ) := 3
 -- find the smallest input x which halts when dovetailing e, and such that also x≥2e
 
-theorem exists_simple_set : ∃ A:Set ℕ, simple O A := by
+theorem exists_simple_set : ∃ A:Set ℕ, simpleIn O A := by
   sorry
 
 
 
 -- in cooper p.220 theres the requirement also that A≤ᵀjumpn 1 ∅. is this necessary?
-def low (n:ℕ) (A:Set ℕ) : Prop := jumpn n A = jumpn n ∅
+def lowN (n:ℕ) (A:Set ℕ) : Prop := jumpn n A = jumpn n ∅
+abbrev low := lowN 1
 
-theorem low_below_K (h:low 1 A) : A<ᵀ∅⌜ := by
-  simp [low, jumpn] at h
+theorem low_below_K (h:lowN 1 A) : A<ᵀ∅⌜ := by
+  simp [lowN, jumpn] at h
   have h0 : A⌜≡ᵀ∅⌜ := by exact Eq.antisymmRel (congrArg (toAntisymmetrization SetTuringReducible) h)
   have h1 : A<ᵀA⌜ := by exact Set_lt_SetJump
   exact lt_of_lt_of_eq h1 (congrArg (toAntisymmetrization SetTuringReducible) h)
 
-theorem exists_low_simple_set : ∃ A:Set ℕ, simple ∅ A ∧ low 1 A := by
+theorem exists_low_simple_set : ∃ A:Set ℕ, simple A ∧ low A := by
   sorry
 
 theorem posts_problem_solution : ∃ A:Set ℕ, ∅<ᵀA ∧ A<ᵀ∅⌜ := by
