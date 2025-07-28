@@ -7,9 +7,6 @@ Define the automorphism group of the Turing degrees.
 -/
 -- State and prove skeleton of countability argument
 
-/-
-Add order automorphism + group instance to Mathlib. Maybe generalize over any relation (RelIso). (Doesnt seem to be in mathlib but not sure)
--/
 abbrev OrderAut (α : Type*) [LE α] := OrderIso α α
 
 instance OrderAutGroup (α : Type) [LE α] : Group (OrderAut α) where
@@ -29,5 +26,34 @@ instance TuringDegree.automorphismGroup.isGroup : Group (TuringDegree.automorphi
 instance TuringDegree.automorphismGroup.existsAut : Inhabited (TuringDegree.automorphismGroup) :=
   ⟨OrderIso.refl TuringDegree⟩
 
-theorem TuringDegree.automorphismGroup.isCountable : Countable (TuringDegree.automorphismGroup) :=
+def computable_fns := { f : ℕ → ℕ // Computable f }
+
+/-
+Goal: Prove uncountably many Turing Degrees
+Prove computable/partrec functions are countable
+-/
+-- #check Encodable.nonempty_encodable
+-- #check exists_code_rel
+-- Should use codeo
+def partrecinj : computable_fns → ℕ :=
+  sorry
+
+#check @Encodable.ofLeftInjection ℕ computable_fns _root_.Nat.encodable
+
+lemma NisCountable : Countable ℕ :=
+  ⟨λ (n : ℕ) => Nat.succ n, Nat.succ_injective⟩
+
+
+
+instance computable_functions_encodable : Encodable computable_fns :=
+  -- ⟨λ _ => 0, λ _ => 0, λ _ => 0⟩
+  sorry
+
+lemma computable_functions_countable : Countable computable_fns := by
+  unfold computable_fns
+  sorry
+
+
+
+theorem TuringDegree.automorphismGroup.isCountable : Countable (TuringDegree.automorphismGroup) := by
   sorry

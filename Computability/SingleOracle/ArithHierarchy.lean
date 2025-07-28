@@ -1,5 +1,7 @@
 import Computability.SingleOracle.Jump
 
+noncomputable section
+
 def Delta0_0 (A : Set ℕ) [DecidablePred A] : Prop := True
 def Sigma0_0 := Delta0_0
 def Pi0_0 := Delta0_0
@@ -21,10 +23,8 @@ def arithJumpBase : ℕ → ℕ →. ℕ
 def arithJumpSet (n : ℕ) : Set ℕ :=
   (arithJumpBase n).Dom
 
-abbrev K := arithJumpSet 1
-
-def decidableIn (O : Set (ℕ →. ℕ)) (A : Set ℕ) : Prop :=
-  ∃ f : ℕ → Bool, ComputableIn O f ∧ ∀ n, A n ↔ f n = true
+noncomputable def decidableIn (O : ℕ →. ℕ) (A : Set ℕ) : Prop :=
+  ∃ f : ℕ → Bool, SingleOracle.ComputableIn O f ∧ ∀ n, A n ↔ f n = true
 
 /-
 The arithmetical hierarchy:
@@ -36,8 +36,8 @@ The arithmetical hierarchy:
 -/
 def Sigma0 (n : ℕ) (A : Set ℕ) : Prop :=
   match n with
-  | 0 => decidableIn {} A
-  | k + 1 => recursively_enumerable_in {arithJumpBase k} A
+  | 0 => decidableIn (fun _ => Part.none) A
+  | k + 1 => recursively_enumerable_in₂ (arithJumpBase k) A
 
 def Pi0 (n : ℕ) (A : Set ℕ) : Prop :=
   Sigma0 n Aᶜ

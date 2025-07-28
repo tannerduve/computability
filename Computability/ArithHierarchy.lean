@@ -1,5 +1,6 @@
 import Computability.Jump
 
+noncomputable section
 def Delta0_0 (A : Set ℕ) [DecidablePred A] : Prop := True
 def Sigma0_0 := Delta0_0
 def Pi0_0 := Delta0_0

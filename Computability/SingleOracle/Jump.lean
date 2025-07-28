@@ -17,8 +17,6 @@ noncomputable abbrev K0 (O:ℕ→ℕ) := jump O
 notation:100 f"⌜" => jump f
 
 
-
-
 /-
 There are lots of primrec theorems we would like to use like
 

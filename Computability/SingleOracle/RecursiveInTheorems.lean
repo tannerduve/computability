@@ -95,7 +95,16 @@ end Nat.RecursiveIn.Code
 
 
 
+/--
+Maps non-zero natural numbers to 1 and zero to 0.
+This is used for boolean-like computations in primitive recursive functions.
+-/
 @[simp] def Nat.flatten := fun x => if x=0 then 0 else 1
+
+/--
+Maps zero to 1 and non-zero natural numbers to 0.
+This is the inverse of `Nat.flatten` for boolean-like computations.
+-/
 @[simp] def Nat.flattenInv := fun x => if x=0 then 1 else 0
 
 open Nat.Primrec in

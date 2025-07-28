@@ -81,7 +81,7 @@ def RecursiveIn₂ {α β σ} [Primcodable α] [Primcodable β] [Primcodable σ]
 def ComputableIn {α σ} [Primcodable α] [Primcodable σ] (O : Set (ℕ →. ℕ)) (f : α → σ) : Prop :=
   RecursiveIn' O (fun a => Part.some (f a))
 
-/-- A binary total function is computable in `O`. -/
+/-- A binary total function is computable in `O` if the curried form is. -/
 def ComputableIn₂ {α β σ} [Primcodable α] [Primcodable β] [Primcodable σ]
     (O : Set (ℕ →. ℕ)) (f : α → β → σ) : Prop :=
   ComputableIn O (fun p : α × β => f p.1 p.2)
@@ -217,3 +217,22 @@ theorem partrec_iff_forall_recursiveIn : Nat.Partrec f ↔ ∀ g, RecursiveIn {g
       apply RecursiveIn.prec ih₁ ih₂
     · case rfind =>
       apply RecursiveIn.rfind ih
+
+/--
+One can add arbitrary oracles not changing the recursive nature.
+-/
+lemma add_set_of_oracles (recf : RecursiveIn O f) (new_oracles : Set (ℕ →. ℕ)) : RecursiveIn (O ∪ new_oracles) f := by
+  induction recf <;> repeat {constructor}
+  · case oracle _ _ =>
+    constructor; left; assumption
+  · case pair _ _ _ _ rec_new_f rec_new_h =>
+    apply RecursiveIn.pair rec_new_f rec_new_h
+  · case comp _ _ _ _ rec_new_f rec_new_h =>
+    apply RecursiveIn.comp rec_new_f rec_new_h
+  · case prec _ _ _ _ rec_new_f rec_new_h =>
+    apply RecursiveIn.prec rec_new_f rec_new_h
+  · case rfind g rec_g rec_new_g =>
+    apply RecursiveIn.rfind rec_new_g
+
+lemma add_oracle_no_change {O} (recf : RecursiveIn O f) (new_oracle : ℕ →. ℕ) : RecursiveIn (O ∪ {new_oracle}) f := by
+  exact add_set_of_oracles recf {new_oracle}

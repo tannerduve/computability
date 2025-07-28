@@ -153,7 +153,132 @@ def projR : ℕ →. ℕ :=
     | some (Sum.inr x) => Part.some x
     | _                => Part.none
 
+lemma use_oracle_computation_from_pair {O : Set (ℕ →. ℕ)} (f g h : ℕ →. ℕ)
+  (recf : RecursiveIn O f) (recg : RecursiveIn O g) (fgh : RecursiveIn {f, g} h) :
+  RecursiveIn O h := by
+  induction fgh
+  repeat {constructor}
+  case oracle _ k =>
+    cases' k with H H
+    rw [H]
+    assumption
+    cases' H with H1 H1
+    assumption
+  case pair recj reck => exact RecursiveIn.pair recj reck
+  case comp recj reck => exact RecursiveIn.comp recj reck
+  case prec recj reck => exact RecursiveIn.prec recj reck
+  case rfind recj => exact RecursiveIn.rfind recj
+
+-- Must prove other join lemmas to prove this, bottom are equivalent I believe
+lemma get_from_join {f g : ℕ →. ℕ} : RecursiveIn (O ∪ {f ⊕ g}) f := sorry
+lemma get_from_join' {f g : ℕ →. ℕ} (fgmem : (f ⊕ g) ∈ O) : RecursiveIn (O) f := sorry
+
+lemma join_comm (f g : ℕ →. ℕ) : (f ⊕ g) = (g ⊕ f) :=
+  sorry
+
+lemma join_add_oracles_equiv_simple : ∀ f g h, RecursiveIn {f, g} h ↔ RecursiveIn {f ⊕ g} h := by
+  sorry
+
+lemma join_add_oracles_equiv : RecursiveIn (O ∪ {f, g}) h ↔ RecursiveIn (O ∪ {f ⊕ g}) h := by
+  constructor
+  intro H
+  induction H
+  repeat {constructor}
+  case oracle j jmem =>
+    cases' jmem with H H
+    constructor
+    left
+    assumption
+    cases' H with jf jg
+    rw [jf]
+    exact get_from_join
+    cases' jg
+    rw [join_comm]
+    exact get_from_join
+  case pair j k _ _ recj reck =>
+    apply RecursiveIn.pair recj reck
+  case comp j k _ _ recj reck =>
+    apply RecursiveIn.comp recj reck
+  case prec j k _ _ recj reck =>
+    apply RecursiveIn.prec recj reck
+  case rfind j _ recj => apply RecursiveIn.rfind recj
+
+  intro H
+  induction H
+  repeat {constructor}
+  case oracle j jmem =>
+    cases' jmem with H H
+    constructor
+    left
+    assumption
+    cases' H with jf jg
+    apply use_oracle_computation_from_pair
+    apply RecursiveIn.oracle f
+    right
+    left
+    rfl
+    apply RecursiveIn.oracle g
+    right
+    right
+    rfl
+    apply (join_add_oracles_equiv_simple f g (f ⊕ g)).mpr
+    apply RecursiveIn.oracle
+    rfl
+  case pair _ _ _ recj reck => exact RecursiveIn.pair recj reck
+  case comp _ _ _ _ recj reck => exact RecursiveIn.comp recj reck
+  case prec _ _ _ _ recj reck => exact RecursiveIn.prec recj reck
+  case rfind _ _ recj => exact RecursiveIn.rfind recj
+
+
+#check finite_or_infinite
+def join_collapse_finite (O: Set (ℕ →. ℕ)) : ℕ →. ℕ :=
+  sorry
+
+/--
+To show that single oracle computation is equivalent (might need to assume O countable)
+-/
+lemma collapse_oracles {O f} : RecursiveIn O f -> ∃ o : ℕ →. ℕ, RecursiveIn {o} f := by
+  sorry
+
+#check RecursiveIn.of_eq
+
+lemma join_inv_left_rec_from_join (f g : ℕ →. ℕ) :
+  (λ n => Part.bind ((f ⊕ g) (encode (Sum.inl n : ℕ ⊕ ℕ))) projL) ≤ᵀ (f ⊕ g) := by
+    simp
+    unfold projL
+    unfold turingJoin
+    sorry
+
+lemma decode_encode_helper : ∀ y: ℕ ⊕ ℕ, decodeSum (encodeSum y) = some y := by
+  intro y
+  simp [decodeSum, encodeSum]
+  induction y <;> simp
+
+lemma helper {n} : (Denumerable.ofNat (ℕ ⊕ ℕ) (2 * n)) = Sum.inl n := by
+  induction n
+  case zero =>
+    unfold Denumerable.ofNat
+    -- rw [Denumerable.decode_eq_ofNat (α := ℕ) (n := 2 * 0)]
+    sorry
+  case succ k ih =>
+    unfold Denumerable.ofNat at *
+    rw [mul_add]
+    unfold decode at *
+    simp
+    sorry
+
+lemma extract_left_from_join (f g : ℕ →. ℕ) :
+    f = λ n => Part.bind ((f ⊕ g) (encode (Sum.inl n : ℕ ⊕ ℕ))) projL := by
+  funext n
+  simp [turingJoin, liftPrimcodable, gjoin]
+  unfold projL
+  simp [decode, encode, decode_encode_helper]
+  sorry
+
 lemma left_le_join (f g : ℕ →. ℕ) : f ≤ᵀ (f ⊕ g) := by
+  unfold TuringReducible
+  unfold turingJoin
+  unfold gjoin
   sorry
 
 lemma right_le_join (f g : ℕ →. ℕ) : g ≤ᵀ (f ⊕ g) := by
@@ -171,9 +296,31 @@ def TuringDegree.add (a b : TuringDegree) : TuringDegree :=
     (by {
       intro f₁ f₂ g₁ g₂ hf hg
       apply Quot.sound
-      simp [AntisymmRel, TuringReducible]
+      simp [AntisymmRel]
       constructor
       cases' hf with hf₁ hf₂
       cases' hg with hg₁ hg₂
-      all_goals {sorry}
+      case a.left =>
+        have f₁g₁g₂ : f₁ ≤ᵀ (g₁ ⊕ g₂) := TuringReducible.trans hf₁ (left_le_join g₁ g₂)
+        have f₂g₁g₂ : f₂ ≤ᵀ (g₁ ⊕ g₂) := TuringReducible.trans hg₁ (right_le_join g₁ g₂)
+        apply join_le f₁ f₂ (g₁ ⊕ g₂) f₁g₁g₂ f₂g₁g₂
+      case a.right =>
+        cases' hf with hf₁ hf₂
+        cases' hg with hg₁ hg₂
+        have gf₁f₂ : g₁ ≤ᵀ (f₁ ⊕ f₂) := TuringReducible.trans hf₂ (left_le_join f₁ f₂)
+        have g₂f₁f₂ : g₂ ≤ᵀ (f₁ ⊕ f₂) := TuringReducible.trans hg₂ (right_le_join f₁ f₂)
+        apply join_le g₁ g₂ (f₁ ⊕ f₂) gf₁f₂ g₂f₁f₂
     })
+
+-- def TuringDegree.le : (a b : TuringDegree) -> Prop :=
+--   fun a b => Quotient.
+
+-- Can't even define
+-- lemma TuringDegree.add_le {a b : TuringDegree} : a ≤ᵀ a.add(b) := sorry
+
+#check TuringReducible.trans
+
+lemma use_function_from_oracle
+  (f : ℕ → ℕ) (g : ℕ → ℕ →. ℕ) (hf : RecursiveIn O f) (hg : RecursiveIn₂ O g)
+  : RecursiveIn O (λ n => g n (f n)) := by
+  sorry
