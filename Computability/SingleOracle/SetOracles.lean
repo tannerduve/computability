@@ -606,6 +606,7 @@ namespace KP54
 
 #check Finset
 -- χ (SetJump ∅)
+
 noncomputable def KP54 : ℕ→ℕ := fun s =>
   let i:=s.div2
 

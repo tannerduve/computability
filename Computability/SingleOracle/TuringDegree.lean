@@ -1,7 +1,16 @@
 import Computability.SingleOracle.Oracle
 
+/--
+`f` is Turing reducible to `g` if `g` is recursive in `f`.
+-/
 @[simp] abbrev TuringReducible (f g : ℕ → ℕ) : Prop := Nat.RecursiveIn g f
+/--
+`f` is Turing reducible to `g` strictly if `g` is recursive in `f` and `f` is not recursive in `g`.
+-/
 @[simp] abbrev TuringReducibleStrict (f g : ℕ → ℕ) : Prop := Nat.RecursiveIn g f ∧ ¬ Nat.RecursiveIn f g
+/--
+`f` is Turing equivalent to `g` if `f` is Turing reducible to `g` and `g` is Turing reducible to `f`.
+-/
 @[simp] abbrev TuringEquivalent (f g : ℕ → ℕ) : Prop := AntisymmRel TuringReducible f g
 
 @[reducible,simp,inherit_doc] scoped[Computability] infix:50 " ≤ᵀᶠ " => TuringReducible
@@ -57,13 +66,16 @@ instance : IsPreorder (ℕ→ℕ) TuringReducible where
   refl := TuringReducible.refl
   trans := @TuringReducible.trans
 
-abbrev FuncTuringDegree :=
+abbrev TuringDegree :=
   Antisymmetrization _ TuringReducible
-private instance : Preorder (ℕ→ℕ) where
+instance : Preorder (ℕ → ℕ) where
   le := TuringReducible
   le_refl := .refl
   le_trans _ _ _ := TuringReducible.trans
   lt := TuringReducibleStrict
+
+instance TuringDegree.instPartialOrder : PartialOrder TuringDegree :=
+  instPartialOrderAntisymmetrization
 
 open scoped Computability
 open Encodable

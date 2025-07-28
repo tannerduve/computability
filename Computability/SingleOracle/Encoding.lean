@@ -384,10 +384,10 @@ theorem rec_computable {α σ} [Primcodable α] [Primcodable σ] {c : α → Cod
       (cond n.div2.bodd (pc a (ofNat Code m.unpair.1, ofNat Code m.unpair.2, s₁, s₂))
         (pr a (ofNat Code m.unpair.1, ofNat Code m.unpair.2, s₁, s₂)))
   have : ComputableIn O G₁ := by
-    refine option_bind (list_getElem?.comp (snd.comp fst) (snd.comp snd)) <| .mk ?_
-    refine option_bind ((list_getElem?.comp (snd.comp fst)
+    refine option_bind (list_get?.comp (snd.comp fst) (snd.comp snd)) <| .mk ?_
+    refine option_bind ((list_get?.comp (snd.comp fst)
       (fst.comp <| ComputableIn.unpair.comp (snd.comp snd))).comp fst) <| .mk ?_
-    refine option_map ((list_getElem?.comp (snd.comp fst)
+    refine option_map ((list_get?.comp (snd.comp fst)
       (snd.comp <| ComputableIn.unpair.comp (snd.comp snd))).comp <| fst.comp fst) <| .mk ?_
     exact
       have a := fst.comp (fst.comp <| fst.comp <| fst.comp fst)

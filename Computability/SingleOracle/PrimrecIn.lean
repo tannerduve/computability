@@ -431,11 +431,11 @@ theorem nat_rec {f : α → β} {g : α → ℕ × β → β} (hf : PrimrecIn O 
           Nat.PrimrecIn.id.pair <| (Nat.Primrec.to_PrimrecIn (@Primcodable.prim α _)).comp Nat.PrimrecIn.left).of_eq
       fun n => by
       simp only [Nat.unpaired, id_eq, Nat.unpair_pair, decode_prod_val, decode_nat,
-        Option.some_bind, Option.map_map, Option.map_some']
+        Option.bind_some, Option.map_map, Option.map_some]
       rcases @decode α _ n.unpair.1 with - | a; · rfl
-      simp only [Nat.pred_eq_sub_one, encode_some, Nat.succ_eq_add_one, encodek, Option.map_some',
-        Option.some_bind, Option.map_map]
-      induction' n.unpair.2 with m <;> simp [encodek]
+      simp only [Nat.pred_eq_sub_one, encode_some, Nat.succ_eq_add_one, encodek, Option.map_some,
+        Option.bind_some, Option.map_map]
+      induction' n.unpair.2 with m <;> simp
       simp [*, encodek]
 
 theorem nat_rec' {f : α → ℕ} {g : α → β} {h : α → ℕ × β → β}
@@ -617,7 +617,7 @@ theorem dom_fintype [Finite α] (f : α → σ) : PrimrecIn O f :=
   option_some_iff.1 <| by
     haveI := decidableEqOfEncodable α
     refine ((list_get?₁ (l.map f)).comp (list_idxOf₁ l)).of_eq fun a => ?_
-    rw [List.get?_eq_getElem?, List.getElem?_map, List.getElem?_idxOf (m a), Option.map_some']
+    rw [List.get?_eq_getElem?, List.getElem?_map, List.getElem?_idxOf (m a), Option.map_some]
 
 -- Porting note: These are new lemmas
 -- I added it because it actually simplified the proofs
@@ -961,7 +961,7 @@ theorem nat_strong_rec (f : α → ℕ → σ) {g : α → List σ → Option σ
   suffices PrimrecIn₂ O fun a n => (List.range n).map (f a) from
     PrimrecIn₂.option_some_iff.1 <|
       (list_get?.comp (this.comp fst (succ.comp snd)) snd).to₂.of_eq fun a n => by
-        simp [List.getElem?_range (Nat.lt_succ_self n)]
+        simp
   PrimrecIn₂.option_some_iff.1 <|
     (nat_rec (const (some []))
           (to₂ <|
