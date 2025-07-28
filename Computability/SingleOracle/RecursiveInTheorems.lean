@@ -1,6 +1,8 @@
 import Computability.SingleOracle.Encoding2
 import Mathlib.Data.PFun
 
+import Mathlib.Data.Nat.Dist
+
 open Computability
 open Classical
 
@@ -26,6 +28,9 @@ open Nat.RecursiveIn.Code
 
 
 
+@[simp] abbrev Nat.l (n:ℕ) := n.unpair.1
+@[simp] abbrev Nat.r (n:ℕ) := n.unpair.2
+
 namespace Nat.RecursiveIn.Code
 theorem exists_code_nat (O : ℕ → ℕ) (f : ℕ →. ℕ) : Nat.RecursiveIn O f ↔ ∃ c : ℕ , eval O c = f := by
   have h {f : ℕ →. ℕ} : Nat.RecursiveIn O f ↔ ∃ c : Nat.RecursiveIn.Code, eval O c = f := by exact
@@ -42,14 +47,27 @@ theorem exists_code_nat (O : ℕ → ℕ) (f : ℕ →. ℕ) : Nat.RecursiveIn O
       use decodeCode c
     exact exists_code.mpr h5
 def eval₁ (O:ℕ→ℕ) : ℕ→.ℕ := fun ex => eval O ex.unpair.1 ex.unpair.2
-@[simp] theorem eval₁_rw_eval : eval₁ O = fun ex => eval O ex.unpair.1 ex.unpair.2 := by exact rfl
-theorem rec_eval₁ : Nat.RecursiveIn O (eval₁ O) := by
-  simp only [eval₁_rw_eval]
-  exact RecursiveIn.nat_iff.mp eval_part
+def evaln₁ (O:ℕ→ℕ) : ℕ→ℕ := fun abc => Encodable.encode (evaln O abc.r.r abc.l abc.r.l)
+theorem rec_eval₁ : Nat.RecursiveIn O (eval₁ O) := by exact RecursiveIn.nat_iff.mp eval_part
+theorem prim_evaln₁ : Nat.PrimrecIn O (evaln₁ O) := by
+  refine PrimrecIn.nat_iff.mp ?_
+  unfold evaln₁
+  have h : (fun (abc : ℕ) ↦ evaln O abc.r.r (abc.l) abc.r.l) = (fun (a:(ℕ×Code)×ℕ) ↦ evaln O a.1.1 a.1.2 a.2) ∘ (fun (abc:ℕ) => ((abc.r.r, abc.l), abc.r.l)) := by
+    exact rfl
+  -- rw [h]
+  have h2 : PrimrecIn O (fun (abc:ℕ) =>    (((abc.r.r, abc.l), abc.r.l):(ℕ×Code)×ℕ)    ) := by
+    refine _root_.PrimrecIn.pair ?_ ?_
+    · apply _root_.PrimrecIn.pair (_root_.PrimrecIn.comp (PrimrecIn.nat_iff.mpr PrimrecIn.right) (PrimrecIn.nat_iff.mpr PrimrecIn.right))
+      apply _root_.PrimrecIn.comp
+      · apply PrimrecIn.ofNat Nat.RecursiveIn.Code
+      · exact PrimrecIn.nat_iff.mpr PrimrecIn.left
+    · exact _root_.PrimrecIn.comp (PrimrecIn.nat_iff.mpr PrimrecIn.left) (PrimrecIn.nat_iff.mpr PrimrecIn.right)
+  apply _root_.PrimrecIn.comp evaln_prim h2
+
+
 theorem exists_code_for_eval₁ : ∃ c:ℕ, eval O c = eval₁ O := by
   apply ((exists_code_nat O (eval₁ O)).mp)
   exact rec_eval₁
-
 
 theorem Nat.RecursiveIn.evalRecInO' {O} {f:ℕ→.ℕ} (h:Nat.RecursiveIn O f) : Nat.RecursiveIn O (fun x => (f x) >>= (eval₁ O)) := by
   simp only [Part.bind_eq_bind]
@@ -83,23 +101,21 @@ end Nat.RecursiveIn.Code
 open Nat.Primrec in
 theorem Nat.Primrec.flatten : Nat.Primrec Nat.flatten := by
   let construction := comp (prec zero (((const 1).comp left).comp left)) (pair zero .id)
-  apply Nat.Primrec.of_eq
-  · exact construction
-  · simp only [unpaired, id_eq, unpair_pair, Nat.flatten]
-    intro n
-    induction n with
-    | zero => exact rfl
-    | succ n _ => simp only [Nat.add_eq_zero, one_ne_zero, and_false, ↓reduceIte]
+  apply Nat.Primrec.of_eq construction
+  simp only [unpaired, id_eq, unpair_pair, Nat.flatten]
+  intro n
+  induction n with
+  | zero => exact rfl
+  | succ n _ => simp only [Nat.add_eq_zero, one_ne_zero, and_false, ↓reduceIte]
 open Nat.Primrec in
 theorem Nat.Primrec.flattenInv : Nat.Primrec Nat.flattenInv := by
   let construction := comp (prec (const 1) (((zero).comp left).comp left)) (pair zero .id)
-  apply Nat.Primrec.of_eq
-  · exact construction
-  · simp only [unpaired, id_eq, unpair_pair, Nat.flattenInv]
-    intro n
-    induction n with
-    | zero => exact rfl
-    | succ n _ => simp only [Nat.add_eq_zero, one_ne_zero, and_false, ↓reduceIte]
+  apply Nat.Primrec.of_eq construction
+  simp only [unpaired, id_eq, unpair_pair, Nat.flattenInv]
+  intro n
+  induction n with
+  | zero => exact rfl
+  | succ n _ => simp only [Nat.add_eq_zero, one_ne_zero, and_false, ↓reduceIte]
 
 @[simp] lemma Nat.RecursiveIn.pair' (f g : ℕ→ℕ) : ((↑fun x ↦ Nat.pair (f x) (g x)):ℕ→.ℕ)= fun (x:ℕ) => (Nat.pair <$> (f x) <*> (g x)) := by
   simp [Seq.seq]
@@ -200,3 +216,42 @@ theorem Nat.RecursiveIn.ite {O:ℕ→ℕ} {f g : ℕ→.ℕ} {c:ℕ→ℕ} (hc :
       apply Nat.RecursiveIn.ifz1
       exact hc
     exact id
+
+-- for code_ifeq
+
+open Nat.Primrec in
+theorem Nat.Primrec.dist : Nat.Primrec (unpaired Nat.dist) := by
+  let construction := comp Nat.Primrec.add (Nat.Primrec.pair Nat.Primrec.sub (Nat.Primrec.swap' Nat.Primrec.sub))
+  apply Nat.Primrec.of_eq construction
+  simp
+  simp [Function.swap]
+  exact fun n ↦ rfl
+
+
+-- conversions
+lemma PrimrecIn.PrimrecIn_Empty (h : Nat.PrimrecIn (fun _=>0) f) : Nat.Primrec f := by
+  induction' h with g hg g h _ _ ih₁ ih₂ g h _ _ ih₁ ih₂ g h _ _ ih₁ ih₂ g _ ih
+  repeat {constructor}
+  · (expose_names; exact Nat.Primrec.pair a_ih a_ih_1)
+  repeat {constructor; assumption; try assumption}
+  (expose_names; exact Nat.Primrec.prec a_ih a_ih_1)
+lemma PrimrecIn.PrimrecIn₂_Empty {f:α→β→σ} (h : PrimrecIn₂ (fun _=>0) f) : Primrec₂ f := by
+  unfold PrimrecIn₂ at h
+  unfold Primrec₂
+  apply PrimrecIn.PrimrecIn_Empty
+  exact h
+
+theorem Primrec.to_PrimrecIn₂ {f:α→β→σ} (h : Primrec₂ f) : PrimrecIn₂ O f := by
+  unfold Primrec₂ at h
+  unfold PrimrecIn₂
+  apply Primrec.to_PrimrecIn
+  exact h
+
+theorem PrimrecIn.PrimrecIn₂_iff_Primrec₂ {f:α→β→σ} : (∀O,PrimrecIn₂ O f) ↔ Primrec₂ f := by
+  constructor
+  · exact fun a ↦ PrimrecIn₂_Empty (a fun x ↦ 0)
+  · exact fun a O ↦ Primrec.to_PrimrecIn₂ a
+theorem PrimrecIn.PrimrecIn_iff_Primrec : (∀O,Nat.PrimrecIn O f) ↔ Nat.Primrec f := by
+  constructor
+  · exact fun a ↦ PrimrecIn.PrimrecIn_Empty (a fun x ↦ 0)
+  · exact fun a O ↦ Nat.Primrec.to_PrimrecIn a

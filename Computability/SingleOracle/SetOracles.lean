@@ -15,6 +15,7 @@ theorem χsimp {O} : χ O = fun x ↦ if x ∈ O then 1 else 0 := by exact rfl
 @[simp] abbrev SetTuringEquivalent (O A:Set ℕ) : Prop := AntisymmRel SetTuringReducible O A
 @[simp] noncomputable def evalSet (O:Set ℕ) : Nat.RecursiveIn.Code → ℕ→.ℕ := eval (χ O)
 @[simp] noncomputable def evalSet₁ (O:Set ℕ) : ℕ→.ℕ := eval₁ (χ O)
+@[simp] noncomputable def evalnSet₁ (O:Set ℕ) : ℕ→ℕ := evaln₁ (χ O)
 def SetK0 (A:Set ℕ) := {ex:ℕ | (evalSet A ex.unpair.1 ex.unpair.2).Dom}
 def SetK (A:Set ℕ) := {x:ℕ | (evalSet A x x).Dom}
 abbrev SetJump := SetK
@@ -58,6 +59,11 @@ private theorem exists_code_for_evalSet₁ : ∃ c:ℕ, evalSet O c = evalSet₁
 noncomputable def evalSet₁_code (O:Set ℕ) : ℕ := choose (@exists_code_for_evalSet₁ O)
 @[simp] theorem evalSet₁_code_prop : evalSet O (evalSet₁_code O) = evalSet₁ O := by exact choose_spec exists_code_for_evalSet₁
 @[simp] theorem evalSet₁_code_prop2 : eval (χ O) (evalSet₁_code O) = evalSet₁ O := by exact choose_spec exists_code_for_evalSet₁
+
+private theorem exists_code_for_evalnSet₁ : ∃ c:ℕ, evalSet O c = evalnSet₁ O := by apply ((exists_code_for_evalSet_nat O (evalnSet₁ O)).mp) (Nat.RecursiveIn.of_primrecIn prim_evaln₁)
+noncomputable def evalnSet₁_code (O:Set ℕ) : ℕ := choose (@exists_code_for_evalnSet₁ O)
+@[simp] theorem evalnSet₁_code_prop : evalSet O (evalnSet₁_code O) = evalnSet₁ O := by exact choose_spec exists_code_for_evalnSet₁
+@[simp] theorem evalnSet₁_code_prop2 : eval (χ O) (evalnSet₁_code O) = evalnSet₁ O := by exact choose_spec exists_code_for_evalnSet₁
 
 private theorem exists_code_for_eval₁ : ∃ c:ℕ, eval O c = eval₁ O := by apply ((exists_code_nat O (eval₁ O)).mp) rec_eval₁
 noncomputable def eval₁_code (O:ℕ→ℕ) : ℕ := choose (@exists_code_for_eval₁ O)
@@ -308,11 +314,9 @@ abbrev W (O:Set ℕ) (e : ℕ) := (evalSet O e).Dom
 /-- `WR O e` := range of e^th oracle program -/
 abbrev WR (O:Set ℕ) (e : ℕ) := (evalSet O e).ran
 
--- noncomputable def eval_ef (O:Set ℕ): ℕ→.ℕ := fun ex => Nat.pair <$> ex <*> evalSet₁ O ex
--- def eval_first (O:ℕ→ℕ) (x:ℕ) : ℕ→ℕ→.ℕ := fun ab => (eval O x ab.unpair.1) >>= (fun index => (Nat.pair index ab.unpair.2))  >>= fun ex => (eval₁ O ex)
--- def code_id:ℕ:= (Nat.RecursiveIn.Code.id)
--- #eval code_id
+section dom_to_ran
 def code_to_code_ef:ℕ→ℕ:=fun c=>(pair Nat.RecursiveIn.Code.id c)
+-- def code_to_code_ef:ℕ→ℕ:=(pair Nat.RecursiveIn.Code.id : ℕ→ℕ)
 theorem code_ef_left (h:(eval O c x).Dom) : eval O (left.comp $ code_to_code_ef c) x = x := by
   have h0 : (eval O c x).get h ∈ (eval O c x) := by exact Part.get_mem h
   have h1 : eval O c x = Part.some ((eval O c x).get h) := by exact Part.get_eq_iff_eq_some.mp rfl
@@ -324,6 +328,16 @@ theorem code_ef_left (h:(eval O c x).Dom) : eval O (left.comp $ code_to_code_ef 
   exact Part.Dom.bind h fun y ↦ Part.some x
 theorem eval_code_ef : eval O (code_to_code_ef c) x = Nat.pair <$> x <*> (eval O c x) := by
   simp [code_to_code_ef,eval]
+theorem prim_code_to_code_ef' : Primrec (pair Nat.RecursiveIn.Code.id) := by
+  refine Primrec.projection ?_
+  apply PrimrecIn.PrimrecIn₂_iff_Primrec₂.mp
+  intro O
+  apply pair_prim
+theorem prim_code_to_code_ef : Nat.Primrec code_to_code_ef := by
+  refine Primrec.nat_iff.mp ?_
+  apply prim_code_to_code_ef'
+
+
 theorem code_ef_dom_iff_code_dom : (eval O (code_to_code_ef c) x).Dom ↔ (eval O c x).Dom := by
   constructor
   · contrapose
@@ -337,14 +351,12 @@ theorem code_ef_dom_iff_code_dom : (eval O (code_to_code_ef c) x).Dom ↔ (eval 
     simp [eval]
     simp [Seq.seq]
     exact h
-
-
-
--- private def dom_to_ran_helper : (ℕ→ℕ) :=
 /-- Given a code `e`, returns a code whose range is the domain of `e`. -/
 noncomputable def dom_to_ran {O:Set ℕ} : (ℕ→ℕ) := fun e => curry ((comp) (right.comp left) (code_to_code_ef (evalSet₁_code O))) e
--- dom_to_ran(e) is the function which takes on input `x`, runs `[e](x)`, then binds to `const x`.
--- `[dom_to_ran(e)](x)=[(const x) ∘ eval ∘ (pair e x)]`
+-- the internal expression, (comp) (right.comp left) (code_to_code_ef (evalSet₁_code O)), takes a pair ex as input.
+-- code_to_code_ef (evalSet₁_code O) ex = (ex, [e](x)).
+-- piping it into right.comp left returns x.
+-- we curry bc we want eval (dom_to_ran e) x = ~
 
 theorem dom_to_ran_prop : (W O e) = (WR O (@dom_to_ran O e)) := by
   ext xs
@@ -361,6 +373,7 @@ theorem dom_to_ran_prop : (W O e) = (WR O (@dom_to_ran O e)) := by
     have h5234 : (eval (χ O) (decodeCode (evalSet₁_code O)) (Nat.pair e xs)).Dom := by
       rw [evalSet₁_code_prop2]
       simp [evalSet₁]
+      simp [eval₁]
       exact h0
 
 
@@ -390,6 +403,7 @@ theorem dom_to_ran_prop : (W O e) = (WR O (@dom_to_ran O e)) := by
     have h5234 : ¬(eval (χ O) (decodeCode (evalSet₁_code O)) (Nat.pair e xs)).Dom := by
       rw [evalSet₁_code_prop2]
       simp [evalSet₁]
+      simp [eval₁]
       exact h0
 
     rw [PFun.ran]
@@ -417,13 +431,213 @@ theorem dom_to_ran_prop : (W O e) = (WR O (@dom_to_ran O e)) := by
       simp [Seq.seq]
 
 
-theorem Nat.Primrec.dom_to_ran' : Nat.Primrec dom_to_ran := by sorry
+private lemma prim_dom_to_ran_aux : Primrec ((right.comp left).comp (decodeCode (code_to_code_ef (evalSet₁_code O)))).curry := by
+  refine Primrec.projection ?_
+  apply PrimrecIn.PrimrecIn₂_iff_Primrec₂.mp
+  exact fun O ↦ curry_prim
+theorem Nat.Primrec.prim_dom_to_ran : Nat.Primrec (@dom_to_ran O) := by
+  unfold dom_to_ran
+  refine Primrec.nat_iff.mp ?_
+  apply prim_dom_to_ran_aux
 
-def dovetail {h:Nat.RecursiveIn O f} : ℕ→ℕ := fun x => 0
+
+end dom_to_ran
+
+
+
+theorem rfind'_eqv_rfind : ((Nat.unpaired fun a m => (Nat.rfind fun n => (fun m => m = 0) <$> eval O c (Nat.pair a (n + m))).map (· + m)) (Nat.pair x 0)) = (Nat.rfind fun n => (fun m => m = 0) <$> eval O c (Nat.pair x n)) := by
+-- theorem rfind'_eqv_rfind : ((Nat.unpaired fun a m => (Nat.rfind fun n => (fun m => m = 0) <$> eval O c (Nat.pair a (n + m))).map (· + m)) ∘ (Nat.pair <$> (fun (n:ℕ)=>n) <*> Part.some 0)) x = (Nat.rfind fun n => (fun m => m = 0) <$> eval O c (Nat.pair x n)) := by
+  simp only [Nat.unpaired]
+  simp only [Nat.unpair_pair, add_zero, Part.map_eq_map]
+  exact rfl
+
+
+-- def code_rfind : ℕ→ℕ := fun c => rfind' (pair c zero)
+/--`[code_rfind c](x)=smallest n s.t. [c](x,n)=0.`-/
+def code_rfind : ℕ→ℕ := fun c => comp (rfind' c) (pair Nat.RecursiveIn.Code.id zero)
+-- def code_rfind : ℕ→ℕ := rfind' (pair Nat.RecursiveIn.Code.id zero)
+-- def code_rfind : ℕ→ℕ := comp (rfind' ) (pair Nat.RecursiveIn.Code.id zero)
+-- theorem test : Nat.unpaired
+--     (fun a m ↦
+--       Part.map (fun x ↦ x + m)
+--         (Nat.rfind fun n ↦
+--           (fun x ↦ decide (x = 0)) <$>
+--             (Nat.pair <$> Part.some (Nat.pair a (n + m))).bind fun y ↦ Part.map y (Part.some 0)))
+--     xs = Nat.unpaired
+--     (fun a m ↦
+--       Part.map (fun x ↦ x + m)
+--         (Nat.rfind fun n ↦ (fun m ↦ decide (m = 0)) <$> eval O (decodeCode c) (Nat.pair a (n + m))))
+--     (Nat.pair xs 0) := by
+
+@[simp] abbrev rfind (O:ℕ→ℕ) : ℕ→ℕ→.ℕ := fun c => fun a=> Nat.rfind fun n => (fun m => m = 0) <$> eval O c (Nat.pair a n)
+-- theorem code_rfind_prop : eval O (code_rfind c) a = Nat.rfind fun n => (fun m => m = 0) <$> eval O c (Nat.pair a n) := by
+theorem code_rfind_prop : eval O (code_rfind c) a = (rfind O c a) := by
+  unfold code_rfind
+  unfold rfind
+  rw [←rfind'_eqv_rfind]
+  simp
+  simp only [eval]
+  simp only [eval_id]
+  simp only [pure]
+  simp only [PFun.pure]
+  simp only [Seq.seq]
+  simp
+
+
+section ran_to_dom
+-- helper functions:
+/--`[code_if_eq c](x)=0 if x.1.2=[c](x.1.1, x.2) else 0`-/
+def code_if_eq : ℕ→ℕ := fun x => 0
+theorem code_if_eq_prop : eval O (code_if_eq e) ab = if (Nat.succ ab.l.r=eval O e (Nat.pair ab.l.l ab.r)) then 0 else 1 := by sorry
+-- theorem code_if_eq_prop : eval O (code_if_eq e) ab = ite (ab.l.r=eval O e (Nat.pair ab.l.l ab.r)) 0 1 := by sorry
+/-
+ran_to_dom c = code_for
+  fun y =>
+  rfind_config (evaln c config=y)
+-/
+-- noncomputable def ran_to_dom {O:Set ℕ} : (ℕ→ℕ) := fun c => curry (left.comp $ right.comp $ code_rfind (code_if_eq (evalnSet₁_code O))) c
+noncomputable def ran_to_dom {O:Set ℕ} : (ℕ→ℕ) := fun c => curry (code_rfind (code_if_eq (evalnSet₁_code O))) c
+theorem code_rfind_imp_ex : (∃ y, y ∈ eval O (code_rfind c) x) → (∃ y, eval O c (Nat.pair x y)=0) := by
+  intro h
+  rcases h with ⟨y,hy⟩
+  rw [code_rfind_prop] at hy
+  simp at hy
+  use y
+  apply Part.eq_some_iff.mpr
+  exact hy.left
+theorem helper (h:eval O c (Nat.pair a x)=0) : (∃ config, config ∈ rfind O c a) := by sorry
+theorem helper2 : (0 ∈ (if xs = evaln₁ (χ O) (Nat.pair e y) then 0 else 1 : Part ℕ)) ↔ (xs = evaln₁ (χ O) (Nat.pair e y)) := by
+  have h0 : (if xs = evaln₁ (χ O) (Nat.pair e y) then 0 else 1 : Part ℕ)=(Part.some (if xs = evaln₁ (χ O) (Nat.pair e y) then 0 else 1)) := by exact Eq.symm (apply_ite Part.some (xs = evaln₁ (χ O) (Nat.pair e y)) 0 1)
+  constructor
+  · intro h
+    -- rw [have ((if xs = evaln₁ (χ O) (Nat.pair e y) then 0 else 1 : Part ℕ)=(Part.some (if xs = evaln₁ (χ O) (Nat.pair e y) then 0 else 1))) by exact?%]
+    rw [h0] at h
+    apply Part.mem_some_iff.mp at h
+    simp at h
+    exact h
+  · intro h
+    rw [h0]
+    apply Part.mem_some_iff.mpr
+    exact Eq.symm (if_pos h)
+theorem helper3 {x:ℕ} : (a ∈ (x : Part ℕ)) ↔ (a=x) := by
+  simp
+-- theorem helper4 {a} : (a ∈ (if (pred) then 0 else 1 : Part ℕ)) ↔ (a = (if (pred) then 0 else 1)) := by
+--   have h0 : (if (pred) then 0 else 1 : Part ℕ)=(Part.some (if (pred) then 0 else 1)) := by exact Eq.symm (apply_ite Part.some ((pred)) 0 1)
+theorem helper4 : (a ∈ (if (xs = evaln₁ (χ O) (Nat.pair e y)) then 0 else 1 : Part ℕ)) ↔ (a = (if (xs = evaln₁ (χ O) (Nat.pair e y)) then 0 else 1)) := by
+  have h0 : (if (xs = evaln₁ (χ O) (Nat.pair e y)) then 0 else 1 : Part ℕ)=(Part.some (if (xs = evaln₁ (χ O) (Nat.pair e y)) then 0 else 1)) := by exact Eq.symm (apply_ite Part.some ((xs = evaln₁ (χ O) (Nat.pair e y))) 0 1)
+  constructor
+  · intro h
+    rw [h0] at h
+    apply Part.mem_some_iff.mp at h
+    exact h
+  · intro h
+    rw [h0]
+    apply Part.mem_some_iff.mpr
+    exact h
+
+theorem wtf : x=y ↔ Option.some x = Option.some y := by simp
+theorem ran_to_dom_prop : (WR O e) = (W O (@ran_to_dom O e)) := by
+  ext xs
+  constructor
+/-
+We wish to show that if xs=[e](y), then [e'](xs)↓.
+[e'](xs) dovetails [e] until xs is generated.
+We know that [e'](xs)↓, because the search procedure will stop at or before discovering y in its input configuration.
+-/
+  · intro h
+    simp at h
+    rcases h with ⟨y,hy⟩
+    simp [W]
+    rw [ran_to_dom]
+    simp only [decodeCode_encodeCode, eval_curry]
+    rw [code_rfind_prop]
+    simp [code_if_eq_prop]
+    simp [helper2]
+    simp [helper4]
+    simp [evalSet] at hy
+    apply evaln_complete.mp at hy
+    rcases hy with ⟨k,hyk⟩
+    have h1 : (xs+1 = evaln₁ (χ O) (Nat.pair e (Nat.pair y k))) := by
+      simp [evaln₁]
+      simp at hyk
+      rw [hyk]
+      exact rfl
+    have hfind : ∃ y, xs + 1 = evaln₁ (χ O) (Nat.pair e y) := by exact Exists.intro (Nat.pair y k) h1
+
+    use Nat.find hfind
+    constructor
+    · exact Nat.find_spec hfind
+    · exact Nat.find_min hfind
+  · intro h
+    simp at h
+    rcases h with ⟨y,hy⟩
+    simp [WR]
+    rw [PFun.ran]
+    simp
+-- #check Denumerable
+
+    rw [ran_to_dom] at hy
+    simp only [decodeCode_encodeCode, eval_curry] at hy
+    rw [code_rfind_prop] at hy
+    simp [code_if_eq_prop] at hy
+    simp [helper2] at hy
+    simp [helper4] at hy
+    have mainn1 {k:ℕ} : Option.some (Option.some k) = Encodable.decode (k + 1) := by
+      simp [Encodable.decode]
+
+
+    have main0 : Option.some xs = evaln (χ O) (Nat.unpair y).2 (decodeCode e) (Nat.unpair y).1 := by
+      simp [evaln₁] at hy
+      suffices h:Option.some (Option.some xs) = Option.some (evaln (χ O) (Nat.unpair y).2 (decodeCode e) (Nat.unpair y).1) from wtf.mpr h
+      rw [show (Option.some (Option.some xs) = Encodable.decode (xs + 1)) from mainn1]
+      rw [hy.left]
+      exact Encodable.encodek (evaln (χ O) (Nat.unpair y).2 (decodeCode e) (Nat.unpair y).1)
+    have h3 := Option.mem_def.mpr (main0.symm)
+
+    apply evaln_sound at h3
+    exact Exists.intro (Nat.unpair y).1 h3
+
+
+
+end ran_to_dom
+
+
+-- evalnSet₁_code
+-- helper:
+-- rfind c' where c' is a code which gives 1 if evaln_aux O c input.2 = input.1 else 0
+-- code_evaln_aux : takes c as input, returns code which takes config as input, outputs evaln O config.unpair.2 c config.unpair.1
+-- def evaln_aux (O:ℕ→ℕ) : ℕ→ℕ→Option ℕ := fun code config => evaln O config.unpair.2 code config.unpair.1
+def dovetail {O:Set ℕ} : ℕ→ℕ := code_rfind (code_if_eq (evalnSet₁_code O))
+-- = μ config : evaln_aux O c config = y
+-- i want to write:
+/-
+ran_to_dom c = code_for
+  fun y =>
+  rfind_config (evaln c config=y)
+-/
+-- or for simple:
+/-
+fun x =>
+  rfind_config (evaln c config=y)
+-/
+-- or for incomparable sets under K via finite extensions:
+/-
+-/
+-- or for low+simple:
+/-
+fun s =>
+  for e=0 to s:
+    if <e,s> ∩ A_s = ∅:
+      for x in <e,s>:
+        if x≥2e ∧ ∀ i≤e, x>use(i,A_s,i,s):
+          return x
+  return null
+-/
+
 /--
 Given a code "e", dovetail_code e gives the code to the function which, on input n:
 
-runs [e](0) for 1 step (i.e. evalnO e 0 1)
+runs [e](0) for 1 step (i.e. evaln O 1 e 0)
 
 runs [e](0) for 2 steps
 runs [e](1) for 1 step
@@ -457,6 +671,9 @@ def immune (O:Set ℕ) (A:Set ℕ) : Prop := (A.Infinite) ∧ (∀c:ℕ, (W O c)
 -- simple O A := A is simple in O
 def simple (O:Set ℕ) (A:Set ℕ) : Prop := (CE O A) ∧ immune O Aᶜ
 theorem simple_above_empty (h:simple ∅ A): ∅<ᵀA := by sorry
+
+def f_simple_ran (e:ℕ) := 3
+-- find the smallest input x which halts when dovetailing e, and such that also x≥2e
 
 theorem exists_simple_set : ∃ A:Set ℕ, simple O A := by
   sorry

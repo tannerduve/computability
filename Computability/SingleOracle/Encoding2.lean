@@ -136,8 +136,9 @@ def decodeCode : ℕ → Code
 instance : OfNat (Code) m where ofNat := decodeCode m
 instance : Coe ℕ Code := ⟨decodeCode⟩
 instance : Coe Code ℕ := ⟨encodeCode⟩
-/-- Converts an `Code` into a `ℕ`. -/ @[coe] def ofCode : Code → ℕ := encodeCode
+-- /-- Converts an `Code` into a `ℕ`. -/ @[coe] def ofCode : Code → ℕ := encodeCode
 abbrev ofNatCode := decodeCode
+
 @[simp] theorem decodeCode_encodeCode : ∀ c, decodeCode (encodeCode c) = c := fun c => by
   induction c <;> (simp [encodeCode, decodeCode, Nat.div2_val, *])
 @[simp] theorem encodeCode_decodeCode : ∀ c, encodeCode (decodeCode c) = c :=
