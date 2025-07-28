@@ -587,16 +587,35 @@ end ran_to_dom
 
 
 
-/-- `Dmem (a,x) = [x∈Dₐ]` (iversion brackets) -/
-def Dmem : ℕ→ℕ := fun ax => if ax.l=1 then 1 else 0 --notyetimplemented
--- def D : ℕ→Finset ℕ := fun a => {x | (Dmem (Nat.pair a x))=1}
--- def D : ℕ→Set ℕ := fun a => {x | (Dmem (Nat.pair a x))=1}
--- use https://lean-lang.org/doc/reference/latest/Basic-Types/Bitvectors/?
-#check (BitVec.ofNat 3 3)
+-- We define interpretations of naturals as finite strings on the alphabet {0,1}.
+-- (b,l) is interpreted as the string of length l, whose sequence matches with the binary representation of b.
+/-- `BSMem (a,x) = [x∈Dₐ]` (iversion brackets) -/
+def BSMem : ℕ→ℕ := fun xa => if Nat.testBit xa.r xa.l.l then 1 else 0
+#eval BSMem (Nat.pair 3 0b01000)
+theorem Nat.Primrec.BSMem_prim : Nat.Primrec BSMem := by sorry
+def BSUnion : ℕ→ℕ := fun bl1bl2 => Nat.pair (Nat.lor bl1bl2.l.l bl1bl2.r.l) (Nat.max bl1bl2.l.r bl1bl2.r.r)
+theorem Nat.Primrec.BSUnion_prim : Nat.Primrec BSUnion := by sorry
+def DSize : ℕ → ℕ
+| 0     => 0
+| (n+1) => (n+1)&&&1 + DSize ((n+1)/2)
+theorem Nat.Primrec.DSize_prim : Nat.Primrec DSize := by sorry
+
+-- def D : ℕ→Finset ℕ := fun a => {x | (BSMem (Nat.pair a x))=1}
+-- def D : ℕ→Set ℕ := fun a => {x | (BSMem (Nat.pair a x))=1}
 namespace KP54
 
 #check Finset
-def KP54 : ℕ→ℕ := fun x=>0
+-- χ (SetJump ∅)
+noncomputable def KP54 : ℕ→ℕ := fun s =>
+  let i:=s.div2
+
+  if s=0 then Nat.pair 0 0
+  else if s%2=0 then
+    let n:=DSize (KP54 s-1).r
+    -- ask ∅' if there exists a n s.t. a:=BSUnion n (KP54 s-1).l satisfies (eval (D a) i n).Dom.
+    -- if so then return (a, )
+    Nat.pair 0 0
+  else Nat.pair 0 0
 /-
 `KP54(s)=(a,b)` where `D a, D b` correspond to sets `A` and `B` at stage `s`.
 We note that:
@@ -604,11 +623,13 @@ We note that:
  · by stage 2n+1, `χ_A(n)` is bound to be defined.
 -/
 
-private def A := {x | x ∈ D (KP54 (2*x+1)).l}
-private def B := {x | x ∈ D (KP54 (2*x)).r}
+-- private def A := {x | x ∈ D (KP54 (2*x+1)).l}
+-- private def B := {x | x ∈ D (KP54 (2*x)).r}
+private def A := {x | BSMem (Nat.pair x (KP54 (2*x+1)).l) = 1}
+private def B := {x | BSMem (Nat.pair x (KP54 (2*x)).r)   = 1}
 private theorem R (i:ℕ) : evalSet A i ≠ χ B := by sorry
 private theorem S (i:ℕ) : evalSet B i ≠ χ A := by sorry
-theorem test : A=B := by exact rfl
+
 theorem ex_incomparable_sets : ∃ A B:Set ℕ, A|ᵀB := by
   use A
   use B
@@ -625,11 +646,11 @@ theorem ex_incomparable_sets : ∃ A B:Set ℕ, A|ᵀB := by
     unfold SetTuringReducible at h
     apply exists_code_nat.mp at h
     rcases h with ⟨c,hc⟩
-    have contrad := S c
+    have contrad := R c
     exact contrad hc
 
 end KP54
-#check Computability.KP54.A
+
 -- i want to write:
 /-
 ran_to_dom c = code_for
