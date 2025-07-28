@@ -607,7 +607,7 @@ namespace KP54
 #check Finset
 -- χ (SetJump ∅)
 
-noncomputable def KP54 : ℕ→ℕ := fun s =>
+partial def KP54 : ℕ→ℕ := fun s =>
   let i:=s.div2
 
   if s=0 then Nat.pair 0 0
