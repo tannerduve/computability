@@ -8,20 +8,20 @@ open Classical
 
 open Nat.RecursiveIn.Code
 
-@[simp] lemma Nat.RecursiveIn.partCompTotal {O:ℕ→ℕ} {f:ℕ→.ℕ} {g:ℕ→ℕ} (h1: Nat.RecursiveIn O f) (h2: Nat.RecursiveIn O g) : (Nat.RecursiveIn O ↑(f∘g)) := by
-  have h3 : (↑(f∘g):ℕ→.ℕ) = fun x => g x >>= (↑f:ℕ→.ℕ) := by
+@[simp] lemma Nat.RecursiveIn.partCompTotal {O : ℕ → ℕ} {f : ℕ →. ℕ} {g : ℕ → ℕ} (h1: Nat.RecursiveIn O f) (h2: Nat.RecursiveIn O g) : (Nat.RecursiveIn O ↑(f∘g)) := by
+  have h3 : (↑(f∘g) : ℕ →. ℕ) = fun x => g x >>= (↑f : ℕ →. ℕ) := by
     funext xs
     simp only [Function.comp_apply, Part.coe_some, Part.bind_eq_bind, Part.bind_some]
   rw [h3]
   exact comp h1 h2
-@[simp] lemma Nat.RecursiveIn.totalComp {O:ℕ→ℕ} {f g:ℕ→ℕ} (h1: Nat.RecursiveIn O f) (h2: Nat.RecursiveIn O g) : (Nat.RecursiveIn O ↑(f∘g)) := by
+@[simp] lemma Nat.RecursiveIn.totalComp {O : ℕ → ℕ} {f g : ℕ → ℕ} (h1: Nat.RecursiveIn O f) (h2: Nat.RecursiveIn O g) : (Nat.RecursiveIn O ↑(f∘g)) := by
   have h3 : (↑(f∘g):ℕ→.ℕ) = fun x => g x >>= (↑f:ℕ→.ℕ) := by
     funext xs
     simp only [PFun.coe_val, Function.comp_apply, Part.coe_some, Part.bind_eq_bind, Part.bind_some]
   rw [h3]
   exact comp h1 h2
-@[simp] lemma Nat.RecursiveIn.id {O:ℕ→ℕ} : Nat.RecursiveIn O fun x => x := by apply of_primrec Nat.Primrec.id
-@[simp] lemma Nat.RecursiveIn.someTotal (O:ℕ→ℕ) (f:ℕ→ℕ) (h1: Nat.RecursiveIn O f): Nat.RecursiveIn O fun x => Part.some (f x) := by
+@[simp] lemma Nat.RecursiveIn.id {O : ℕ → ℕ} : Nat.RecursiveIn O fun x => x := by apply of_primrec Nat.Primrec.id
+@[simp] lemma Nat.RecursiveIn.someTotal (O : ℕ → ℕ) (f : ℕ → ℕ) (h1: Nat.RecursiveIn O f) : Nat.RecursiveIn O fun x => Part.some (f x) := by
   apply Nat.RecursiveIn.totalComp
   · exact h1
   · apply Nat.RecursiveIn.id
@@ -43,19 +43,19 @@ theorem exists_code_nat {O : ℕ → ℕ} {f : ℕ →. ℕ} : Nat.RecursiveIn O
     exact h3
   · intro h2
     obtain ⟨c, h3⟩ := h2
-    have h5: (∃ c:Nat.RecursiveIn.Code, eval O c = f) := by
+    have h5 : (∃ c : Nat.RecursiveIn.Code, eval O c = f) := by
       use decodeCode c
     exact exists_code.mpr h5
-def eval₁ (O:ℕ→ℕ) : ℕ→.ℕ := fun ex => eval O ex.unpair.1 ex.unpair.2
-def evaln₁ (O:ℕ→ℕ) : ℕ→ℕ := fun abc => Encodable.encode (evaln O abc.r.r abc.l abc.r.l)
+def eval₁ (O : ℕ → ℕ) : ℕ →. ℕ := fun ex => eval O ex.unpair.1 ex.unpair.2
+def evaln₁ (O : ℕ → ℕ) : ℕ → ℕ := fun abc => Encodable.encode (evaln O abc.r.r abc.l abc.r.l)
 theorem rec_eval₁ : Nat.RecursiveIn O (eval₁ O) := by exact RecursiveIn.nat_iff.mp eval_part
 theorem prim_evaln₁ : Nat.PrimrecIn O (evaln₁ O) := by
   refine PrimrecIn.nat_iff.mp ?_
   unfold evaln₁
-  have h : (fun (abc : ℕ) ↦ evaln O abc.r.r (abc.l) abc.r.l) = (fun (a:(ℕ×Code)×ℕ) ↦ evaln O a.1.1 a.1.2 a.2) ∘ (fun (abc:ℕ) => ((abc.r.r, abc.l), abc.r.l)) := by
+  have h : (fun (abc : ℕ) ↦ evaln O abc.r.r (abc.l) abc.r.l) = (fun (a:(ℕ × Code) × ℕ) ↦ evaln O a.1.1 a.1.2 a.2) ∘ (fun (abc : ℕ) => ((abc.r.r, abc.l), abc.r.l)) := by
     exact rfl
   -- rw [h]
-  have h2 : PrimrecIn O (fun (abc:ℕ) =>    (((abc.r.r, abc.l), abc.r.l):(ℕ×Code)×ℕ)    ) := by
+  have h2 : PrimrecIn O (fun (abc : ℕ) =>    (((abc.r.r, abc.l), abc.r.l) : (ℕ × Code) × ℕ)    ) := by
     refine _root_.PrimrecIn.pair ?_ ?_
     · apply _root_.PrimrecIn.pair (_root_.PrimrecIn.comp (PrimrecIn.nat_iff.mpr PrimrecIn.right) (PrimrecIn.nat_iff.mpr PrimrecIn.right))
       apply _root_.PrimrecIn.comp
@@ -65,11 +65,11 @@ theorem prim_evaln₁ : Nat.PrimrecIn O (evaln₁ O) := by
   apply _root_.PrimrecIn.comp evaln_prim h2
 
 
-theorem exists_code_for_eval₁ : ∃ c:ℕ, eval O c = eval₁ O := by
+theorem exists_code_for_eval₁ : ∃ c : ℕ, eval O c = eval₁ O := by
   apply (exists_code_nat.mp)
   exact rec_eval₁
 
-theorem Nat.RecursiveIn.evalRecInO' {O} {f:ℕ→.ℕ} (h:Nat.RecursiveIn O f) : Nat.RecursiveIn O (fun x => (f x) >>= (eval₁ O)) := by
+theorem Nat.RecursiveIn.evalRecInO' {O} {f : ℕ→.ℕ} (h : Nat.RecursiveIn O f) : Nat.RecursiveIn O (fun x => (f x) >>= (eval₁ O)) := by
   simp only [Part.bind_eq_bind]
   refine _root_.Nat.RecursiveIn.comp ?_ h
   apply rec_eval₁

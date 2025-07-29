@@ -43,8 +43,6 @@ def partrecinj : computable_fns → ℕ :=
 lemma NisCountable : Countable ℕ :=
   ⟨λ (n : ℕ) => Nat.succ n, Nat.succ_injective⟩
 
-
-
 instance computable_functions_encodable : Encodable computable_fns :=
   -- ⟨λ _ => 0, λ _ => 0, λ _ => 0⟩
   sorry
@@ -52,8 +50,6 @@ instance computable_functions_encodable : Encodable computable_fns :=
 lemma computable_functions_countable : Countable computable_fns := by
   unfold computable_fns
   sorry
-
-
 
 theorem TuringDegree.automorphismGroup.isCountable : Countable (TuringDegree.automorphismGroup) := by
   sorry
