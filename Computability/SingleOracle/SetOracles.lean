@@ -96,7 +96,7 @@ theorem χ_leq_χK0 {O:Set ℕ} : Nat.RecursiveIn (χ (SetK0 O)) (χ O) := by
   have exists_index_for_g : ∃ c : ℕ, eval (χ O) c = g := by exact exists_code_nat.mp hg
   rcases exists_index_for_g with ⟨index_g,index_g_is_g⟩
 
-  let f':ℕ→.ℕ := fun x => χK0 (Nat.pair index_g x)
+  let f' : ℕ →. ℕ := fun x => χK0 (Nat.pair index_g x)
 
   have f_eq_f': (χ O) = f' := by
       simp only [f']
@@ -125,7 +125,8 @@ theorem χ_leq_χK0 {O:Set ℕ} : Nat.RecursiveIn (χ (SetK0 O)) (χ O) := by
   rw [h0]
   rw [f_eq_f']
   exact f'_recIn_χK0
-theorem χK0_leq_K0χ {O:Set ℕ} : Nat.RecursiveIn (K0 (χ O)) (χ (SetK0 O)) := by
+
+theorem χK0_leq_K0χ {O : Set ℕ} : Nat.RecursiveIn (K0 (χ O)) (χ (SetK0 O)) := by
   let χK0 : ℕ→ℕ := fun ex ↦ if (eval (χ O) (decodeCode (Nat.unpair ex).1) (Nat.unpair ex).2).Dom then 1 else 0
   have h0 : χ (SetK0 O) = χK0 := by exact rfl
 
@@ -141,7 +142,7 @@ theorem χK0_leq_K0χ {O:Set ℕ} : Nat.RecursiveIn (K0 (χ O)) (χ (SetK0 O)) :
   rw [h0]
   rw [construction_eq_goal]
   exact construction_constructible
-theorem K0χ_leq_χK0 {O:Set ℕ} : Nat.RecursiveIn (χ (SetK0 O)) (K0 (χ O)) := by
+theorem K0χ_leq_χK0 {O : Set ℕ} : Nat.RecursiveIn (χ (SetK0 O)) (K0 (χ O)) := by
   let χK0 : ℕ→ℕ := fun ex ↦ if (eval (χ O) (decodeCode (Nat.unpair ex).1) (Nat.unpair ex).2).Dom then 1 else 0
   have h0 : χ (SetK0 O) = χK0 := by exact rfl
   have h1 (ex:ℕ) : (χK0 ex = 0) = ¬(eval (χ O) (decodeCode (Nat.unpair ex).1) (Nat.unpair ex).2).Dom := by

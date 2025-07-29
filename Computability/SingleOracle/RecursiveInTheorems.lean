@@ -8,20 +8,20 @@ open Classical
 
 open Nat.RecursiveIn.Code
 
-@[simp] lemma Nat.RecursiveIn.partCompTotal {O:ℕ→ℕ} {f:ℕ→.ℕ} {g:ℕ→ℕ} (h1: Nat.RecursiveIn O f) (h2: Nat.RecursiveIn O g) : (Nat.RecursiveIn O ↑(f∘g)) := by
-  have h3 : (↑(f∘g):ℕ→.ℕ) = fun x => g x >>= (↑f:ℕ→.ℕ) := by
+@[simp] lemma Nat.RecursiveIn.partCompTotal {O : ℕ → ℕ} {f : ℕ →. ℕ} {g : ℕ → ℕ} (h1: Nat.RecursiveIn O f) (h2: Nat.RecursiveIn O g) : (Nat.RecursiveIn O ↑(f∘g)) := by
+  have h3 : (↑(f∘g) : ℕ →. ℕ) = fun x => g x >>= (↑f : ℕ →. ℕ) := by
     funext xs
     simp only [Function.comp_apply, Part.coe_some, Part.bind_eq_bind, Part.bind_some]
   rw [h3]
   exact comp h1 h2
-@[simp] lemma Nat.RecursiveIn.totalComp {O:ℕ→ℕ} {f g:ℕ→ℕ} (h1: Nat.RecursiveIn O f) (h2: Nat.RecursiveIn O g) : (Nat.RecursiveIn O ↑(f∘g)) := by
+@[simp] lemma Nat.RecursiveIn.totalComp {O : ℕ → ℕ} {f g : ℕ → ℕ} (h1: Nat.RecursiveIn O f) (h2: Nat.RecursiveIn O g) : (Nat.RecursiveIn O ↑(f∘g)) := by
   have h3 : (↑(f∘g):ℕ→.ℕ) = fun x => g x >>= (↑f:ℕ→.ℕ) := by
     funext xs
     simp only [PFun.coe_val, Function.comp_apply, Part.coe_some, Part.bind_eq_bind, Part.bind_some]
   rw [h3]
   exact comp h1 h2
-@[simp] lemma Nat.RecursiveIn.id {O:ℕ→ℕ} : Nat.RecursiveIn O fun x => x := by apply of_primrec Nat.Primrec.id
-@[simp] lemma Nat.RecursiveIn.someTotal (O:ℕ→ℕ) (f:ℕ→ℕ) (h1: Nat.RecursiveIn O f): Nat.RecursiveIn O fun x => Part.some (f x) := by
+@[simp] lemma Nat.RecursiveIn.id {O : ℕ → ℕ} : Nat.RecursiveIn O fun x => x := by apply of_primrec Nat.Primrec.id
+@[simp] lemma Nat.RecursiveIn.someTotal (O : ℕ → ℕ) (f : ℕ → ℕ) (h1: Nat.RecursiveIn O f) : Nat.RecursiveIn O fun x => Part.some (f x) := by
   apply Nat.RecursiveIn.totalComp
   · exact h1
   · apply Nat.RecursiveIn.id

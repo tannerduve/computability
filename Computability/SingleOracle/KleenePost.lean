@@ -2,17 +2,18 @@ import Computability.SingleOracle.Jump
 import Computability.SingleOracle.SetOracles
 
 open Nat.RecursiveIn.Code
+open Computability
 
 -- def D : ℕ→Finset ℕ := fun a => {x | (BSMem (Nat.pair a x))=1}
 -- def D : ℕ→Set ℕ := fun a => {x | (BSMem (Nat.pair a x))=1}
 
 -- We define interpretations of naturals as finite strings on the alphabet {0,1}.
 -- (b,l) is interpreted as the string of length l, whose sequence matches with the binary representation of b.
-/-- `BSMem (a,x) = [x∈Dₐ]` (iversion brackets) -/
-def BSMem : ℕ→ℕ := fun xa => if Nat.testBit xa.r xa.l.l then 1 else 0
+/-- `BSMem (a,x) = [x ∈ Dₐ]` (iversion brackets) -/
+def BSMem : ℕ → ℕ := fun xa => if Nat.testBit xa.r xa.l.l then 1 else 0
 #eval BSMem (Nat.pair 3 0b01000)
 theorem Nat.Primrec.BSMem_prim : Nat.Primrec BSMem := by sorry
-def BSUnion : ℕ→ℕ := fun bl1bl2 => Nat.pair (Nat.lor bl1bl2.l.l bl1bl2.r.l) (Nat.max bl1bl2.l.r bl1bl2.r.r)
+def BSUnion : ℕ → ℕ := fun bl1bl2 => Nat.pair (Nat.lor bl1bl2.l.l bl1bl2.r.l) (Nat.max bl1bl2.l.r bl1bl2.r.r)
 theorem Nat.Primrec.BSUnion_prim : Nat.Primrec BSUnion := by sorry
 def DSize : ℕ → ℕ
 | 0     => 0
@@ -41,7 +42,14 @@ We note that:
 private def A := {x | BSMem (Nat.pair x (KP54 (2*x+1)).l) = 1}
 private def B := {x | BSMem (Nat.pair x (KP54 (2*x)).r)   = 1}
 
-private theorem R (i:ℕ) : evalSet A i ≠ χ B := by sorry
+private theorem R (i:ℕ) : evalSet A i ≠ χ B := by
+  simp
+  induction' (decodeCode i)
+  · intro contra
+    simp [eval, B, BSMem, Nat.testBit, HShiftRight.hShiftRight, pure] at contra
+    sorry
+  all_goals sorry
+
 private theorem S (i:ℕ) : evalSet B i ≠ χ A := by sorry
 
 theorem ex_incomparable_sets : ∃ A B:Set ℕ, A|ᵀB := by
