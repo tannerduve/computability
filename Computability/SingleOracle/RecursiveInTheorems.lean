@@ -46,16 +46,16 @@ theorem exists_code_nat {O : ℕ → ℕ} {f : ℕ →. ℕ} : Nat.RecursiveIn O
     have h5 : (∃ c : Nat.RecursiveIn.Code, eval O c = f) := by
       use decodeCode c
     exact exists_code.mpr h5
-def eval₁ (O:ℕ→ℕ) : ℕ→.ℕ := fun ex => eval O ex.unpair.1 ex.unpair.2
-def evaln₁ (O:ℕ→ℕ) : ℕ→ℕ := fun abc => Encodable.encode (evaln O abc.r.r abc.l abc.r.l)
+def eval₁ (O : ℕ → ℕ) : ℕ →. ℕ := fun ex => eval O ex.unpair.1 ex.unpair.2
+def evaln₁ (O : ℕ → ℕ) : ℕ → ℕ := fun abc => Encodable.encode (evaln O abc.r.r abc.l abc.r.l)
 theorem rec_eval₁ : Nat.RecursiveIn O (eval₁ O) := by exact RecursiveIn.nat_iff.mp eval_part
 theorem prim_evaln₁ : Nat.PrimrecIn O (evaln₁ O) := by
   refine PrimrecIn.nat_iff.mp ?_
   unfold evaln₁
-  have h : (fun (abc : ℕ) ↦ evaln O abc.r.r (abc.l) abc.r.l) = (fun (a:(ℕ×Code)×ℕ) ↦ evaln O a.1.1 a.1.2 a.2) ∘ (fun (abc:ℕ) => ((abc.r.r, abc.l), abc.r.l)) := by
+  have h : (fun (abc : ℕ) ↦ evaln O abc.r.r (abc.l) abc.r.l) = (fun (a:(ℕ × Code) × ℕ) ↦ evaln O a.1.1 a.1.2 a.2) ∘ (fun (abc : ℕ) => ((abc.r.r, abc.l), abc.r.l)) := by
     exact rfl
   -- rw [h]
-  have h2 : PrimrecIn O (fun (abc:ℕ) =>    (((abc.r.r, abc.l), abc.r.l):(ℕ×Code)×ℕ)    ) := by
+  have h2 : PrimrecIn O (fun (abc : ℕ) =>    (((abc.r.r, abc.l), abc.r.l) : (ℕ × Code) × ℕ)    ) := by
     refine _root_.PrimrecIn.pair ?_ ?_
     · apply _root_.PrimrecIn.pair (_root_.PrimrecIn.comp (PrimrecIn.nat_iff.mpr PrimrecIn.right) (PrimrecIn.nat_iff.mpr PrimrecIn.right))
       apply _root_.PrimrecIn.comp
@@ -65,11 +65,11 @@ theorem prim_evaln₁ : Nat.PrimrecIn O (evaln₁ O) := by
   apply _root_.PrimrecIn.comp evaln_prim h2
 
 
-theorem exists_code_for_eval₁ : ∃ c:ℕ, eval O c = eval₁ O := by
+theorem exists_code_for_eval₁ : ∃ c : ℕ, eval O c = eval₁ O := by
   apply (exists_code_nat.mp)
   exact rec_eval₁
 
-theorem Nat.RecursiveIn.evalRecInO' {O} {f:ℕ→.ℕ} (h:Nat.RecursiveIn O f) : Nat.RecursiveIn O (fun x => (f x) >>= (eval₁ O)) := by
+theorem Nat.RecursiveIn.evalRecInO' {O} {f : ℕ→.ℕ} (h : Nat.RecursiveIn O f) : Nat.RecursiveIn O (fun x => (f x) >>= (eval₁ O)) := by
   simp only [Part.bind_eq_bind]
   refine _root_.Nat.RecursiveIn.comp ?_ h
   apply rec_eval₁
