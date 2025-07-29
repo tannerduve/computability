@@ -43,7 +43,7 @@ theorem exists_code_nat {O : ℕ → ℕ} {f : ℕ →. ℕ} : Nat.RecursiveIn O
     exact h3
   · intro h2
     obtain ⟨c, h3⟩ := h2
-    have h5: (∃ c:Nat.RecursiveIn.Code, eval O c = f) := by
+    have h5 : (∃ c : Nat.RecursiveIn.Code, eval O c = f) := by
       use decodeCode c
     exact exists_code.mpr h5
 def eval₁ (O:ℕ→ℕ) : ℕ→.ℕ := fun ex => eval O ex.unpair.1 ex.unpair.2

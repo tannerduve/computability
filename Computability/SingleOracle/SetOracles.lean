@@ -7,28 +7,28 @@ open Nat.RecursiveIn.Code
 namespace Computability
 
 -- definitions
-noncomputable def χ (O:Set ℕ) : ℕ→ℕ := fun x ↦ if x ∈ O then 1 else 0
+noncomputable def χ (O : Set ℕ) : ℕ → ℕ := fun x ↦ if x ∈ O then 1 else 0
 theorem χsimp {O} : χ O = fun x ↦ if x ∈ O then 1 else 0 := by exact rfl
-@[simp] abbrev SetRecursiveIn (O:Set ℕ) (f:ℕ→.ℕ): Prop := Nat.RecursiveIn (χ O) f
-@[simp] abbrev SetTuringReducible (A O:Set ℕ) : Prop := Nat.RecursiveIn (χ O) (χ A)
-@[simp] abbrev SetTuringReducibleStrict (A O:Set ℕ) : Prop := Nat.RecursiveIn (χ O) (χ A) ∧ ¬ Nat.RecursiveIn (χ A) (χ O)
-@[simp] abbrev SetTuringEquivalent (O A:Set ℕ) : Prop := AntisymmRel SetTuringReducible O A
-@[simp] noncomputable def evalSet (O:Set ℕ) : Nat.RecursiveIn.Code → ℕ→.ℕ := eval (χ O)
-@[simp] noncomputable def evalSet₁ (O:Set ℕ) : ℕ→.ℕ := eval₁ (χ O)
-@[simp] noncomputable def evalnSet₁ (O:Set ℕ) : ℕ→ℕ := evaln₁ (χ O)
-def SetK0 (A:Set ℕ) := {ex:ℕ | (evalSet A ex.unpair.1 ex.unpair.2).Dom}
-def SetK (A:Set ℕ) := {x:ℕ | (evalSet A x x).Dom}
+@[simp] abbrev SetRecursiveIn (O : Set ℕ) (f : ℕ →. ℕ) : Prop := Nat.RecursiveIn (χ O) f
+@[simp] abbrev SetTuringReducible (A O : Set ℕ) : Prop := Nat.RecursiveIn (χ O) (χ A)
+@[simp] abbrev SetTuringReducibleStrict (A O : Set ℕ) : Prop := Nat.RecursiveIn (χ O) (χ A) ∧ ¬ Nat.RecursiveIn (χ A) (χ O)
+@[simp] abbrev SetTuringEquivalent (O A : Set ℕ) : Prop := AntisymmRel SetTuringReducible O A
+@[simp] noncomputable def evalSet (O : Set ℕ) : Nat.RecursiveIn.Code → ℕ →. ℕ := eval (χ O)
+@[simp] noncomputable def evalSet₁ (O : Set ℕ) : ℕ →. ℕ := eval₁ (χ O)
+@[simp] noncomputable def evalnSet₁ (O : Set ℕ) : ℕ → ℕ := evaln₁ (χ O)
+def SetK0 (A : Set ℕ) := {ex : ℕ | (evalSet A ex.unpair.1 ex.unpair.2).Dom}
+def SetK (A : Set ℕ) := {x : ℕ | (evalSet A x x).Dom}
 abbrev SetJump := SetK
 def jumpn : ℕ → Set ℕ → Set ℕ
 | 0 => id
 | i+1 => SetJump ∘ jumpn i
 
 -- from TuringDegree.lean
-protected theorem SetTuringReducible.refl (A:Set ℕ) : SetTuringReducible A A := by exact Nat.RecursiveIn.oracle
-protected theorem SetTuringReducible.rfl (A:Set ℕ) : SetTuringReducible A A := SetTuringReducible.refl _
+protected theorem SetTuringReducible.refl (A : Set ℕ) : SetTuringReducible A A := by exact Nat.RecursiveIn.oracle
+protected theorem SetTuringReducible.rfl (A : Set ℕ) : SetTuringReducible A A := SetTuringReducible.refl _
 instance : IsRefl (Set ℕ) SetTuringReducible where refl _ := by (expose_names; exact SetTuringReducible.refl x)
-theorem SetTuringReducible.trans {A B C:Set ℕ} (hg : SetTuringReducible A B) (hh : SetTuringReducible B C) : SetTuringReducible A C := by
-  simp only [SetTuringReducible, SetRecursiveIn] at *
+theorem SetTuringReducible.trans {A B C : Set ℕ} (hg : SetTuringReducible A B) (hh : SetTuringReducible B C) : SetTuringReducible A C := by
+  simp only [SetTuringReducible] at *
   exact TuringReducible.trans hg hh
 instance : IsTrans (Set ℕ) SetTuringReducible := ⟨@SetTuringReducible.trans⟩
 instance : IsPreorder (Set ℕ) SetTuringReducible where refl := .refl
@@ -56,14 +56,14 @@ notation:100 A"⌜" => SetJump A
 @[reducible,simp] scoped[Computability] infix:50 "|ᵀ" => SetTuringDegreeIN
 
 section evalSettheorems
-theorem exists_code_for_evalSet_nat (O:Set ℕ) (f:ℕ→.ℕ) : SetRecursiveIn O f ↔ ∃ c:ℕ, evalSet O c = f := by exact exists_code_nat
+theorem exists_code_for_evalSet_nat (O : Set ℕ) (f : ℕ →. ℕ) : SetRecursiveIn O f ↔ ∃ c : ℕ, evalSet O c = f := by exact exists_code_nat
 private theorem exists_code_for_evalSet₁ : ∃ c:ℕ, evalSet O c = evalSet₁ O := by apply ((exists_code_for_evalSet_nat O (evalSet₁ O)).mp) rec_eval₁
-noncomputable def evalSet₁_code (O:Set ℕ) : ℕ := choose (@exists_code_for_evalSet₁ O)
+noncomputable def evalSet₁_code (O : Set ℕ) : ℕ := choose (@exists_code_for_evalSet₁ O)
 @[simp] theorem evalSet₁_code_prop : evalSet O (evalSet₁_code O) = evalSet₁ O := by exact choose_spec exists_code_for_evalSet₁
 @[simp] theorem evalSet₁_code_prop2 : eval (χ O) (evalSet₁_code O) = evalSet₁ O := by exact choose_spec exists_code_for_evalSet₁
 
 private theorem exists_code_for_evalnSet₁ : ∃ c:ℕ, evalSet O c = evalnSet₁ O := by apply ((exists_code_for_evalSet_nat O (evalnSet₁ O)).mp) (Nat.RecursiveIn.of_primrecIn prim_evaln₁)
-noncomputable def evalnSet₁_code (O:Set ℕ) : ℕ := choose (@exists_code_for_evalnSet₁ O)
+noncomputable def evalnSet₁_code (O : Set ℕ) : ℕ := choose (@exists_code_for_evalnSet₁ O)
 @[simp] theorem evalnSet₁_code_prop : evalSet O (evalnSet₁_code O) = evalnSet₁ O := by exact choose_spec exists_code_for_evalnSet₁
 @[simp] theorem evalnSet₁_code_prop2 : eval (χ O) (evalnSet₁_code O) = evalnSet₁ O := by exact choose_spec exists_code_for_evalnSet₁
 
@@ -79,7 +79,7 @@ lemma χ_eq_0or1 : (χ O x = 0) ∨ (χ O x = 1) := by
   cases Classical.em (x ∈ O) with
   | inl h => simp only [h, ↓reduceIte, one_ne_zero, or_true]
   | inr h => simp only [h, ↓reduceIte, zero_ne_one, or_false]
-lemma some_comp_simp (a:Part ℕ) {f:ℕ→ℕ} {h:a.Dom}:  (Part.some (f (a.get h)) = a >>= (f:ℕ→.ℕ)) := by
+lemma some_comp_simp (a : Part ℕ) {f : ℕ → ℕ} {h : a.Dom} :  (Part.some (f (a.get h)) = a >>= (f : ℕ →. ℕ)) := by
   simp only [bind]
   rw [Part.bind]
   exact Eq.symm (Part.assert_pos h)
@@ -312,9 +312,9 @@ end SetJumpTheorems
 
 
 /-- `W O e` := domain of e^th oracle program -/
-abbrev W (O:Set ℕ) (e : ℕ) := (evalSet O e).Dom
+abbrev W (O : Set ℕ) (e : ℕ) := (evalSet O e).Dom
 /-- `WR O e` := range of e^th oracle program -/
-abbrev WR (O:Set ℕ) (e : ℕ) := (evalSet O e).ran
+abbrev WR (O : Set ℕ) (e : ℕ) := (evalSet O e).ran
 
 section dom_to_ran
 def code_to_code_ef:ℕ→ℕ:=fun c=>(pair Nat.RecursiveIn.Code.id c)
@@ -354,7 +354,7 @@ theorem code_ef_dom_iff_code_dom : (eval O (code_to_code_ef c) x).Dom ↔ (eval 
     simp [Seq.seq]
     exact h
 /-- Given a code `e`, returns a code whose range is the domain of `e`. -/
-noncomputable def dom_to_ran (O:Set ℕ) : (ℕ→ℕ) := fun e => curry ((comp) (right.comp left) (code_to_code_ef (evalSet₁_code O))) e
+noncomputable def dom_to_ran (O : Set ℕ) : ℕ → ℕ := fun e => curry ((comp) (right.comp left) (code_to_code_ef (evalSet₁_code O))) e
 -- the internal expression, (comp) (right.comp left) (code_to_code_ef (evalSet₁_code O)), takes a pair ex as input.
 -- code_to_code_ef (evalSet₁_code O) ex = (ex, [e](x)).
 -- piping it into right.comp left returns x.
@@ -455,10 +455,10 @@ theorem rfind'_eqv_rfind : ((Nat.unpaired fun a m => (Nat.rfind fun n => (fun m 
 
 
 /--`[code_rfind c](x)=smallest n s.t. [c](x,n)=0.`-/
-def code_rfind : ℕ→ℕ := fun c => comp (rfind' c) (pair Nat.RecursiveIn.Code.id zero)
+def code_rfind : ℕ → ℕ := fun c => comp (rfind' c) (pair Nat.RecursiveIn.Code.id zero)
 
 
-@[simp] abbrev rfind (O:ℕ→ℕ) : ℕ→ℕ→.ℕ := fun c => fun a=> Nat.rfind fun n => (fun m => m = 0) <$> eval O c (Nat.pair a n)
+@[simp] abbrev rfind (O : ℕ → ℕ) : ℕ → ℕ →. ℕ := fun c => fun a=> Nat.rfind fun n => (fun m => m = 0) <$> eval O c (Nat.pair a n)
 theorem code_rfind_prop : eval O (code_rfind c) a = (rfind O c a) := by
   unfold code_rfind
   unfold rfind
@@ -475,7 +475,8 @@ theorem code_rfind_prop : eval O (code_rfind c) a = (rfind O c a) := by
 section ran_to_dom
 -- helper functions:
 /--`[code_if_eq c](x)=0 if x.1.2=[c](x.1.1, x.2) else 0`-/
-def code_if_eq : ℕ→ℕ := fun x => 0
+def code_if_eq : ℕ → ℕ := fun _ => 0
+
 theorem code_if_eq_prop : eval O (code_if_eq e) ab = if (Nat.succ ab.l.r=eval O e (Nat.pair ab.l.l ab.r)) then 0 else 1 := by sorry
 
 /-
@@ -483,7 +484,7 @@ ran_to_dom c = code_for
   fun y =>
   rfind_config (evaln c config=y)
 -/
-noncomputable def ran_to_dom (O:Set ℕ) : (ℕ→ℕ) := fun c => curry (code_rfind (code_if_eq (evalnSet₁_code O))) c
+noncomputable def ran_to_dom (O : Set ℕ) : (ℕ → ℕ) := fun c => curry (code_rfind (code_if_eq (evalnSet₁_code O))) c
 theorem code_rfind_imp_ex : (∃ y, y ∈ eval O (code_rfind c) x) → (∃ y, eval O c (Nat.pair x y)=0) := by
   intro h
   rcases h with ⟨y,hy⟩
@@ -585,73 +586,6 @@ theorem Nat.Primrec.prim_ran_to_dom : Nat.Primrec (ran_to_dom O) := by
 
 end ran_to_dom
 
-
-
--- We define interpretations of naturals as finite strings on the alphabet {0,1}.
--- (b,l) is interpreted as the string of length l, whose sequence matches with the binary representation of b.
-/-- `BSMem (a,x) = [x∈Dₐ]` (iversion brackets) -/
-def BSMem : ℕ→ℕ := fun xa => if Nat.testBit xa.r xa.l.l then 1 else 0
-#eval BSMem (Nat.pair 3 0b01000)
-theorem Nat.Primrec.BSMem_prim : Nat.Primrec BSMem := by sorry
-def BSUnion : ℕ→ℕ := fun bl1bl2 => Nat.pair (Nat.lor bl1bl2.l.l bl1bl2.r.l) (Nat.max bl1bl2.l.r bl1bl2.r.r)
-theorem Nat.Primrec.BSUnion_prim : Nat.Primrec BSUnion := by sorry
-def DSize : ℕ → ℕ
-| 0     => 0
-| (n+1) => (n+1)&&&1 + DSize ((n+1)/2)
-theorem Nat.Primrec.DSize_prim : Nat.Primrec DSize := by sorry
-
--- def D : ℕ→Finset ℕ := fun a => {x | (BSMem (Nat.pair a x))=1}
--- def D : ℕ→Set ℕ := fun a => {x | (BSMem (Nat.pair a x))=1}
-namespace KP54
-
-#check Finset
--- χ (SetJump ∅)
-
-partial def KP54 : ℕ→ℕ := fun s =>
-  let i:=s.div2
-
-  if s=0 then Nat.pair 0 0
-  else if s%2=0 then
-    let n:=DSize (KP54 s-1).r
-    -- ask ∅' if there exists a n s.t. a:=BSUnion n (KP54 s-1).l satisfies (eval (D a) i n).Dom.
-    -- if so then return (a, )
-    Nat.pair 0 0
-  else Nat.pair 0 0
-/-
-`KP54(s)=(a,b)` where `D a, D b` correspond to sets `A` and `B` at stage `s`.
-We note that:
- · by stage 2n,   `χ_B(n)` is bound to be defined.
- · by stage 2n+1, `χ_A(n)` is bound to be defined.
--/
-
--- private def A := {x | x ∈ D (KP54 (2*x+1)).l}
--- private def B := {x | x ∈ D (KP54 (2*x)).r}
-private def A := {x | BSMem (Nat.pair x (KP54 (2*x+1)).l) = 1}
-private def B := {x | BSMem (Nat.pair x (KP54 (2*x)).r)   = 1}
-private theorem R (i:ℕ) : evalSet A i ≠ χ B := by sorry
-private theorem S (i:ℕ) : evalSet B i ≠ χ A := by sorry
-
-theorem ex_incomparable_sets : ∃ A B:Set ℕ, A|ᵀB := by
-  use A
-  use B
-  constructor
-  · change ¬SetTuringReducible A B
-    intro h
-    unfold SetTuringReducible at h
-    apply exists_code_nat.mp at h
-    rcases h with ⟨c,hc⟩
-    have contrad := S c
-    exact contrad hc
-  · change ¬SetTuringReducible B A
-    intro h
-    unfold SetTuringReducible at h
-    apply exists_code_nat.mp at h
-    rcases h with ⟨c,hc⟩
-    have contrad := R c
-    exact contrad hc
-
-end KP54
-
 -- i want to write:
 /-
 ran_to_dom c = code_for
@@ -704,7 +638,7 @@ theorem partfun_eq_χgraph {f:ℕ→ℕ} : f ≡ᵀᶠ χ (total_graph f) := by 
 
 
 /-- `CEin O A` means that `A` is c.e. in `O`. -/
-def CEin (O:Set ℕ) (A:Set ℕ) : Prop := ∃ c:ℕ, A = W O c
+def CEin (O : Set ℕ) (A : Set ℕ) : Prop := ∃ c : ℕ, A = W O c
 theorem CEin_range : CEin O A ↔ ∃ c:ℕ, A = WR O c := by
   simp only [CEin]
   constructor
@@ -723,11 +657,11 @@ theorem Cin_iff_CEin_CEin' : A≤ᵀB ↔ (CEin B A ∧ CEin B Aᶜ) := by sorry
 
 
 /-- immuneIn O A := A is immune in O -/
-def immuneIn (O:Set ℕ) (A:Set ℕ) : Prop := (A.Infinite) ∧ (∀c:ℕ, (W O c).Infinite → ¬(W O c ⊆ A))
+def immuneIn (O : Set ℕ) (A : Set ℕ) : Prop := (A.Infinite) ∧ (∀ c : ℕ, (W O c).Infinite → ¬(W O c ⊆ A))
 /-- simpleIn O A := A is simple in O -/
-def simpleIn (O:Set ℕ) (A:Set ℕ) : Prop := (CEin O A) ∧ immuneIn O Aᶜ
+def simpleIn (O : Set ℕ) (A : Set ℕ) : Prop := (CEin O A) ∧ immuneIn O Aᶜ
 abbrev simple := simpleIn ∅
-theorem simple_above_empty (h:simple A): ∅<ᵀA := by sorry
+theorem simple_above_empty (h : simple A) : ∅ <ᵀ A := by sorry
 
 def f_simple_ran (e:ℕ) := 3
 -- find the smallest input x which halts when dovetailing e, and such that also x≥2e
@@ -738,10 +672,10 @@ theorem exists_simple_set : ∃ A:Set ℕ, simpleIn O A := by
 
 
 -- in cooper p.220 theres the requirement also that A≤ᵀjumpn 1 ∅. is this necessary?
-def lowN (n:ℕ) (A:Set ℕ) : Prop := jumpn n A = jumpn n ∅
+def lowN (n : ℕ) (A : Set ℕ) : Prop := jumpn n A = jumpn n ∅
 abbrev low := lowN 1
 
-theorem low_below_K (h:lowN 1 A) : A<ᵀ∅⌜ := by
+theorem low_below_K (h : lowN 1 A) : A <ᵀ ∅⌜ := by
   simp [lowN, jumpn] at h
   have h0 : A⌜≡ᵀ∅⌜ := by exact Eq.antisymmRel (congrArg (toAntisymmetrization SetTuringReducible) h)
   have h1 : A<ᵀA⌜ := by exact Set_lt_SetJump
