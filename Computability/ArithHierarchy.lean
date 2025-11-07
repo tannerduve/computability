@@ -49,3 +49,5 @@ def Delta0 (n : ℕ) (A : Set ℕ) : Prop :=
 notation "Σ⁰_" => Sigma0
 notation "Π⁰_" => Pi0
 notation "Δ⁰_" => Delta0
+
+#check Σ⁰_ 3 K

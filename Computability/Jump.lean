@@ -136,10 +136,23 @@ theorem re_in_trans (A : Set ℕ) (f h : ℕ →. ℕ) :
   exact TuringReducible.trans tred fh
   exact hA
 
-theorem jump_reducible_iff (f g : ℕ →. ℕ) :
-  g ≤ᵀ f ↔ g⌜ ≤ᵀ f⌜ := by sorry
+lemma computable_below_every_jump {O : Set (ℕ →. ℕ)} {f : ℕ → ℕ} {g : ℕ →. ℕ} (hf : Computable f) :
+  f⌜ ≤ᵀ g⌜ := by sorry
 
-theorem jump_equiv (f g : ℕ →. ℕ) :
-  g ≡ᵀ f ↔ g⌜ ≡ᵀ f⌜ :=
-  ⟨fun ⟨gf, fg⟩ => ⟨(jump_reducible_iff _ _).mp gf, (jump_reducible_iff _ _).mp fg⟩,
-  fun ⟨gf, fg⟩ => ⟨(jump_reducible_iff _ _).mpr gf, (jump_reducible_iff _ _).mpr fg⟩⟩
+
+theorem jump_monotone (f g : ℕ →. ℕ) : f ≤ᵀ g ↔ f⌜ ≤ᵀ g⌜ := by
+  sorry
+  -- constructor
+  -- · intro H
+  --   induction H
+  --   · apply @computable_below_every_jump {} _ _ (Computable.const 0)
+  --   · apply @computable_below_every_jump {} _ _ (Computable.succ)
+  --   · sorry -- apply @computable_below_every_jump {} _ _ (Computable.fst)
+  --   · sorry
+  --   all_goals sorry
+
+
+
+theorem jump_equiv (f g : ℕ →. ℕ) : g ≡ᵀ f ↔ g⌜ ≡ᵀ f⌜ :=
+  ⟨fun ⟨gf, fg⟩ => ⟨(jump_monotone _ _).mp gf, (jump_monotone _ _).mp fg⟩,
+  fun ⟨gf, fg⟩ => ⟨(jump_monotone _ _).mpr gf, (jump_monotone _ _).mpr fg⟩⟩

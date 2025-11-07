@@ -85,6 +85,9 @@ instance : IsPreorder (ℕ →. ℕ) TuringReducible where
 theorem TuringEquivalent.equivalence : Equivalence TuringEquivalent :=
   (AntisymmRel.setoid _ _).iseqv
 
+#check Quotient
+#check Setoid
+
 @[refl]
 protected theorem TuringEquivalent.refl (f : ℕ →. ℕ) : f ≡ᵀ f :=
   Equivalence.refl equivalence f
@@ -122,36 +125,8 @@ open scoped Computability
 open Encodable
 
 /-
-Join of two partial functions on two primcodable types.
+Using Computation from the Oracles
 -/
-def gjoin {α β α' β' : Type} [Primcodable α] [Primcodable β] [Primcodable α'] [Primcodable β']
-(f : α →. β) (g : α' →. β') : α ⊕ α' →. β ⊕ β' :=
-  λ x =>
-    match x with
-    | Sum.inl a => (f a).map (λ b => Sum.inl b)
-    | Sum.inr b => (g b).map (λ a' => Sum.inr a')
-
-def liftPrimcodable {α σ} [Primcodable α] [Primcodable σ] (f : α →. σ) : ℕ →. ℕ :=
-  fun n => Part.bind (decode (α := α) n) fun a => (f a).map encode
-
-def turingJoin (f g : ℕ →. ℕ) : ℕ →. ℕ :=
-  liftPrimcodable (gjoin f g)
-
-infix :50 " ⊕ " => turingJoin
-
-open Sum
-
-def projL : ℕ →. ℕ :=
-λ n =>
-  match decode (α := ℕ ⊕ ℕ) n with
-  | some (Sum.inl x) => Part.some x
-  | _                => Part.none
-
-def projR : ℕ →. ℕ :=
-  fun n =>
-    match decode (α := ℕ ⊕ ℕ) n with
-    | some (Sum.inr x) => Part.some x
-    | _                => Part.none
 
 lemma use_oracle_computation_from_pair {O : Set (ℕ →. ℕ)} (f g h : ℕ →. ℕ)
   (recf : RecursiveIn O f) (recg : RecursiveIn O g) (fgh : RecursiveIn {f, g} h) :
@@ -169,15 +144,113 @@ lemma use_oracle_computation_from_pair {O : Set (ℕ →. ℕ)} (f g h : ℕ →
   case prec recj reck => exact RecursiveIn.prec recj reck
   case rfind recj => exact RecursiveIn.rfind recj
 
--- Must prove other join lemmas to prove this, bottom are equivalent I believe
-lemma get_from_join {f g : ℕ →. ℕ} : RecursiveIn (O ∪ {f ⊕ g}) f := sorry
-lemma get_from_join' {f g : ℕ →. ℕ} (fgmem : (f ⊕ g) ∈ O) : RecursiveIn (O) f := sorry
+lemma use_function_from_oracle
+  (f : ℕ → ℕ) (g : ℕ → ℕ →. ℕ) (hf : RecursiveIn O f) (hg : RecursiveIn₂ O g)
+  : RecursiveIn O (λ n => g n (f n)) := by
+  sorry
+
+/-
+Join Definition
+-/
+
+def gjoin {α β α' β' : Type} [Primcodable α] [Primcodable β] [Primcodable α'] [Primcodable β']
+(f : α →. β) (g : α' →. β') : α ⊕ α' →. β ⊕ β' :=
+  λ x =>
+    match x with
+    | Sum.inl a => (f a).map (λ b => Sum.inl b)
+    | Sum.inr b => (g b).map (λ a' => Sum.inr a')
+
+def turingJoin (f g : ℕ →. ℕ) : ℕ →. ℕ :=
+  liftPrim (gjoin f g)
+
+def turing_join_interweave (f g : ℕ →. ℕ) : ℕ →. ℕ :=
+  fun n =>
+    if n % 2 == 0 then f (n / 2) else g (n / 2)
+
+infix :50 " ⊕ " => turingJoin
+
+open Sum
+
+def projL : ℕ →. ℕ :=
+λ n =>
+  match decode (α := ℕ ⊕ ℕ) n with
+  | some (Sum.inl x) => Part.some x
+  | _                => Part.none
+
+def projR : ℕ →. ℕ :=
+  fun n =>
+    match decode (α := ℕ ⊕ ℕ) n with
+    | some (Sum.inr x) => Part.some x
+    | _                => Part.none
+
+
+def encode_decoded (f g : ℕ →. ℕ) := fun n ↦
+    Part.map encode
+      (match Denumerable.ofNat (ℕ ⊕ ℕ) n with
+      | inl a => Part.map (fun b ↦ inl b) (f a)
+      | inr b => Part.map (fun a' ↦ inr a') (g b))
+
+/-
+Join Lemmas
+-/
 
 lemma join_comm (f g : ℕ →. ℕ) : (f ⊕ g) = (g ⊕ f) :=
   sorry
 
-lemma join_add_oracles_equiv_simple : ∀ f g h, RecursiveIn {f, g} h ↔ RecursiveIn {f ⊕ g} h := by
+lemma left_le_join (f g : ℕ →. ℕ) : f ≤ᵀ (f ⊕ g) := by
+  unfold turingJoin TuringReducible gjoin liftPrim
+  simp
   sorry
+
+lemma right_le_join (f g : ℕ →. ℕ) : g ≤ᵀ (f ⊕ g) := by sorry
+
+lemma join_le (f g h : ℕ →. ℕ) (hf : f ≤ᵀ h) (hg : g ≤ᵀ h) : (f ⊕ g) ≤ᵀ h := by
+  induction hf
+  case zero =>
+    simp [turingJoin]
+    sorry
+  all_goals {sorry}
+
+lemma join_rec_in_funcs : RecursiveIn {f, g} (f ⊕ g) := sorry
+
+lemma get_from_join {f g : ℕ →. ℕ} : RecursiveIn (O ∪ {f ⊕ g}) f := by sorry
+/-
+Join used in Oracles
+-/
+
+lemma join_add_oracles_equiv_simple {f g h : ℕ →. ℕ} : RecursiveIn {f, g} h ↔ RecursiveIn {f ⊕ g} h := by
+  constructor
+  case mp =>
+    intro H
+    induction H; repeat {constructor}
+    case oracle func funcmem =>
+      cases' funcmem
+      case inl funcf =>
+        rw [funcf]
+        exact left_le_join f g
+      case inr funcg =>
+        cases' funcg
+        exact right_le_join f g
+    case pair j k _ _ recj reck =>
+      apply RecursiveIn.pair recj reck
+    case comp j k _ _ recj reck =>
+      apply RecursiveIn.comp recj reck
+    case prec j k _ _ recj reck =>
+      apply RecursiveIn.prec recj reck
+    case rfind j _ recj => apply RecursiveIn.rfind recj
+  case mpr =>
+    intro H
+    induction H; repeat {constructor}
+    case oracle func funcmem =>
+      cases' funcmem
+      exact join_rec_in_funcs
+    case pair j k _ _ recj reck =>
+      apply RecursiveIn.pair recj reck
+    case comp j k _ _ recj reck =>
+      apply RecursiveIn.comp recj reck
+    case prec j k _ _ recj reck =>
+      apply RecursiveIn.prec recj reck
+    case rfind j _ recj => apply RecursiveIn.rfind recj
 
 lemma join_add_oracles_equiv : RecursiveIn (O ∪ {f, g}) h ↔ RecursiveIn (O ∪ {f ⊕ g}) h := by
   constructor
@@ -221,75 +294,36 @@ lemma join_add_oracles_equiv : RecursiveIn (O ∪ {f, g}) h ↔ RecursiveIn (O �
     right
     right
     rfl
-    apply (join_add_oracles_equiv_simple f g (f ⊕ g)).mpr
-    apply RecursiveIn.oracle
-    rfl
+    exact join_rec_in_funcs
   case pair _ _ _ recj reck => exact RecursiveIn.pair recj reck
   case comp _ _ _ _ recj reck => exact RecursiveIn.comp recj reck
   case prec _ _ _ _ recj reck => exact RecursiveIn.prec recj reck
   case rfind _ _ recj => exact RecursiveIn.rfind recj
 
 
-#check finite_or_infinite
-def join_collapse_finite (O: Set (ℕ →. ℕ)) : ℕ →. ℕ :=
-  sorry
-
-/--
-To show that single oracle computation is equivalent (might need to assume O countable)
+/-
+Degree Operations
+1. Jump
+2. Add
+3. Join
+4. Meet
 -/
-lemma collapse_oracles {O f} : RecursiveIn O f -> ∃ o : ℕ →. ℕ, RecursiveIn {o} f := by
-  sorry
 
-#check RecursiveIn.of_eq
+-- lemma jump_lifts : ∀ (f g : ℕ →. ℕ), f ≡ᵀ g → turing_degree_mk (f⌜) = turing_degree_mk (g⌜) := by
+--   intros f g H
+--   unfold turing_degree_mk
+--   cases' H with fg gf
+--   have fg_jump : f⌜ ≤ᵀ g⌜ := (jump_monotone f g).mp fg
+--   have gf_jump : g⌜ ≤ᵀ f⌜ := (jump_monotone g f).mp gf
+--   have equiv : f⌜ ≡ᵀ g⌜ := ⟨fg_jump, gf_jump⟩
+--   apply Quotient.sound equiv
 
-lemma join_inv_left_rec_from_join (f g : ℕ →. ℕ) :
-  (λ n => Part.bind ((f ⊕ g) (encode (Sum.inl n : ℕ ⊕ ℕ))) projL) ≤ᵀ (f ⊕ g) := by
-    simp
-    unfold projL
-    unfold turingJoin
-    sorry
+-- def TuringDegree.jump : TuringDegree → TuringDegree :=
+--   Quotient.lift (fun f => ⟦f⌜⟧) jump_lifts
 
-lemma decode_encode_helper : ∀ y: ℕ ⊕ ℕ, decodeSum (encodeSum y) = some y := by
-  intro y
-  simp [decodeSum, encodeSum]
-  induction y <;> simp
+-- notation:100 f"⌜" => jump f
 
-lemma helper {n} : (Denumerable.ofNat (ℕ ⊕ ℕ) (2 * n)) = Sum.inl n := by
-  induction n
-  case zero =>
-    unfold Denumerable.ofNat
-    -- rw [Denumerable.decode_eq_ofNat (α := ℕ) (n := 2 * 0)]
-    sorry
-  case succ k ih =>
-    unfold Denumerable.ofNat at *
-    rw [mul_add]
-    unfold decode at *
-    simp
-    sorry
-
-lemma extract_left_from_join (f g : ℕ →. ℕ) :
-    f = λ n => Part.bind ((f ⊕ g) (encode (Sum.inl n : ℕ ⊕ ℕ))) projL := by
-  funext n
-  simp [turingJoin, liftPrimcodable, gjoin]
-  unfold projL
-  simp [decode, encode, decode_encode_helper]
-  sorry
-
-lemma left_le_join (f g : ℕ →. ℕ) : f ≤ᵀ (f ⊕ g) := by
-  unfold TuringReducible
-  unfold turingJoin
-  unfold gjoin
-  sorry
-
-lemma right_le_join (f g : ℕ →. ℕ) : g ≤ᵀ (f ⊕ g) := by
-  sorry
-
-lemma join_le (f g h : ℕ →. ℕ) (hf : f ≤ᵀ h) (hg : g ≤ᵀ h) : (f ⊕ g) ≤ᵀ h := by
-  induction hf
-  case zero =>
-    simp [turingJoin]
-    sorry
-  all_goals {sorry}
+infix :50 " ⊕ " => TuringDegree.add
 
 def TuringDegree.add (a b : TuringDegree) : TuringDegree :=
   Quotient.liftOn₂ a b (fun f g => ⟦f ⊕ g⟧)
@@ -312,15 +346,5 @@ def TuringDegree.add (a b : TuringDegree) : TuringDegree :=
         apply join_le g₁ g₂ (f₁ ⊕ f₂) gf₁f₂ g₂f₁f₂
     })
 
--- def TuringDegree.le : (a b : TuringDegree) -> Prop :=
---   fun a b => Quotient.
 
--- Can't even define
--- lemma TuringDegree.add_le {a b : TuringDegree} : a ≤ᵀ a.add(b) := sorry
-
-#check TuringReducible.trans
-
-lemma use_function_from_oracle
-  (f : ℕ → ℕ) (g : ℕ → ℕ →. ℕ) (hf : RecursiveIn O f) (hg : RecursiveIn₂ O g)
-  : RecursiveIn O (λ n => g n (f n)) := by
-  sorry
+infix :50 " ⊕ " => TuringDegree.add

@@ -66,6 +66,9 @@ inductive RecursiveIn (O : Set (ℕ →. ℕ)) : (ℕ →. ℕ) → Prop
       RecursiveIn O fun a =>
         Nat.rfind fun n => (fun m => m = 0) <$> f (Nat.pair a n)
 
+
+
+
 def liftPrim {α σ} [Primcodable α] [Primcodable σ] (f : α →. σ) : ℕ →. ℕ :=
   fun n => Part.bind (decode (α := α) n) fun a => (f a).map encode
 
@@ -124,6 +127,8 @@ theorem Primrec.to_computableIn {α σ} [Primcodable α] [Primcodable σ]
     {f : α → σ} (hf : Primrec f) (O : Set (ℕ →. ℕ)) :
     ComputableIn O f := Computable.computableIn (Primrec.to_comp hf)
 
+#check (@Primrec.pair _ _ _ _ _ _ (fun _ => 1) (fun _ => 2) (Primrec.const 1) (Primrec.const 2)).to_computableIn
+
 nonrec theorem Primrec₂.to_computableIn₂ {α β σ} [Primcodable α] [Primcodable β] [Primcodable σ]
     {f : α → β → σ} (hf : Primrec₂ f) (O : Set (ℕ →. ℕ)) :
     ComputableIn₂ O f :=
@@ -170,6 +175,17 @@ theorem sumInl_in (O : Set (ℕ →. ℕ)) : ComputableIn O (@Sum.inl α β) :=
 
 theorem sumInr_in (O : Set (ℕ →. ℕ)) : ComputableIn O (@Sum.inr α β) :=
   Primrec.to_computableIn Primrec.sumInr O
+
+-- def pair_funcs (f h : ℕ →. ℕ) : ℕ →. ℕ :=
+--   fun n => Nat.pair <$> f n <*> h n
+
+-- def p := pair_funcs (fun _ => Part.some 2) (fun _ => Part.some 3) -- (fun n => if n % 2 = 0 then Part.some 1 else Part.none)
+
+-- lemma pairing_option_outputs_recursive : RecursiveIn {} p := by
+--   unfold p
+--   apply RecursiveIn.pair
+--   sorry
+--   sorry
 
 /--
 If a function is recursive in the constant zero function,
