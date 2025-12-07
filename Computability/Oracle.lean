@@ -5,6 +5,7 @@ Authors: Tanner Duve, Elan Roth
 -/
 import Mathlib.Computability.Partrec
 import Mathlib.Order.Antisymmetrization
+import Mathlib.Tactic.Cases
 
 /-!
 # Oracle Computability
@@ -200,7 +201,8 @@ every partial function `g`.
 theorem partrec_iff_forall_recursiveIn : Nat.Partrec f ↔ ∀ g, RecursiveIn {g} f:=
   ⟨fun hf _ ↦ hf.recursiveIn, (· _ |>.partrec_of_zero)⟩
 
-@[simp] lemma recursiveIn_empty_iff_partrec : RecursiveIn {} f ↔ Nat.Partrec f  where
+@[simp]
+lemma recursiveIn_empty_iff_partrec : RecursiveIn {} f ↔ Nat.Partrec f  where
   mp fRecInNone := by
     induction' fRecInNone with g hg g h _ _ ih₁ ih₂ g h _ _ ih₁ ih₂ g h _ _ ih₁ ih₂ g _ ih
     repeat {constructor}

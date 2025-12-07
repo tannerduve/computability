@@ -75,7 +75,25 @@ abbrev W [Primcodable α] (e : ℕ) (f : α → ℕ →. ℕ) := (evalo f (decod
 
 notation:100 f"⌜" => jump f
 
-theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by sorry
+theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
+  have h_eq : ∀ n, (jump f (s n)) = f n := by
+    intro n;
+    have evalo_const : ∀ n x, evalo (λ _ : Unit => f) (const n) x = Part.some n := by
+      intro n x; induction' n with n ih generalizing x <;> simp [ *, const ] ;
+      · rfl;
+      · simp [evalo, ih];
+    unfold jump s;
+    rw [ decodeCodeo_encodeCodeo ] ; simp [ *, evalo ] ;
+  have h_s : RecursiveIn {jump f} (fun n => Part.some (s n)) := by
+    apply RecursiveIn.of_primrec;
+    apply s_primrec;
+  have h_jump : RecursiveIn {jump f} (jump f) := by
+    apply RecursiveIn.oracle;
+    norm_num at *;
+  have h_comp : RecursiveIn {jump f} (fun n => jump f (s n)) := by
+    convert RecursiveIn.comp h_jump h_s using 1;
+    ext; simp [ bind ];
+  exact RecursiveIn.of_eq h_comp h_eq
 
 theorem jump_not_reducible (f : ℕ →. ℕ) : ¬(f⌜ ≤ᵀ f) := by sorry
 
@@ -97,10 +115,26 @@ theorem re_in_trans (A : Set ℕ) (f h : ℕ →. ℕ) :
   exact TuringReducible.trans tred fh
   exact hA
 
+/-- 5. `g ≤ᵀ f` iff the halting set relative to `g`
+    is 1-1 reducible to the halting set relative to `f` -/
 theorem jump_reducible_iff (f g : ℕ →. ℕ) :
-  g ≤ᵀ f ↔ g⌜ ≤ᵀ f⌜ := by sorry
+  g ≤ᵀ f ↔ OneOneReducible (g⌜).Dom (f⌜).Dom := by
+  sorry
 
+/-- 6. If `g ≡ᵀ f` then their jumps are 1-1 equivalent. -/
 theorem jump_equiv (f g : ℕ →. ℕ) :
-  g ≡ᵀ f ↔ g⌜ ≡ᵀ f⌜ := by sorry
-
-#check StateM
+  g ≡ᵀ f ↔
+    (OneOneReducible (g⌜).Dom (f⌜).Dom ∧
+     OneOneReducible (f⌜).Dom (g⌜).Dom) := by
+  constructor
+  · intro h
+    have h_equiv : g ≤ᵀ f ∧ f ≤ᵀ g := by
+      exact h;
+    have := @jump_reducible_iff g f ; have := @jump_reducible_iff f g ; aesop
+  · intro h
+    have h_turing_equiv : (jump g).Dom ≤₁ (jump f).Dom → g ≤ᵀ f := by
+      rw [ jump_reducible_iff ] at *;
+      grind;
+    have h_turing_equiv' : (jump f).Dom ≤₁ (jump g).Dom → f ≤ᵀ g := by
+      exact fun a ↦ (fun f g ↦ (jump_reducible_iff f g).mpr) g f a;
+    exact ⟨ h_turing_equiv h.1, h_turing_equiv' h.2 ⟩
