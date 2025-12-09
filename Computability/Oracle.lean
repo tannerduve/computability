@@ -5,6 +5,7 @@ Authors: Tanner Duve, Elan Roth
 -/
 import Mathlib.Computability.Partrec
 import Mathlib.Order.Antisymmetrization
+import Mathlib.Logic.Encodable.Basic
 import Mathlib.Tactic.Cases
 
 /-!
@@ -67,11 +68,34 @@ inductive RecursiveIn (O : Set (ℕ →. ℕ)) : (ℕ →. ℕ) → Prop
       RecursiveIn O fun a =>
         Nat.rfind fun n => (fun m => m = 0) <$> f (Nat.pair a n)
 
+namespace Nat
+/-- The primitive recursive functions `ℕ → ℕ`. -/
+protected inductive PrimrecIn (O : Set (ℕ → ℕ)): (ℕ → ℕ) → Prop
+  | zero : Nat.PrimrecIn O fun _ => 0
+  | protected succ : Nat.PrimrecIn O succ
+  | left : Nat.PrimrecIn O fun n => n.unpair.1
+  | right : Nat.PrimrecIn O fun n => n.unpair.2
+  | oracle : ∀ g ∈ O, Nat.PrimrecIn O g
+  | pair {f g} : Nat.PrimrecIn O f → Nat.PrimrecIn O g → Nat.PrimrecIn O fun n => pair (f n) (g n)
+  | comp {f g} : Nat.PrimrecIn O f → Nat.PrimrecIn O g → Nat.PrimrecIn O fun n => f (g n)
+  | prec {f g} :
+      Nat.PrimrecIn O f →
+        Nat.PrimrecIn O g →
+          Nat.PrimrecIn O (unpaired fun z n => n.rec (f z) fun y IH => g <| pair z <| pair y IH)
+end Nat
+
 def liftPrim {α σ} [Primcodable α] [Primcodable σ] (f : α →. σ) : ℕ →. ℕ :=
   fun n => Part.bind (decode (α := α) n) fun a => (f a).map encode
 
+def liftPrimrec {α σ} [Primcodable α] [Primcodable σ] (f : α → σ) : ℕ → ℕ :=
+  fun n => (decode (α := α) n).map (fun a => encode (f a)) |>.getD 0
+
 def RecursiveIn' {α σ} [Primcodable α] [Primcodable σ] (O : Set (ℕ →. ℕ)) (f : α →. σ) : Prop :=
   RecursiveIn O (liftPrim f)
+
+/-- Relative primitive recursion between primcodable types -/
+def PrimrecIn' {α σ} [Primcodable α] [Primcodable σ] (O : Set (ℕ → ℕ)) (f : α → σ) : Prop :=
+  Nat.PrimrecIn O (liftPrimrec f)
 
 /-- A binary partial function is recursive in `O` if the curried form is. -/
 def RecursiveIn₂ {α β σ} [Primcodable α] [Primcodable β] [Primcodable σ]
@@ -94,7 +118,6 @@ theorem RecursiveIn.of_eq {f g : ℕ →. ℕ} (hf : RecursiveIn O f) (H : ∀ n
 theorem RecursiveIn.of_eq_tot {f : ℕ →. ℕ} {g : ℕ → ℕ} (hf : RecursiveIn O f)
     (H : ∀ n, g n ∈ f n) : RecursiveIn O g :=
   hf.of_eq fun n => eq_some_iff.2 (H n)
-
 /--
 If a function is partial recursive, then it is recursive in every partial function.
 -/

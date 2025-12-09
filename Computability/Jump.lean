@@ -95,6 +95,49 @@ theorem jump_recIn (f : ℕ →. ℕ) : f ≤ᵀ (f⌜) := by
     ext; simp [ bind ];
   exact RecursiveIn.of_eq h_comp h_eq
 
+def ComputablePredIn (f : ℕ →. ℕ) [Primcodable α] (p : α → Prop) :=
+  ∃ (_ : DecidablePred p), ComputableIn {f} (fun n => decide (p n))
+
+def REPredIn (f : ℕ →. ℕ) (p : ℕ → Prop) :=
+  ∃ g : ℕ →. ℕ, RecursiveIn {f} g ∧ p = fun n => (g n).Dom
+
+theorem dom_re_in_jump (f : ℕ →. ℕ) :
+  REPredIn (f⌜) (fun n => (f n).Dom) :=
+by
+  refine ⟨f, ?_, rfl⟩
+  exact jump_recIn f
+
+section decide
+
+variable {α} [Primcodable α]
+
+protected lemma ComputablePredIn.decide {p : α → Prop} {f : ℕ →. ℕ} [DecidablePred p] (hp : ComputablePredIn f p) :
+    ComputableIn {f} (fun a => decide (p a)) := by
+  convert hp.choose_spec
+
+lemma ComputableIn.computablePred {p : α → Prop} [DecidablePred p]
+    (hp : Computable (fun a => decide (p a))) : ComputablePred p :=
+  ⟨inferInstance, hp⟩
+
+lemma computablePredIn_iff_computableIn_decide {p : α → Prop} [DecidablePred p] :
+    ComputablePred p ↔ Computable (fun a => decide (p a)) where
+  mp := ComputablePred.decide
+  mpr := Computable.computablePred
+
+/-- `PrimrecPred p` means `p : α → Prop` is a
+  primitive recursive predicate, which is to say that
+  `decide ∘ p : α → Bool` is primitive recursive. -/
+def PrimrecPredIn {α} [Primcodable α] {f : ℕ → ℕ} (p : α → Prop) :=
+  ∃ (_ : DecidablePred p), PrimrecIn' {f} fun a => decide (p a)
+
+end decide
+
+def Kf (f : ℕ →. ℕ) (n : ℕ) : Prop := (jump f n).Dom
+
+theorem rel_halting_not_computable (f : ℕ →. ℕ) :
+  ¬ ComputablePredIn f (Kf f) :=
+by sorry
+
 theorem jump_not_reducible (f : ℕ →. ℕ) : ¬(f⌜ ≤ᵀ f) := by sorry
 
 theorem re_iff_one_one_jump  (A : Set ℕ) (f : ℕ →. ℕ) :
