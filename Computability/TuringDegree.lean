@@ -859,17 +859,17 @@ theorem sup_mk (f g : ℕ →. ℕ) :
     TuringDegree.sup (toAntisymmetrization TuringReducible f) (toAntisymmetrization TuringReducible g) =
     toAntisymmetrization TuringReducible (f ⊕ g) := rfl
 
-theorem le_sup_left' (a b : TuringDegree) : a ≤ TuringDegree.sup a b := by
+theorem le_sup_left (a b : TuringDegree) : a ≤ TuringDegree.sup a b := by
   induction a using Quotient.inductionOn'
   induction b using Quotient.inductionOn'
   exact left_le_join _ _
 
-theorem le_sup_right' (a b : TuringDegree) : b ≤ TuringDegree.sup a b := by
+theorem le_sup_right (a b : TuringDegree) : b ≤ TuringDegree.sup a b := by
   induction a using Quotient.inductionOn'
   induction b using Quotient.inductionOn'
   exact right_le_join _ _
 
-theorem sup_le' {a b c : TuringDegree} (ha : a ≤ c) (hb : b ≤ c) :
+theorem sup_le {a b c : TuringDegree} (ha : a ≤ c) (hb : b ≤ c) :
     TuringDegree.sup a b ≤ c := by
   induction a using Quotient.inductionOn'
   induction b using Quotient.inductionOn'
@@ -877,10 +877,10 @@ theorem sup_le' {a b c : TuringDegree} (ha : a ≤ c) (hb : b ≤ c) :
   exact join_le _ _ _ ha hb
 
 instance instSemilatticeSup : SemilatticeSup TuringDegree where
-  sup := TuringDegree.sup
-  le_sup_left := TuringDegree.le_sup_left'
-  le_sup_right := TuringDegree.le_sup_right'
-  sup_le _ _ _ := TuringDegree.sup_le'
+  sup := sup
+  le_sup_left := le_sup_left
+  le_sup_right := le_sup_right
+  sup_le _ _ _ := sup_le
 
 /-- The sup on Turing degrees agrees with the Turing join on representatives. -/
 @[simp]
