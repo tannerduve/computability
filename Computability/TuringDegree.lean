@@ -7,6 +7,7 @@ import Computability.Oracle
 import Mathlib.Tactic.Cases
 import Mathlib.Tactic.NormNum
 import Aesop
+import Mathlib.Computability.Halting
 
 /-!
 # Turing Reducibility and Turing Degrees
@@ -444,8 +445,133 @@ lemma right_le_join (f g : ℕ →. ℕ) : g ≤ᵀ (f ⊕ g) := by
     exact funext fun n => by simp +decide ;
   simpa only [ ← h_turing_join ] using h_rec_in
 
-lemma join_le (f g h : ℕ →. ℕ) (hf : f ≤ᵀ h) (hg : g ≤ᵀ h) : (f ⊕ g) ≤ᵀ h := by
+theorem RecursiveIn_cond {O : Set (ℕ →. ℕ)} {c : ℕ → Bool} {f g : ℕ →. ℕ}
+    (hc : Computable c) (hf : RecursiveIn O f) (hg : RecursiveIn O g) :
+    RecursiveIn O (fun n => cond (c n) (f n) (g n)) := by
+  let eq01 : ℕ →. ℕ := fun p => if (Nat.unpair p).1 = (Nat.unpair p).2 then 0 else 1
+  have hComp : Computable (fun p : ℕ => if (Nat.unpair p).1 = (Nat.unpair p).2 then 0 else 1) := by
+    have hDec : Computable (fun p : ℕ => decide ((Nat.unpair p).1 = (Nat.unpair p).2)) := by
+      have hDec2 : Computable (fun q : ℕ × ℕ => decide (q.1 = q.2)) := by
+        simpa using ((Primrec.eq (α := ℕ)).decide : Primrec₂ (fun a b : ℕ => decide (a = b))).to_comp
+      simpa [Function.comp] using hDec2.comp (Computable.unpair)
+    have h0 : Computable (fun _ : ℕ => (0:ℕ)) := Computable.const 0
+    have h1 : Computable (fun _ : ℕ => (1:ℕ)) := Computable.const 1
+    sorry
+  have hPart : _root_.Partrec (fun p : ℕ => if (Nat.unpair p).1 = (Nat.unpair p).2 then 0 else 1 : ℕ →. ℕ) :=
+    sorry
+  have hNatPart : Nat.Partrec eq01 := (Partrec.nat_iff).1 hPart
   sorry
+
+theorem RecursiveIn_subst {O O' : Set (ℕ →. ℕ)} {f : ℕ →. ℕ} (hf : RecursiveIn O f)
+    (hO : ∀ g, g ∈ O → RecursiveIn O' g) : RecursiveIn O' f := by
+  induction hf with
+  | zero =>
+      simpa using (RecursiveIn.zero (O := O'))
+  | succ =>
+      simpa using (RecursiveIn.succ (O := O'))
+  | left =>
+      simpa using (RecursiveIn.left (O := O'))
+  | right =>
+      simpa using (RecursiveIn.right (O := O'))
+  | oracle g hg =>
+      exact hO g hg
+  | pair hf hg ihf ihg =>
+      exact RecursiveIn.pair ihf ihg
+  | comp hf hg ihf ihg =>
+      exact RecursiveIn.comp ihf ihg
+  | prec hf hg ihf ihg =>
+      exact RecursiveIn.prec ihf ihg
+  | rfind hf ihf =>
+      exact RecursiveIn.rfind ihf
+
+theorem turingJoin_recursiveIn_pair (f g : ℕ →. ℕ) : RecursiveIn ({f, g} : Set (ℕ →. ℕ)) (f ⊕ g) := by
+  let O : Set (ℕ →. ℕ) := ({f, g} : Set (ℕ →. ℕ))
+
+  let payload : ℕ →. ℕ := fun n => (Nat.div2 n : ℕ)
+  let dbl : ℕ →. ℕ := fun n => (2 * n : ℕ)
+  let dbl1 : ℕ →. ℕ := fun n => (2 * n + 1 : ℕ)
+
+  have hpayload : RecursiveIn O payload := by
+    refine RecursiveIn.of_primrec (O := O) ?_
+    exact (Primrec.nat_iff.1 (by simpa using (Primrec.nat_div2 : Primrec Nat.div2)))
+
+  have hdbl : RecursiveIn O dbl := by
+    refine RecursiveIn.of_primrec (O := O) ?_
+    have hprim : Primrec (fun n : ℕ => 2 * n) :=
+      Primrec.nat_mul.comp (Primrec.const 2) Primrec.id
+    exact (Primrec.nat_iff.1 hprim)
+
+  have hdbl1 : RecursiveIn O dbl1 := by
+    refine RecursiveIn.of_primrec (O := O) ?_
+    have hprim : Primrec (fun n : ℕ => 2 * n + 1) :=
+      Primrec.nat_add.comp
+        (Primrec.nat_mul.comp (Primrec.const 2) Primrec.id)
+        (Primrec.const 1)
+    exact (Primrec.nat_iff.1 hprim)
+
+  have hfO : RecursiveIn O f := RecursiveIn.oracle f (by simp [O])
+  have hgO : RecursiveIn O g := RecursiveIn.oracle g (by simp [O])
+
+  let evenBranch : ℕ →. ℕ := fun n => (payload n >>= f) >>= dbl
+  let oddBranch : ℕ →. ℕ := fun n => (payload n >>= g) >>= dbl1
+
+  have heven : RecursiveIn O evenBranch := by
+    have h1 : RecursiveIn O (fun n => payload n >>= f) := RecursiveIn.comp hfO hpayload
+    have h2 : RecursiveIn O (fun n => (payload n >>= f) >>= dbl) := RecursiveIn.comp hdbl h1
+    simpa [evenBranch] using h2
+
+  have hodd : RecursiveIn O oddBranch := by
+    have h1 : RecursiveIn O (fun n => payload n >>= g) := RecursiveIn.comp hgO hpayload
+    have h2 : RecursiveIn O (fun n => (payload n >>= g) >>= dbl1) := RecursiveIn.comp hdbl1 h1
+    simpa [oddBranch] using h2
+
+  have hc : Computable Nat.bodd := by
+    simpa using (Computable.nat_bodd : Computable Nat.bodd)
+
+  have hcond :
+      RecursiveIn O (fun n => cond (Nat.bodd n) (oddBranch n) (evenBranch n)) :=
+    RecursiveIn_cond (O := O) (c := Nat.bodd) (f := oddBranch) (g := evenBranch) hc hodd heven
+
+  refine (RecursiveIn.of_eq (O := O) hcond ?_)
+  intro n
+  cases hb : Nat.bodd n with
+  | false =>
+      have hdn : Denumerable.ofNat (ℕ ⊕ ℕ) n = Sum.inl n.div2 := by
+        refine Denumerable.ofNat_of_decode (α := ℕ ⊕ ℕ) (n := n) (b := Sum.inl n.div2) ?_
+        simp [-Denumerable.decode_eq_ofNat, Encodable.decode_sum_val, Encodable.decodeSum,
+          Nat.boddDiv2_eq, hb]
+      simp [turingJoin, liftPrimcodable, gjoin, payload, dbl, dbl1, evenBranch, oddBranch,
+        hb, hdn, O, Part.bind_some_eq_map, Part.map_map]
+      have hfun : (encode ∘ fun b : ℕ => (Sum.inl b : ℕ ⊕ ℕ)) = (HMul.hMul 2) := by
+        funext b
+        simp [Function.comp]
+      simpa [hfun]
+  | true =>
+      have hdn : Denumerable.ofNat (ℕ ⊕ ℕ) n = Sum.inr n.div2 := by
+        refine Denumerable.ofNat_of_decode (α := ℕ ⊕ ℕ) (n := n) (b := Sum.inr n.div2) ?_
+        simp [-Denumerable.decode_eq_ofNat, Encodable.decode_sum_val, Encodable.decodeSum,
+          Nat.boddDiv2_eq, hb]
+      simp [turingJoin, liftPrimcodable, gjoin, payload, dbl, dbl1, evenBranch, oddBranch,
+        hb, hdn, O, Part.bind_some_eq_map, Part.map_map]
+      have hfun : (encode ∘ fun b : ℕ => (Sum.inr b : ℕ ⊕ ℕ)) = (fun y : ℕ => 2 * y + 1) := by
+        funext b
+        simp [Function.comp]
+      simpa [hfun]
+
+
+theorem join_le (f g h : ℕ →. ℕ) (hf : TuringReducible f h) (hg : TuringReducible g h) : TuringReducible (f ⊕ g) h := by
+  unfold TuringReducible at *
+  have hj : RecursiveIn ({f, g} : Set (ℕ →. ℕ)) (f ⊕ g) := turingJoin_recursiveIn_pair f g
+  have hO : ∀ k, k ∈ ({f, g} : Set (ℕ →. ℕ)) → RecursiveIn ({h} : Set (ℕ →. ℕ)) k := by
+    intro k hk
+    have hk' : k = f ∨ k = g := by
+      simpa [Set.mem_insert_iff, Set.mem_singleton_iff] using hk
+    cases hk' with
+    | inl hkf =>
+        simpa [hkf] using hf
+    | inr hkg =>
+        simpa [hkg] using hg
+  exact RecursiveIn_subst (O := ({f, g} : Set (ℕ →. ℕ))) (O' := ({h} : Set (ℕ →. ℕ))) (f := (f ⊕ g)) hj hO
 
 def TuringDegree.add (a b : TuringDegree) : TuringDegree :=
   Quotient.liftOn₂ a b (fun f g => ⟦f ⊕ g⟧)
