@@ -225,20 +225,44 @@ theorem partrec_iff_forall_recursiveIn : Nat.Partrec f ↔ ∀ g, RecursiveIn {g
   ⟨fun hf _ ↦ hf.recursiveIn, (· _ |>.partrec_of_zero)⟩
 
 @[simp]
-lemma recursiveIn_empty_iff_partrec : RecursiveIn {} f ↔ Nat.Partrec f  where
-  mp fRecInNone := by
-    induction' fRecInNone with g hg g h _ _ ih₁ ih₂ g h _ _ ih₁ ih₂ g h _ _ ih₁ ih₂ g _ ih
-    repeat {constructor}
-    · simp at hg
-    repeat {constructor; assumption; try assumption}
-  mpr pF := by
-    induction' pF with f' g' _ _ ih₁ ih₂ f' g' _ _ ih₁ ih₂ f' g' _ _ ih₁ ih₂ f' _ ih
-    repeat {constructor}
-    · case pair =>
-      apply RecursiveIn.pair ih₁ ih₂
-    · case comp =>
-      apply RecursiveIn.comp ih₁ ih₂
-    · case prec =>
-      apply RecursiveIn.prec ih₁ ih₂
-    · case rfind =>
-      apply RecursiveIn.rfind ih
+lemma recursiveIn_empty_iff_partrec : RecursiveIn {} f ↔ Nat.Partrec f := by
+  constructor
+  · intro hf
+    induction hf with
+    | zero | succ | left | right =>
+        constructor
+    | oracle g hg => cases hg
+    | pair _ _ ih₁ ih₂ => exact .pair ih₁ ih₂
+    | comp _ _ ih₁ ih₂ => exact .comp ih₁ ih₂
+    | prec _ _ ih₁ ih₂ => exact .prec ih₁ ih₂
+    | rfind _ ih => exact .rfind ih
+  · intro hf
+    exact Nat.Partrec.recursiveIn (O := ({} : Set (ℕ →. ℕ))) hf
+
+theorem recursiveIn_mono {O₁ O₂ : Set (ℕ →. ℕ)} (hsub : O₁ ⊆ O₂) {g : ℕ →. ℕ} :
+      RecursiveIn O₁ g → RecursiveIn O₂ g := by
+  intro hg
+  induction hg with
+  | zero | succ | left | right =>
+      constructor
+  | oracle g hg =>
+      exact RecursiveIn.oracle g (hsub hg)
+  | pair _ _ ih₁ ih₂ =>
+      exact RecursiveIn.pair ih₁ ih₂
+  | comp _ _ ih₁ ih₂ =>
+      exact RecursiveIn.comp ih₁ ih₂
+  | prec _ _ ih₁ ih₂ =>
+      exact RecursiveIn.prec ih₁ ih₂
+  | rfind _ ih =>
+      exact RecursiveIn.rfind ih
+
+theorem RecursiveIn_subst {O O' : Set (ℕ →. ℕ)} {f : ℕ →. ℕ} (hf : RecursiveIn O f)
+    (hO : ∀ g, g ∈ O → RecursiveIn O' g) : RecursiveIn O' f := by
+  induction hf with
+  | zero | succ | left | right =>
+      constructor
+  | oracle g hg => exact hO g hg
+  | pair _ _ ihf ihg => exact .pair ihf ihg
+  | comp _ _ ihf ihg => exact .comp ihf ihg
+  | prec _ _ ihf ihg => exact .prec ihf ihg
+  | rfind _ ihf => exact .rfind ihf
