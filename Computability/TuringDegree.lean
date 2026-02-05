@@ -677,7 +677,6 @@ theorem RecursiveIn_cond_core_rfind {O : Set (ℕ →. ℕ)} {c : ℕ → Bool} 
   let φ : ℕ → Bool := fun m => decide (m = 0)
   cases hn : c n with
   | true =>
-      -- reduce RHS
       simp [_root_.cond]
       have hpred : (fun k => Part.map φ (cmp (Nat.pair n k))) =
           (fun k => Part.map φ (((Nat.pair <$> f n <*> Part.some k) >>= eq01))) := by
@@ -686,8 +685,6 @@ theorem RecursiveIn_cond_core_rfind {O : Set (ℕ →. ℕ)} {c : ℕ → Bool} 
           simp [cmp, t1, t2, c1, c2, eqF, eqG, mulPair, hn, Nat.unpair_pair, Nat.unpaired,
             Seq.seq, Part.bind_assoc, Part.bind_some, Part.bind_some_right]
         simp [hcmpk]
-      -- rewrite predicate and apply axiom
-      -- goal is Nat.rfind ... = f n
       rw [hpred]
       exact eq01_rfind (v := f n)
   | false =>
